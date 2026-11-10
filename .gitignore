@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build / caches
+dist/
+build/
+coverage/
+.expo/
+.metro-health-check*
+*.tsbuildinfo
+
+# Android
+android/app/build/
+android/.gradle/
+android/local.properties
+*.keystore
+!debug.keystore
+*.apk
+*.aab
+
+# iOS
+ios/Pods/
+ios/build/
+*.xcworkspace/xcuserdata/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log
