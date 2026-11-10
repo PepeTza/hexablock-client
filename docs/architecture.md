@@ -171,6 +171,7 @@ comfort; affinity with the course language (TypeScript).
 | D-13 | Level creation is protected: admin role in the JWT and an admin web panel served by the backend, with a level editor on the hex grid; current scope: create levels and configure seeds |
 | D-14 | Hexa Fit keeps a per-level leaderboard, ranked by level score (RN-18); the global one ranks by the sum of scores (RN-34) |
 | D-15 | The admin configures the seed mode (fixed or random) of Hexa Lines, Hexa Merge and each Hexa Sort level; the seed is shown at the end (RN-05) |
+| — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |
 
