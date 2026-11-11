@@ -108,8 +108,9 @@ level in Sort. Invariant: if the mode is fixed, it has a value.
 **Value objects:** `Figure`, `StarThresholds`, the parameters of a Sort level,
 `SeedMode`.
 
-**Domain services:** level validator (with solution search) and candidate
-generator (D-09).
+**Domain services:** level validators, one per level-based variant behind
+`ILevelValidator` (Fit searches for a solution), and the candidate generator
+(D-09).
 
 **Factory:** the level Builder.
 
