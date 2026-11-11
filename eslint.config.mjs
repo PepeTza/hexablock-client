@@ -1,7 +1,11 @@
-// ESLint flat config. Layer and variant boundaries are added in a separate
-// task (issue #8); this file only sets the TypeScript baseline.
+// ESLint flat config: the TypeScript baseline plus the layer and variant
+// boundaries of Clean Architecture (eslint-boundaries.config.js, issue #8).
 import prettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
+
+import boundaries from './eslint-boundaries.config.js';
+
+const { layerBoundaries, discoverVariants, VARIANTS_DIR } = boundaries;
 
 export default tseslint.config(
   {
@@ -31,6 +35,7 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
     },
   },
+  ...layerBoundaries(discoverVariants(VARIANTS_DIR)),
   // Must stay last: turns off rules that conflict with Prettier.
   prettier,
 );
