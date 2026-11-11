@@ -197,6 +197,7 @@ comfort; affinity with the course language (TypeScript).
 | D-18 | Admin panel with Vite + React + TypeScript (2026-11-11): the same React as the app; no server rendering is needed, so Next.js was not chosen; React Native Web was not chosen because Skia on the web is complex. The level editor draws the hex grid with SVG |
 | D-19 | The admin panel imports the domain through a `@domain` path alias to `src/domain` (2026-11-11), with no shared package (D-16). The panel is an outer layer importing the innermost one, which the dependency rule allows; lint forbids it from importing anything else |
 | D-20 | Navigation with React Navigation (2026-11-11): screens are declared in code inside `src/frameworks/ui`; Expo Router was not chosen because it derives routes from an `app/` folder outside the layers |
+| D-21 | Pointy-top hexagons with axial coordinates (2026-11-11): the six directions are east, south-east, south-west, west, north-west and north-east (`HexDirection`), and rows run west to east. The renderer and the Hexa Merge swipe use the same orientation. Directions and axes are declared by each geometry, so another cell shape is a new `IBoardGeometry` in its own file |
 | — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |
