@@ -3,9 +3,9 @@
 <!-- Badges: added when CI is set up (build status, tests, coverage). -->
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 
-> **Status:** pre-implementation. The repository currently holds the
-> documentation, contribution rules and agent harness. Code starts in the next
-> iteration.
+> **Status:** iteration I0 (foundations). The Expo app with strict TypeScript,
+> ESLint, Prettier, Jest and commit hooks is in place; the generic engine starts
+> in I1. See [`docs/implementation-plan.md`](./docs/implementation-plan.md).
 
 ## Description
 

@@ -98,6 +98,29 @@ One entry per significant use. Copy the template.
   undecided points as rules (fixed level ids, file naming); they were
   rewritten as open questions before committing.
 
+### 2026-11-11 — Plan and documentation review
+
+- **Tool / model:** Claude Code, claude-fable-5-1.
+- **Issue / PR:** no issue; branch `claude/tender-babbage-cx0n60` in both
+  repositories.
+- **Prompt (paraphrase):** review the implementation plan against the
+  documents of both repositories and note, in a separate document, the
+  inconsistencies, missing files and wrong data; then write a note for the
+  team on the problems of the open pull requests and a pull request that
+  corrects the documents, explaining every decision before opening it.
+- **Result:** `docs/plan-review-2026-11-11.md` (23 findings); the corrections
+  of the plan, `architecture.md`, `requirements.md`, `use-cases.md`,
+  `README.md`, `CONTRIBUTING.md` and the backend contract; a team note on the
+  open pull requests.
+- **Team modifications:** to be recorded after the review of the pull
+  request.
+- **Lessons / limitations:** the AI found that two open pull requests had
+  resolved merge conflicts by deleting another member's rows and entries,
+  something a human review of the diff would also catch if it looked at
+  removed lines, not only added ones. The AI's own commits in the cloud
+  session came out authored as `Claude` (the problem it was reporting), so
+  the git identity must be set at the start of every session.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

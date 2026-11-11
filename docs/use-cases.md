@@ -736,4 +736,7 @@ is invalid (`400`).
 **Design note (CU-17 and CU-18):** the panel lives in the client repo and
 imports the game's level validators directly (D-16), so it never approves a
 level the game considers invalid. The server only checks the format, and the
-game validates every level again when it downloads it (CU-15 A2).
+game validates every level again when it downloads it (CU-15 A2). Where these
+two use cases and the panel's login (CU-11 A4) live, in `src/application` or
+inside `admin/`, is decision 19 of the
+[implementation plan](./implementation-plan.md#7-pending-decisions).
