@@ -153,6 +153,41 @@ One entry per significant use. Copy the template.
   session came out authored as `Claude` (the problem it was reporting), so
   the git identity must be set at the start of every session.
 
+### 2026-11-11 — Layer and variant boundaries (issue #8)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5.
+- **Issue / PR:** #8.
+- **Prompt (paraphrase):** pick the open issues that do not wait for other
+  members, then implement #8 through the harness, explaining every concept
+  and decision before writing code.
+- **Result:** `eslint-boundaries.config.js` with `no-restricted-imports`
+  blocks per layer and per variant, wired into `eslint.config.mjs`; the
+  `@domain`, `@application`, `@adapters` and `@frameworks` aliases in
+  `tsconfig.json` and `jest.config.js`; a Jest test with 13 cases that runs
+  the rules on sample imports.
+- **Team modifications:**
+  - The issue said adapters may import frameworks "except the composition
+    root". The AI pointed out that the composition root lives in
+    `frameworks/` and imports adapters, never the reverse; the team approved
+    a rule with no exception.
+  - The AI first planned a hand-written list of variant names. While
+    explaining it, it proposed reading the folders of `src/domain/variants`
+    instead, so a fifth variant needs no lint change; the team chose that.
+  - The `admin/` rule was left to #7 because decision 19 (what the panel may
+    import) is still open. The AI recommended allowing `src/domain` and
+    `src/application`; the team has not recorded the decision yet.
+  - The team member set the git author for all future cloud sessions
+    through environment variables, after the identity problem came up in
+    three sessions.
+- **Lessons / limitations:** the plan said the test would run ESLint as a
+  separate process with an `.mjs` config; during the build the AI switched
+  to ESLint's `Linter` class inside Jest and a CommonJS config file, which
+  was simpler, and reported the change at gate 3. A first run reported two
+  errors for one aliased import (two patterns matched it); the pattern was
+  narrowed before committing. The AI needed several explanations with
+  examples (folder tree, what a linter and an alias are) before the plan
+  could be approved: explaining the concepts first would have saved time.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
