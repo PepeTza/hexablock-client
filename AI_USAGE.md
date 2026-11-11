@@ -112,7 +112,9 @@ One entry per significant use. Copy the template.
     `src/application` exists.
   - The AI's first attempt to normalise line endings changed nothing; this
     was noticed because the before and after counts were identical.
-  - Not verified: the app has not been opened on a phone or emulator.
+  - Verified by opening the app with Expo Go on an Android emulator (done by
+    the AI, with a screenshot and a log check) and on a real phone (done by
+    the team member).
 
 ## 3. Critical evaluation
 
