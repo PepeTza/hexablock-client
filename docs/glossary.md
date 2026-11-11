@@ -73,7 +73,7 @@ no synonyms: if a concept is missing, add it here first.
 |---|---|---|
 | Guest / Player | Invitado / Jugador | Plays without an account / with an account |
 | Administrator | Administrador | Manages levels and seeds |
-| Admin panel | Panel de administración | The backend web app for the administrator |
+| Admin panel | Panel de administración | The web app for the administrator, in the client repo (`admin/`) |
 | Level editor | Editor de niveles | The part of the panel where levels are created |
 | Leaderboard | Ranking | The score ranking |
 | Sync | Sincronización | Sending local progress to the server |

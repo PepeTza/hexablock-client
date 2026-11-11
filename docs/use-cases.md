@@ -692,8 +692,9 @@ abandon the current game.
    least one colour and at least one goal.
 5. In Sort, chooses the level's seed mode (required; "random" is selected by
    default).
-6. Taps "publish": the server validates again, assigns the next place in the
-   order and stores it as immutable (RN-37). In Sort it also stores its seed
+6. Taps "publish": the server checks the admin role and the format of the
+   level, assigns the next place in the order and stores it as immutable
+   (RN-37). In Sort it also stores its seed
    configuration (CU-18).
 
 **Alternative flows**
@@ -732,6 +733,7 @@ is invalid (`400`).
 
 **Result:** the seed configuration is updated for subsequent games.
 
-**Design note (CU-17 and CU-18):** the panel's validator is the same code the
-game uses, thanks to the shared domain package (D-16), so the panel never
-approves a level the game considers invalid.
+**Design note (CU-17 and CU-18):** the panel lives in the client repo and
+imports the game's level validators directly (D-16), so it never approves a
+level the game considers invalid. The server only checks the format, and the
+game validates every level again when it downloads it (CU-15 A2).

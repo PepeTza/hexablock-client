@@ -166,8 +166,9 @@ comfort; affinity with the course language (TypeScript).
 | D-05 | Test coverage: 80 % in domain and use cases; Pact contract tests between client and backend |
 | D-10 | Backend deployed online, with the database on Supabase |
 | D-11 | All documentation in English |
-| D-12 | Basic server-side score validation (RN-39), with replay as an optional improvement; the leaderboard shows the top 50 and the player's position |
-| D-13 | Level creation is protected: admin role in the JWT and an admin web panel served by the backend, with a level editor on the hex grid; current scope: create levels and configure seeds |
+| D-12 | Basic server-side score validation (RN-39); the leaderboard shows the top 50 and the player's position |
+| D-13 | Level creation is protected: admin role in the JWT and an admin web panel with a level editor on the hex grid; current scope: create levels and configure seeds |
+| D-16 | No domain package is shared between repositories. The domain lives only in the client repo, and so does the admin panel (`admin/`), a web app that imports the level validators directly and calls the API. The backend checks the format of levels, not their solvability; the game re-validates every downloaded level (CU-15 A2). Server-side replay of games is dropped |
 | D-14 | Hexa Fit keeps a per-level leaderboard, ranked by level score (RN-18); the global one ranks by the sum of scores (RN-34) |
 | D-15 | The admin configures the seed mode (fixed or random) of Hexa Lines, Hexa Merge and each Hexa Sort level; the seed is shown at the end (RN-05) |
 | — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
@@ -182,7 +183,6 @@ comfort; affinity with the course language (TypeScript).
 | D-07 | Piece catalog | Poly-hex shapes of 1 to 5 cells and their frequency in the tray |
 | D-08 | Scoring and stars | RN-10 formula, Hexa Fit score from moves and time, final values of RN-29 and RN-40, star thresholds per level (RN-18) |
 | D-09 | Level design tools | Candidate generator as a design aid (manual selection and adjustment) and validator with solution search (RN-13) |
-| D-16 | Domain shared between repositories | The panel's level validator (RN-13) and replay validation (RN-39) need the engine in the backend: private npm package or git submodule |
 
 ## 11. Testing strategy
 
