@@ -13,17 +13,18 @@ constraints.
 
 | Part | Choice |
 |---|---|
-| Client | React Native + TypeScript; rendering and drag with Skia and Reanimated |
-| Backend | Node.js + TypeScript with NestJS; OpenAPI/Swagger |
+| Client | React Native + TypeScript with Expo (managed workflow; `expo prebuild` for the APK); rendering and drag with Skia and Reanimated; navigation with React Navigation |
+| Admin panel | React + TypeScript with Vite; SVG hex grid; imports `src/domain` through the `@domain` alias |
+| Backend | Node.js + TypeScript with NestJS; OpenAPI/Swagger; hosted on Render |
 | Database | PostgreSQL managed on Supabase (used only as a database) |
-| Client local storage | SQLite or a configuration file behind `IProgressRepository` (D-06) |
+| Client local storage | SQLite behind `IProgressRepository` (D-06, provisional) |
 | CI/CD | GitHub Actions |
 
 TypeScript is the course language and lets both repositories share one
 language; its constrained generics (`T extends IMergeable<T>`) are checked at
 compile time and erased at runtime. Flutter and Godot with C# were evaluated
-(see §8). Rendering and drag performance with Skia is validated with the
-`Board<TCell>` prototype in iteration 2.
+(see §8). Rendering and drag performance with Skia is validated by the
+Skia spike of iteration I0 (#11).
 
 In the backend, Supabase is only the database: the REST API, JWT
 authentication, roles and aspects belong to NestJS, because the statement
@@ -164,13 +165,19 @@ comfort; affinity with the course language (TypeScript).
 | D-02 | Backend stack and database: NestJS + PostgreSQL on Supabase (ADR-01) |
 | D-03 | AI tooling: Claude as the common tool; `AI-Assisted` commit footer; `AGENTS.md` and the harness |
 | D-05 | Test coverage: 80 % in domain and use cases; Pact contract tests between client and backend |
-| D-10 | Backend deployed online, with the database on Supabase |
+| D-06 | Client local storage (provisional, 2026-11-11): SQLite behind `IProgressRepository`. A key-value JSON store was the alternative; the question is open with the professor, and changing it only touches the storage adapter |
+| D-07 | Piece catalog (2026-11-11): the 15 poly-hex shapes of 1 to 4 cells plus about 6 shapes of 5 cells, kept as data. Hexa Lines gives each shape a spawn weight and may spawn a piece already rotated; the player still cannot rotate it (RN-11) |
+| D-10 | Backend deployed online on Render (free plan), with the database on Supabase (free plan). Known limits: the service sleeps after 15 minutes idle (first request takes 30–60 s) and Supabase pauses a project after 7 days without use |
 | D-11 | All documentation in English |
 | D-12 | Basic server-side score validation (RN-39); the leaderboard shows the top 50 and the player's position |
 | D-13 | Level creation is protected: admin role in the JWT and an admin web panel with a level editor on the hex grid; current scope: create levels and configure seeds |
 | D-16 | No domain package is shared between repositories. The domain lives only in the client repo, and so does the admin panel (`admin/`), a web app that imports the level validators directly and calls the API. The backend checks the format of levels, not their solvability; the game re-validates every downloaded level (CU-15 A2). Server-side replay of games is dropped |
 | D-14 | Hexa Fit keeps a per-level leaderboard, ranked by level score (RN-18); the global one ranks by the sum of scores (RN-34) |
 | D-15 | The admin configures the seed mode (fixed or random) of Hexa Lines, Hexa Merge and each Hexa Sort level; the seed is shown at the end (RN-05) |
+| D-17 | Client on Expo, managed workflow (2026-11-11): Skia, Reanimated and Gesture Handler are supported, the app runs on phones through Expo Go from day one, and the APK is built in GitHub Actions with `expo prebuild` and Gradle, with no external build account |
+| D-18 | Admin panel with Vite + React + TypeScript (2026-11-11): the same React as the app; no server rendering is needed, so Next.js was not chosen; React Native Web was not chosen because Skia on the web is complex. The level editor draws the hex grid with SVG |
+| D-19 | The admin panel imports the domain through a `@domain` path alias to `src/domain` (2026-11-11), with no shared package (D-16). The panel is an outer layer importing the innermost one, which the dependency rule allows; lint forbids it from importing anything else |
+| D-20 | Navigation with React Navigation (2026-11-11): screens are declared in code inside `src/frameworks/ui`; Expo Router was not chosen because it derives routes from an `app/` folder outside the layers |
 | — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |
@@ -179,8 +186,6 @@ comfort; affinity with the course language (TypeScript).
 
 | ID | Item | Scope |
 |---|---|---|
-| D-06 | Client local storage | SQLite or a configuration file, behind `IProgressRepository` |
-| D-07 | Piece catalog | Poly-hex shapes of 1 to 5 cells and their frequency in the tray |
 | D-08 | Scoring and stars | RN-10 formula, Hexa Fit score from moves and time, final values of RN-29 and RN-40, star thresholds per level (RN-18) |
 | D-09 | Level design tools | Candidate generator as a design aid (manual selection and adjustment) and validator with solution search (RN-13) |
 
