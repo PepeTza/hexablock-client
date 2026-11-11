@@ -71,13 +71,12 @@ Four concentric layers; **dependencies only point inwards**.
 
 | Pattern | Where it applies |
 |---|---|
-| Strategy (required) | Interchangeable resolution rules, scoring and piece source; board geometry |
+| Strategy (required) | Interchangeable resolution rules, scoring, piece source, progress model and level validator; board geometry |
 | Abstract Factory (required) | `HexaLinesFactory`, `HexaFitFactory`, `HexaSortFactory`, `HexaMergeFactory` create rules, source, scoring and board shape |
 | Builder | Building Fit and Sort levels from JSON/YAML |
 | Prototype | Cloning pieces and states for rotation, preview and undo |
 | Singleton / single-scope DI | `AudioManager`, `SessionManager` |
-| Composite | Pieces as a composition of cells; figures as a composition of regions |
-| Decorator | `TimedRulesDecorator`, `BonusMultiplierDecorator`, and the basis of AOP on use cases |
+| Decorator | The basis of AOP on use cases (logging, security, retries, cache). Rules decorators (time limit, boosters) are a planned extension point (see [`EXTENSIBILITY.md`](./EXTENSIBILITY.md)) |
 | Adapter / Facade | Wrapping database, network and audio; `GameServiceFacade` |
 | Observer | Domain events to UI, audio and analytics |
 | Command | Each move as a command for undo/redo |
