@@ -188,6 +188,33 @@ One entry per significant use. Copy the template.
   examples (folder tree, what a linter and an alias are) before the plan
   could be approved: explaining the concepts first would have saved time.
 
+### 2026-11-11 — Hex coordinates and geometry (issue #9)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5.
+- **Issue / PR:** #9.
+- **Prompt (paraphrase):** implement #9 through the harness, explaining
+  each concept before asking for approval.
+- **Result:** `Coord`, `Direction`, `Axis`, `IBoardGeometry` and
+  `HexGeometry` (neighbours, lines along an axis, rings, 60° rotation) in
+  `src/domain/engine/geometry`, with 30 test cases.
+- **Team modifications:**
+  - The hex orientation was not in any document; the AI asked and the team
+    chose pointy-top, recorded as D-21.
+  - The team approved that the geometry does not know the board edges
+    (`line` receives `isInside`), because boards will not always be perfect
+    hexagons.
+  - The first version had the six directions and three axes fixed inside
+    `Direction` and `Axis`. The team asked whether squares would need those
+    files changed; they would, against `docs/EXTENSIBILITY.md`. The AI
+    proposed that each geometry declares its own directions and axes
+    (`HexDirection`, `HexAxis`); the team compared it with an abstract
+    `Direction` with subclasses and chose the plain class.
+- **Lessons / limitations:** the AI's first plan claimed the geometry was
+  replaceable while `Direction` and `Axis` were hex-only; the team's
+  question exposed it. TypeScript compares types by shape, so subclasses of
+  `Direction` would not stop mixing directions of two geometries; a runtime
+  check in `HexGeometry` does.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

@@ -13,3 +13,4 @@ details live in the PR.
 | 2026-11-11 | Record stack decisions D-06, D-07, D-10, D-17–D-20 | #4 | PepeTza | — | Docs only; D-06 provisional (question for the professor); CONTRIBUTING twin change in backend #8 |
 | 2026-11-11 | Shared agent skills | #12 | PepeTza | — | Docs only; 5 skills; shared ones copied to backend #7 |
 | 2026-11-11 | Layer and variant boundaries with lint rules; path aliases | #8 | PepeTza | 14 / 14 | Variants read from folders; `admin/` rule left to #7 (decision 19 still open) |
+| 2026-11-11 | Hex coordinates and geometry | #9 | PepeTza | 44 / 44 | Pointy-top (D-21); directions and axes declared by each geometry |
