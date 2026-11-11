@@ -15,6 +15,9 @@ puzzle games on hexagonal boards — **Hexa Lines**, **Hexa Fit**,
 game is a variant that plugs its own rules into the engine instead of
 duplicating the board, rendering, persistence or game flow.
 
+The repository also contains the **admin web panel** (`admin/`), where levels
+are designed and validated with the same domain code as the game.
+
 Accounts, progress sync, leaderboards and level content are served by the
 [backend](https://github.com/PepeTza/hexablock-backend) (NestJS + PostgreSQL).
 

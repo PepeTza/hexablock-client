@@ -22,6 +22,8 @@ explainability over cleverness.
 
 - React Native + TypeScript app: generic engine, the four variants, use
   cases, UI, local storage and HTTP adapters.
+- The admin web panel (`admin/`), which uses the same domain code to build
+  and validate levels before publishing them through the API.
 - Game and domain docs live here in [`docs/`](./docs/README.md) (glossary,
   requirements, business rules, use cases, user stories, domain model,
   architecture). They are being translated from the team's technical document;
