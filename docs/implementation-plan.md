@@ -101,7 +101,7 @@ their own work and it forces a shared schedule in I1.
   rotates every 20 minutes and commits their own part.
 - Every variant is written against the engine, so each owner learns its
   extension points.
-- Pull requests labelled `engine` are reviewed by the two other members.
+- Pull requests labelled `engine` request a review from the two other members.
 - **Weekly explain-back (30 min):** each member explains a file written by
   someone else, picked at random.
 - **12-11 and 12-12:** each member rehearses "add a fifth variant" alone, in a
@@ -109,7 +109,8 @@ their own work and it forces a shared schedule in I1.
 
 ### Reviews
 
-Every pull request needs one approval from a teammate who is not the author.
+Every pull request asks the teammate below for a review. The author does not
+wait for it to merge (`CONTRIBUTING.md` §3).
 
 | Author | Reviewer |
 |---|---|
