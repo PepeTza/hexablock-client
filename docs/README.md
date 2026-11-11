@@ -14,5 +14,6 @@ model live in the
 | [`domain-model.md`](./domain-model.md) | DDD model: bounded contexts, aggregates, value objects, events | Draft |
 | [`architecture.md`](./architecture.md) | Layers, dependency rule, stack, patterns, AOP, decisions | Draft |
 | [`EXTENSIBILITY.md`](./EXTENSIBILITY.md) | How to add a fifth variant; worked example (Hexa Quest) | Draft |
+| [`implementation-plan.md`](./implementation-plan.md) | Iterations, work split, issues, setup and pending decisions | Approved |
 | `diagrams/` | Class, layer and extensibility diagrams (image + editable source) | Planned |
 | [API contract](https://github.com/PepeTza/hexablock-backend/blob/main/docs/api-contracts.md) | REST endpoints, DTOs, errors | Draft (backend repo) |

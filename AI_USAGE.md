@@ -57,6 +57,33 @@ One entry per significant use. Copy the template.
   than needed; the team keeps only what it can justify. Diagram import into
   Lucidchart lost generic type parameters and had to be fixed manually.
 
+### 2026-11-11 — Implementation plan and I0 issues
+
+- **Tool / model:** Claude Code, Claude Opus 5.5.
+- **Issue / PR:** #13.
+- **Prompt (paraphrase):** read both repositories' docs and propose, as a
+  gate 1 plan only, the iterations until 2026-12-14, a work split in three
+  tracks, the issues, labels and milestones, the folder structure, the setup
+  task, how to use agents and skills, and the decisions still open.
+- **Result:** the plan now in `docs/implementation-plan.md`; the 15 issues of
+  I0 (client #3–#12, backend #3–#7).
+- **Team modifications:**
+  - The first split gave Hexa Lines and Hexa Merge to one track and both
+    level-based variants to another, leaving one member without a variant.
+    The team required every member to own at least one variant; the split was
+    redone.
+  - The AI proposed creating all 83 issues, milestones and a GitHub Projects
+    board at once. The team chose to create issues per iteration only, with
+    no milestones and no board.
+  - A separate progress file was proposed and dropped: `harness/phase-log.md`
+    already records completed work.
+  - The plan was written in Spanish for the team and translated to English
+    for the repository; track letters were replaced by the members' names.
+- **Lessons / limitations:** the AI stated two wrong facts that the team had
+  to question: that GitHub issues cannot be deleted (repository owners can
+  delete them), and issue counts per repository it had not actually counted.
+  Counts and platform facts from the AI must be checked before acting on them.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
