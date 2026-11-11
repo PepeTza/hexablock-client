@@ -13,9 +13,16 @@ const coverageThreshold = Object.fromEntries(
   ).map((layer) => [`./${layer}/`, MINIMUM]),
 );
 
+// Same path aliases as tsconfig.json (`@domain/*`, `@application/*`...).
+const LAYERS = ['domain', 'application', 'adapters', 'frameworks'];
+const moduleNameMapper = Object.fromEntries(
+  LAYERS.map((layer) => [`^@${layer}/(.*)$`, `<rootDir>/src/${layer}/$1`]),
+);
+
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-expo',
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}'],
   coverageThreshold,
+  moduleNameMapper,
 };
