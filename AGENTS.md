@@ -125,3 +125,21 @@ The full rules are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
   is in English.
 - Explain concepts the first time they appear, briefly and in plain language.
 - If you are unsure, say so and ask. Do not guess requirements.
+
+## 7. Skills
+
+Step-by-step guides for repetitive tasks, in `.claude/skills/<name>/SKILL.md`.
+Claude Code loads them automatically; any other agent must read the one that
+fits the task before starting. They add detail to these rules; they never
+override them.
+
+| Skill | Use it when |
+|---|---|
+| [`harness-task`](./.claude/skills/harness-task/SKILL.md) | Starting any task from its issue (gate 1) |
+| [`aaa-test`](./.claude/skills/aaa-test/SKILL.md) | Proposing or writing any test |
+| [`add-variant`](./.claude/skills/add-variant/SKILL.md) | Building a variant or rehearsing "add a fifth variant" |
+| [`design-level`](./.claude/skills/design-level/SKILL.md) | Designing or checking a Hexa Fit or Hexa Sort level |
+| [`log-ai-usage`](./.claude/skills/log-ai-usage/SKILL.md) | Gate 4, before opening the pull request |
+
+`harness-task`, `aaa-test` and `log-ai-usage` are shared with the backend
+repository: whoever changes one updates the other copy the same day.
