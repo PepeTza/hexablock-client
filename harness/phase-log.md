@@ -7,3 +7,4 @@ details live in the PR.
 |---|---|---|---|---|---|
 | 2026-11-10 | Repository skeleton (docs, harness, templates) | — | PepeTza | — | No code yet |
 | 2026-11-11 | Implementation plan, work split and I0 issues | #13 | PepeTza | — | Docs only; I0 issues: client #3–#12, backend #3–#7 |
+| 2026-11-11 | Shared agent skills | #12 | PepeTza | — | Docs only; 5 skills; shared ones copied to backend #7 |

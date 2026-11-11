@@ -84,6 +84,20 @@ One entry per significant use. Copy the template.
   delete them), and issue counts per repository it had not actually counted.
   Counts and platform facts from the AI must be checked before acting on them.
 
+### 2026-11-11 — Shared agent skills
+
+- **Tool / model:** Claude Code, Claude Opus 5.5.
+- **Issue / PR:** #12.
+- **Prompt (paraphrase):** write the agent skills listed in §6 of the
+  implementation plan and link them from `AGENTS.md`.
+- **Result:** five `SKILL.md` files (`harness-task`, `aaa-test`,
+  `log-ai-usage`, `add-variant`, `design-level`) and §7 of `AGENTS.md`. The
+  three shared ones were copied to the backend (backend #7).
+- **Team modifications:** none yet; to be reviewed in the pull request.
+- **Lessons / limitations:** the first draft of `design-level` stated two
+  undecided points as rules (fixed level ids, file naming); they were
+  rewritten as open questions before committing.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
