@@ -1,8 +1,8 @@
 # Architecture
 
 Technology, layers, generic engine, patterns, SOLID, AOP, persistence and the
-architectural decisions of HexaBlock Suite. This document is shared by both
-repositories; the copy in the client repo is the reference.
+architectural decisions of HexaBlock Suite. This document lives only in the
+client repository; the backend links to it instead of keeping a copy.
 
 The DDD model is in [`domain-model.md`](./domain-model.md).
 
@@ -39,9 +39,28 @@ Four concentric layers; **dependencies only point inwards**.
 | Layer | Content | Rule |
 |---|---|---|
 | 1. Entities / Domain | `Coord`, `Board<TCell>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TState>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
-| 2. Use cases | `StartGameUseCase<...>`, `ApplyMoveUseCase<...>`, `UndoMoveUseCase`, `FinishGameUseCase`, `SyncProgressUseCase`, `GetLeaderboardUseCase`, `LoadLevelsUseCase`, ports (`IProgressRepository`, `ILevelRepository`, `IAuthService`) | Depend only on their own interfaces. No use cases duplicated per game. |
+| 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase<...>`, `ApplyMoveUseCase<...>`, `FinishGameUseCase`), the aspects that wrap them, and the ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
 | 3. Interface adapters | Presenters / view models / controllers, repositories implementing the ports, entity ↔ DTO mappers, per-variant state serialisation | Translate between domain and frameworks. |
 | 4. Frameworks & drivers | UI / rendering, local database, HTTP client, audio, remote database (PostgreSQL on Supabase) and the REST backend as an external service | Replaceable without touching inner layers. |
+
+### Ports
+
+The interfaces the use cases depend on (DIP). Every port named in a use case
+or in the domain model is listed here; a new port is added here first.
+
+| Port | Repo | Named in | Used by |
+|---|---|---|---|
+| `IProgressRepository` | client (local and remote implementations), backend | §2, `domain-model.md` | CU-07, CU-08, CU-12 |
+| `ILevelRepository` | client, backend | §2, `domain-model.md` | CU-01, CU-08, CU-15, CU-17 |
+| `ISeedConfigRepository` | client, backend | `domain-model.md` | CU-01, CU-15, CU-18 |
+| `ILeaderboardRepository` | client (cache), backend | `domain-model.md` | CU-13, CU-14 |
+| `IAuthService` | client | §2 | CU-10, CU-11 |
+| `ISessionProvider` | client | CU-07 | CU-07 and the security aspect (RN-35) |
+| `ISyncQueue` | client | CU-07 | CU-07, CU-12, CU-13 |
+| `IEventBus` | client | CU-07 | CU-02, CU-06, CU-07, CU-09 (Observer) |
+| `ILogger` | client, backend | `implementation-plan.md` §4 | Logging aspect (RNF-04) |
+| `IUserRepository` | backend | `domain-model.md` | CU-10, CU-11 |
+| `IPasswordHasher`, `ITokenService`, `IClock` | backend | `implementation-plan.md` §4 | CU-10, CU-11, CU-13 |
 
 ## 3. Generic engine
 
@@ -73,7 +92,7 @@ Four concentric layers; **dependencies only point inwards**.
 |---|---|
 | Strategy (required) | Interchangeable resolution rules, scoring, piece source, progress model and level validator; board geometry |
 | Abstract Factory (required) | `HexaLinesFactory`, `HexaFitFactory`, `HexaSortFactory`, `HexaMergeFactory` create rules, source, scoring and board shape |
-| Builder | Building Fit and Sort levels from JSON/YAML |
+| Builder | Building Fit and Sort levels from JSON (ADR-07) |
 | Prototype | Cloning pieces and states for rotation, preview and undo |
 | Singleton / single-scope DI | `AudioManager`, `SessionManager` |
 | Decorator | The basis of AOP on use cases (logging, security, retries, cache). Rules decorators (time limit, boosters) are a planned extension point (see [`EXTENSIBILITY.md`](./EXTENSIBILITY.md)) |
