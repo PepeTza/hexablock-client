@@ -3,6 +3,12 @@
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["jest"]
+    "types": ["jest"],
+    "paths": {
+      "@domain/*": ["./src/domain/*"],
+      "@application/*": ["./src/application/*"],
+      "@adapters/*": ["./src/adapters/*"],
+      "@frameworks/*": ["./src/frameworks/*"]
+    }
   }
 }
