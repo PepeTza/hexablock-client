@@ -91,7 +91,7 @@ multiplayer, purchases or ads, password recovery by email.
   tile (e.g. 2048), defeat when no move changes the board.
 - **RF-12:** scoring defined and documented per variant.
 - **RF-13:** at least 15 Hexa Fit levels and 10 Hexa Sort levels,
-  hand-designed, with progressive difficulty, loaded from JSON/YAML.
+  hand-designed, with progressive difficulty, loaded from JSON (ADR-07).
 
 ### Application
 
