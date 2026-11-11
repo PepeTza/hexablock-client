@@ -1,0 +1,25 @@
+{
+  "name": "hexablock-client",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "index.ts",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~58.0.23",
+    "expo-status-bar": "~58.0.4",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  }
+}
