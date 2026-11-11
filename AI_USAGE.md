@@ -116,6 +116,20 @@ One entry per significant use. Copy the template.
     the AI, with a screenshot and a log check) and on a real phone (done by
     the team member).
 
+### 2026-11-11 — Shared agent skills
+
+- **Tool / model:** Claude Code, Claude Opus 5.5.
+- **Issue / PR:** #12.
+- **Prompt (paraphrase):** write the agent skills listed in §6 of the
+  implementation plan and link them from `AGENTS.md`.
+- **Result:** five `SKILL.md` files (`harness-task`, `aaa-test`,
+  `log-ai-usage`, `add-variant`, `design-level`) and §7 of `AGENTS.md`. The
+  three shared ones were copied to the backend (backend #7).
+- **Team modifications:** none yet; to be reviewed in the pull request.
+- **Lessons / limitations:** the first draft of `design-level` stated two
+  undecided points as rules (fixed level ids, file naming); they were
+  rewritten as open questions before committing.
+
 ### 2026-11-11 — Plan and documentation review
 
 - **Tool / model:** Claude Code, claude-fable-5-1.
