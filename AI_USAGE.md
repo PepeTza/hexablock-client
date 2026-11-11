@@ -84,6 +84,36 @@ One entry per significant use. Copy the template.
   delete them), and issue counts per repository it had not actually counted.
   Counts and platform facts from the AI must be checked before acting on them.
 
+### 2026-11-10 — Expo app setup (issue #5)
+
+- **Tool / model:** Claude Code.
+- **Issue / PR:** #5, PR #15.
+- **Prompt (paraphrase):** set up the React Native app with Expo, strict
+  TypeScript, ESLint, Prettier, Jest and commit hooks, following the
+  approved plan, with a plan first and one commit per tool.
+- **Result:** six commits: line-ending rules, the Expo SDK 58 template with a
+  placeholder home screen, ESLint and Prettier, Jest with one screen test and
+  the 80 % coverage threshold, husky with commitlint and lint-staged, and the
+  documented commands.
+- **Team modifications:**
+  - The team member asked for the commit footer to read
+    `AI-Assisted: Claude Code` without the model id; this differs from
+    `AGENTS.md` and was agreed in the session. The first commit, already
+    pushed, keeps the longer footer.
+  - The AI proposed rebasing the branch onto `main`; the force push it
+    needed was blocked, and the member chose a merge instead, which leaves a
+    merge commit to flatten before the pull request is merged.
+  - The member decided to see commits 4 to 6 together and approve them in
+    one answer.
+- **Lessons / limitations:**
+  - The AI first planned to leave the coverage threshold for a later task;
+    issue #5 required it, and Jest fails on a threshold path with no
+    coverage data, so the threshold is enabled only when `src/domain` or
+    `src/application` exists.
+  - The AI's first attempt to normalise line endings changed nothing; this
+    was noticed because the before and after counts were identical.
+  - Not verified: the app has not been opened on a phone or emulator.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

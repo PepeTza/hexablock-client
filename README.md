@@ -54,11 +54,24 @@ retries, caching) and the decorator-based strategy used.
 
 ## Getting Started
 
-_Coming soon:_ prerequisites, installation and how to run the app locally.
+Prerequisites: Node.js 22.13 or newer, and an Android phone with the Expo Go
+app or an Android emulator.
+
+```bash
+npm install     # installs dependencies and activates the git hooks
+npm start       # starts Expo; scan the QR code with Expo Go
+npm run android # starts Expo and opens an Android emulator or device
+```
 
 ## Running Tests
 
-_Coming soon._
+```bash
+npm test               # unit and UI tests
+npm run test:coverage  # same, with the 80 % coverage threshold
+npm run lint           # ESLint
+npm run format:check   # Prettier
+npm run typecheck      # TypeScript strict mode
+```
 
 ## AI Usage Documentation
 

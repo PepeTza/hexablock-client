@@ -7,3 +7,4 @@ details live in the PR.
 |---|---|---|---|---|---|
 | 2026-11-10 | Repository skeleton (docs, harness, templates) | — | PepeTza | — | No code yet |
 | 2026-11-11 | Implementation plan, work split and I0 issues | #13 | PepeTza | — | Docs only; I0 issues: client #3–#12, backend #3–#7 |
+| 2026-11-10 | Expo app setup with strict TypeScript, ESLint, Prettier, Jest and commit hooks | #5 | Jesus Obando | 1 / 1 | Branch `chore/t03-app-setup`. Tested on the Android bundle only; not yet opened on a phone |
