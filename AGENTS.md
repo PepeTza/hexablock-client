@@ -33,8 +33,14 @@ explainability over cleverness.
   The client adapts to it; it never changes it.
 - Gameplay must work offline. Network calls are best-effort and must never
   block or break a game.
-- Commands (lint, type-check, test, run) will be listed here once the project
-  is initialised.
+- Commands (run from the repository root, Node 22.13 or newer):
+  - `npm install`: installs dependencies and activates the git hooks.
+  - `npm start` / `npm run android`: run the app with Expo.
+  - `npm run lint`: ESLint, no warnings allowed.
+  - `npm run format:check` / `npm run format`: check or apply Prettier.
+  - `npm run typecheck`: TypeScript in strict mode, no emit.
+  - `npm test` / `npm run test:coverage`: Jest; coverage must stay at 80 % or
+    more in `src/domain` and `src/application` once those folders exist.
 
 ## 2. Workflow: the harness
 
