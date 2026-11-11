@@ -24,6 +24,27 @@ Severity: **High** = blocks a merge or breaks a documented rule; **Medium** =
 the plan or a document is wrong and will mislead a task; **Low** = cosmetic
 or easy to fix later.
 
+## 0. Resolution
+
+What happened with each finding after this review was written:
+
+- **Fixed in the documentation PR** (same branch, client and backend): 5
+  (status of decisions, §7 and §8 of the plan), 8 (`stars` for Sort), 10
+  (`architecture.md` ownership), 12 (issue count), 13 (HU07 wording), 14
+  (lint table), 15 (ports table), 16 (JSON only), 17 (README status), 20
+  (PR template reference), 21 (`docs/diagrams/README.md`), 23 (shared files
+  list, `CONTRIBUTING.md` §10), and the Swagger wording of T09 / T17.
+- **Turned into pending decisions** of the plan, with a recommendation and a
+  due date: 4 (D-06, status only), 6 (panel use cases, decision 19), 11 (State
+  pattern, decision 20), 9 (contract values, decision 21).
+- **Handed to the team** in a separate note on the open PRs: 1 (PRs #16 and
+  #17 delete work), 2 (commits authored by Claude), 3 (footer format; the
+  `CONTRIBUTING.md` §2 example now uses `Claude Code (<model id>)`), 22
+  (Owner column, decided as GitHub user per the skill).
+- **Left to their issues:** 7 (tooling for `admin/`, issue #7 and #8), 18
+  (backend `.gitattributes` and `.vscode`, issue #4), 19 (`.gitignore`), and
+  the minor version pins.
+
 ## 1. Summary
 
 | # | Finding | Severity | Where to change |
