@@ -43,9 +43,11 @@ What a new variant **must** provide, and what it **can reuse**.
 | `ICellRenderer<TCell>`: how a cell is drawn | Yes | A renderer of an existing cell type |
 | `IInputMapper<TMove>`: how a gesture becomes a move (drag, tap, swipe) | Yes | Drag mapper (Lines, Fit, Sort) or swipe mapper (Merge) |
 
-The variant's factory also provides its renderer and input mapper, so screens
-never contain a `switch` on `gameId`. Their detailed design belongs to the
-layer 3 class diagram.
+They are created by a **presentation factory** (`VariantPresentationFactory`),
+the layer 3 counterpart of `VariantFactory`, registered per `gameId` in a
+`VariantPresentationRegistry`. It lives in layer 3, not in the domain, because
+the domain must never know how cells are drawn (dependency rule). Screens
+therefore never contain a `switch` on `gameId`.
 
 ### Registration (layer 4, composition root)
 
@@ -54,8 +56,13 @@ registry.register('hexa-lines', new HexaLinesFactory());
 registry.register('hexa-fit',   new HexaFitFactory());
 registry.register('hexa-sort',  new HexaSortFactory());
 registry.register('hexa-merge', new HexaMergeFactory());
-registry.register('hexa-quest', new HexaQuestFactory()); // the only line added outside the new folder
+registry.register('hexa-quest', new HexaQuestFactory());
+
+presentation.register('hexa-quest', new HexaQuestPresentationFactory());
 ```
+
+The two `register` lines for the new variant are the only lines added outside
+its own folders.
 
 ## 3. Worked example: Hexa Quest
 
@@ -95,6 +102,7 @@ variants are finished and polished.
 | Cell renderer | `EntityRenderer implements ICellRenderer<Entity>` | **New** |
 | Input | Swipe mapper | Reused from Merge |
 | Factory | `HexaQuestFactory implements VariantFactory<Entity, SlideMove, QuestState>` | **New** |
+| Presentation factory | `HexaQuestPresentationFactory`: `EntityRenderer` + swipe mapper | **New** |
 
 ### How the Template Method steps fit
 
@@ -120,11 +128,12 @@ except the registry line):
 | `quest-level-validator.ts` | `QuestLevelValidator` |
 | `hexa-quest-factory.ts` | `HexaQuestFactory` |
 | `EntityRenderer.tsx` | `ICellRenderer<Entity>` |
+| `hexa-quest-presentation-factory.ts` | `HexaQuestPresentationFactory` |
 | Tests | One test file per class above |
 | Level files | The maps, as JSON |
 
-**Modified:** one line in the composition root (`registry.register(...)`) and
-the list of games in the menu configuration.
+**Modified:** two lines in the composition root (the two `register(...)`
+calls) and the list of games in the menu configuration.
 
 **Not touched:** `Board`, `HexGeometry`, `GameEngine`, `BaseGameRules`,
 `IGameRules`, `CommandHistory`, every use case (`StartGameUseCase`,
