@@ -120,12 +120,15 @@ Every pull request needs one approval from a teammate who is not the author.
 
 ## 3. Issues
 
-One issue per user story (HU01–HU35) plus the technical tasks (T01–T43): 83
-in total. Issues are created **at the start of each iteration**, so GitHub only
-shows work that is decided. The issues of I0 already exist: client
+One issue per user story (HU01–HU35) plus the technical tasks (T01–T43): 35
+stories, 43 tasks, the five `-be` stories and one extra issue per repository
+for the eight `cl+be` tasks (T01, T06, T11, T19, T34, T39, T40, T41), so 91
+issues in total. Issues are created **at the start of each iteration**, so
+GitHub only shows work that is decided. The issues of I0 already exist: client
 [#3–#12](https://github.com/PepeTza/hexablock-client/issues) and backend
-[#3–#7](https://github.com/PepeTza/hexablock-backend/issues). Tasks that touch
-both repositories get one issue in each, naming its twin.
+[#3–#8](https://github.com/PepeTza/hexablock-backend/issues); backend #8 is
+the twin of the `CONTRIBUTING.md` change made in T02 (client #4). Tasks that
+touch both repositories get one issue in each, naming its twin.
 
 - **Labels** (`CONTRIBUTING.md` §7): variant `hexa-lines`, `hexa-fit`,
   `hexa-sort`, `hexa-merge`, `engine`; layer `domain`, `application`,
@@ -148,10 +151,10 @@ C = Kenneth Fung.
 | T06 | chore: enforce layer and variant boundaries with lint rules | cl+be | RNF-03, ADR-03 | A forbidden import fails; a fixture proves it | A | I0 | chore, domain |
 | T07 | feat(engine): add hex coordinates and geometry | cl | RF-01, RN-01 | Neighbours, 3 axes, rings and 60° rotation tested | A | I0 | engine, domain, feature |
 | T08 | chore(ui): spike Skia board rendering and piece drag | cl | RNF-07, RNF-08 | Radius-4 board and a draggable piece at ~60 FPS on a mid-range Android | B | I0 | frameworks, chore |
-| T09 | chore: set up NestJS API with strict TypeScript, lint, tests, hooks and health | be | RF-26 | `GET /api/v1/health` against a local PostgreSQL; Swagger at `/api/docs` | C | I0 | chore, frameworks |
+| T09 | chore: set up NestJS API with strict TypeScript, lint, tests, hooks and health | be | RF-26 | `GET /api/v1/health` against a local PostgreSQL; Swagger served at `/api/docs` (set up only; the decorators per endpoint come with T17) | C | I0 | chore, frameworks |
 | T10 | ci: add backend CI with a PostgreSQL service | be | RNF-05 | Lint, types, unit and e2e on PRs; 80 % coverage | C | I0 | chore |
 | T11 | docs: add shared agent skills | cl+be | §6 | Skills created and listed in `AGENTS.md` | A | I0 | docs |
-| HU07 | feat(engine): add generic board with injected geometry | cl | RF-01 | Instantiated with 4 cell types; radius 4, radius 2 and free-form shapes | A | I0 | engine, domain, feature |
+| HU07 | feat(engine): add generic board with injected geometry | cl | RF-01 | Instantiated with at least two test cell types in I0 (the four real cell types arrive with their variants in I1–I3); radius 4, radius 2 and free-form shapes | A | I0 | engine, domain, feature |
 | HU08 | feat(engine): game engine, rules template and domain events | cl | RF-02, RF-03, RF-06, RN-06 | Works with a test cell; no `if` per variant; emits events; an error leaves the state unchanged | A (mob) | I1 | engine, domain, feature |
 | HU09 | feat(engine): interchangeable piece sources, scoring and seeded random | cl | RF-04, RF-05, RN-05 | Changing a policy does not touch the engine; same seed → same sequence | A | I1 | engine, domain, feature |
 | T12 | feat(engine): piece catalog as data | cl | RN-03, D-07 | JSON catalog and loader; connected shapes of 1–5 cells | A | I1 | engine, domain, feature |
@@ -167,7 +170,7 @@ C = Kenneth Fung.
 | T15 | ci: build Android APK and attach it to releases | cl | S-02 | Tag `v*` → APK in the release; tested with `v0.1.0` | C | I1 | chore |
 | HU29 | feat: save progress and records locally per variant | cl | RF-20, D-06 | Survives closing the app, offline | C | I1 | adapters, frameworks, feature |
 | T16 | feat(db): Prisma schema and initial migration | be | data-model §2–6 | Migrates an empty database; partial indexes present | C | I1 | frameworks, feature |
-| T17 | feat(api): error format, validation, logging interceptor and Swagger | be | RF-26 | Errors use the contract's body; one log line per request | C | I1 | adapters, frameworks, feature |
+| T17 | feat(api): error format, validation, logging interceptor and Swagger | be | RF-26 | Errors use the contract's body; one log line per request; Swagger decorators on every DTO and controller so `/api/docs` matches the contract | C | I1 | adapters, frameworks, feature |
 | HU30-be | feat(api): register, login and refresh with JWT roles | be | RF-22, RN-42, RNF-10 | bcrypt; 90 days; generic 401; 409; 429 | C | I1 | application, adapters, feature |
 | T18 | ci: deploy backend on merge to main | be | D-10 | `/health` answers on the public URL | C | I1 | chore |
 | T19 | docs: diagrams v1 in Lucidchart | cl+be | RNF-12 | Ronald: client classes; Jesus: layers and extensibility; Kenneth: backend | All | I1 | docs |
@@ -291,12 +294,18 @@ ESLint's built-in `no-restricted-imports` rule, with one override per folder
 |---|---|
 | `domain/**` | `application`, `adapters`, `frameworks`, or external packages (`react*`, `expo*`, `@shopify/*`, `@nestjs/*`, `@prisma/*`...) |
 | `application/**` | `adapters`, `frameworks` |
-| `adapters/**` | `frameworks` (except the composition root) |
+| `adapters/**` | `frameworks` |
 | `domain/variants/<variant>/**` | the other variants (only `engine/`) |
 | `admin/**` | anything outside `src/domain` (never the mobile UI) |
 
+- `frameworks/composition-root.ts` is the only file in `frameworks/` that
+  imports `adapters/`; `frameworks/` itself has no import restriction.
+- `no-restricted-imports` has no "any external package" option: the
+  `domain/**` override forbids every bare module specifier with a pattern
+  group and re-allows relative paths and the `@domain/*` alias.
 - Lint runs in the pre-commit hook and in CI, so a violation blocks the PR.
-- A test fixture with a forbidden import proves the rule works.
+- A test fixture with a forbidden import proves the rule works, with one
+  layer import and one external package import.
 - `tsconfig` path aliases (`@domain/*`, `@application/*`) keep imports readable
   and easy to filter.
 
@@ -342,7 +351,7 @@ Each one needs the team's approval before it is added (`AGENTS.md`).
 | `react-native-reanimated` | cl | Animations on the UI thread | Setup (spike) |
 | `react-native-gesture-handler` | cl | Drag and swipe | Setup (spike) |
 | `@react-navigation/native`, `native-stack` (+ `react-native-screens`, `react-native-safe-area-context`) | cl | Navigation between screens | I1 |
-| `@react-native-async-storage/async-storage` | cl | Key-value local storage (if D-06 = key-value) | I1 |
+| `expo-sqlite` (or `@react-native-async-storage/async-storage` if D-06 becomes key-value) | cl | Local storage behind `IProgressRepository` (D-06, provisional: SQLite) | I1 |
 | `expo-localization` | cl | Phone language (RN-41) | I4 |
 | `expo-audio` | cl | Sound effects and music | I4 |
 | `expo-crypto` | cl | `randomUUID` for `sessionId` | I3 |
@@ -404,29 +413,33 @@ approval per commit, every agent needs its human at each gate of the
 
 ## 7. Pending decisions
 
-Eighteen decisions, each with a recommendation. The five due on 11-12 block
-the setup.
+Twenty-one decisions, each with a recommendation. The five due on 11-12 block
+the setup. The **Status** column is updated when a decision is taken (the
+record is `architecture.md` §10) or resolved by a pull request.
 
-| # | Decision | Options | Recommendation | Due |
-|---|---|---|---|---|
-| 1 | Expo or bare React Native | Expo (managed + prebuild) / bare | **Expo:** Skia, Reanimated and Gesture Handler work; Expo Go lets us test on phones from day one; APK with `expo prebuild` and Gradle in Actions, no EAS account | 11-12 |
-| 2 | Admin panel framework | Vite + React / Next.js / React Native Web | **Vite + React + TypeScript** with an SVG grid: same React; Next.js is not needed (no SSR); React Native Web with Skia is complex | 11-12 |
-| 3 | How the panel imports the domain | TypeScript + Vite alias / npm workspaces / package | **`@domain` alias:** simplest; no package to publish (D-16) | 11-12 |
-| 4 | D-06 client local storage | SQLite / file or key-value JSON | **Key-value JSON (AsyncStorage)** behind `IProgressRepository`: little data, no migrations on the phone | 11-15 |
-| 5 | Navigation | React Navigation / Expo Router | **React Navigation:** screens stay in `frameworks/ui` | 11-15 |
-| 6 | D-10 backend hosting | Render free / Railway / Fly.io / Koyeb | **Render free + Supabase free.** Risks: ~30–60 s cold start (warm it up before the defence) and Supabase pauses after 7 days without use | 11-15 |
-| 7 | D-07 piece catalog | Every shape of 1–5 cells (1+1+3+10+33 without flips) / a selection | **The 15 shapes of 1–4 cells plus ~6 of 5 cells**, with spawn weights in Lines. Still open: whether Lines spawns pieces in a random orientation (RN-11 only forbids the player rotating them) | 11-17 |
-| 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 |
-| 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 |
-| 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`. Changes the contract: PR to the backend with approval | 11-25 |
-| 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of 3 stacks, parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 |
-| 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 |
-| 13 | Pact file exchange | Pactflow (external account) / file copied to the backend | **Versioned pact file** in the backend's `test/pact/`, copied from the client's CI; no broker | 11-29 |
-| 14 | First admin user | Seed with environment variables / CLI | **Seed script** reading `ADMIN_USERNAME` and `ADMIN_PASSWORD` (hosting secrets) | 11-29 |
-| 15 | Admin panel hosting | GitHub Pages / Netlify / local only | **GitHub Pages** (static, no extra account); CORS allows that origin | 12-01 |
-| 16 | i18n and audio libraries | Own vs i18next; `expo-audio` | Own + `expo-localization`; `expo-audio` | 12-01 |
-| 17 | Extra label | §7 labels only / add `panel` | **Add `panel`:** there is no label for the admin panel today | 11-12 |
-| 18 | Backend issue ids | — | Same user story id with a `-be` suffix | 11-12 |
+| # | Decision | Options | Recommendation | Due | Status |
+|---|---|---|---|---|---|
+| 1 | Expo or bare React Native | Expo (managed + prebuild) / bare | **Expo:** Skia, Reanimated and Gesture Handler work; Expo Go lets us test on phones from day one; APK with `expo prebuild` and Gradle in Actions, no EAS account | 11-12 | Taken: D-17 (client #16) |
+| 2 | Admin panel framework | Vite + React / Next.js / React Native Web | **Vite + React + TypeScript** with an SVG grid: same React; Next.js is not needed (no SSR); React Native Web with Skia is complex | 11-12 | Taken: D-18 (client #16) |
+| 3 | How the panel imports the domain | TypeScript + Vite alias / npm workspaces / package | **`@domain` alias:** simplest; no package to publish (D-16) | 11-12 | Taken: D-19 (client #16); see decision 19 for what else the panel may import |
+| 4 | D-06 client local storage | SQLite / file or key-value JSON | **Key-value JSON (AsyncStorage)** behind `IProgressRepository`: little data, no migrations on the phone | 11-15 | Provisional: SQLite recorded in D-06 (client #16), question open with the professor. HU29 starts with SQLite; the dependency table of §5 follows D-06, not this recommendation |
+| 5 | Navigation | React Navigation / Expo Router | **React Navigation:** screens stay in `frameworks/ui` | 11-15 | Taken: D-20 (client #16) |
+| 6 | D-10 backend hosting | Render free / Railway / Fly.io / Koyeb | **Render free + Supabase free.** Risks: ~30–60 s cold start (warm it up before the defence) and Supabase pauses after 7 days without use | 11-15 | Taken: D-10 (client #16) |
+| 7 | D-07 piece catalog | Every shape of 1–5 cells (1+1+3+10+33 without flips) / a selection | **The 15 shapes of 1–4 cells plus ~6 of 5 cells**, with spawn weights in Lines. Still open: whether Lines spawns pieces in a random orientation (RN-11 only forbids the player rotating them) | 11-17 | Taken: D-07 (client #16), including random orientation in Lines |
+| 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 | Open |
+| 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 | Open |
+| 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`. Changes the contract: PR to the backend with approval | 11-25 | Open |
+| 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of 3 stacks, parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Open |
+| 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 | Open |
+| 13 | Pact file exchange | Pactflow (external account) / file copied to the backend | **Versioned pact file** in the backend's `test/pact/`, copied from the client's CI; no broker | 11-29 | Open |
+| 14 | First admin user | Seed with environment variables / CLI | **Seed script** reading `ADMIN_USERNAME` and `ADMIN_PASSWORD` (hosting secrets) | 11-29 | Open |
+| 15 | Admin panel hosting | GitHub Pages / Netlify / local only | **GitHub Pages** (static, no extra account); CORS allows that origin | 12-01 | Open |
+| 16 | i18n and audio libraries | Own vs i18next; `expo-audio` | Own + `expo-localization`; `expo-audio` | 12-01 | Open |
+| 17 | Extra label | §7 labels only / add `panel` | **Add `panel`:** there is no label for the admin panel today | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #16, backend #9) |
+| 18 | Backend issue ids | — | Same user story id with a `-be` suffix | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #16, backend #9) |
+| 19 | Where the admin panel's use cases live | `admin/` may import `src/application` too / CU-17, CU-18 and the panel's login are panel-local classes in `admin/src` | **Allow `src/application`:** CU-17, CU-18 and CU-11 stay the generic classes of `use-cases.md`; the panel is a layer-4 app that brings its own adapters (HTTP, browser storage for drafts) for the ports; the lint rule of §4 and D-19 change from "only `src/domain`" to "only `src/domain` and `src/application`" | 11-15 | Open; blocks T05 (#7) and T06 (#8) |
+| 20 | State pattern in the engine | Six state classes (`MenuState` … `VictoryState`) / a `GameStatus` value checked by the engine | **`GameStatus` value** plus the RN-06 lock in the engine; the six classes stay only if HU08 shows a real benefit. If dropped, the CU-06 design note and the `architecture.md` §4 row change in the same PR | 11-16 | Open; blocks HU08 (I1) |
+| 21 | Proposed values of the API contract | Accept the *(proposed)* values (username 3–20, password 8–72, rate limits) / change them | **Accept them** and mark them decided in `api-contracts.md`: HU30-be, T26 and the `bcrypt` row already assume them | 11-16 | Open; blocks HU30-be (I1) |
 
 ### Possible over-engineering
 
@@ -451,9 +464,11 @@ resolved by guessing.
 
 1. `CONTRIBUTING.md` (both repos) still says the backend contains the admin
    panel, and lists the `panel` scope under the backend (contradicts D-16).
+   **Resolved** by client #16 and backend #9.
 2. RF-13 says "JSON/YAML"; ADR-07 says JSON. We propose JSON only.
+   **Resolved:** RF-13 and `architecture.md` §4 now say JSON, as ADR-07.
 3. `architecture.md` §1 validates Skia "in iteration 2" (old plan); it is the
-   I0 spike now.
+   I0 spike now. **Resolved** by client #16.
 4. Backend `data-model.md` §7: the seed script reads "the level files of the
    client repo", a dependency between repositories. Proposal: a copy in the
    backend's `prisma/seed-data/` (decision 9).
@@ -465,3 +480,18 @@ resolved by guessing.
    orientation of Lines pieces (decisions 7 and 11).
 8. HU01 mentions "statistics" with no use case or business rule (decision 12).
 9. The commands section of `AGENTS.md` is still pending; the setup fills it.
+   **Resolved** in the client (#5); pending in the backend until T09 (#4).
+10. `api-contracts.md` §4 said `stars` is 1–3 for both level games, while
+    `data-model.md` and RN-25 say Hexa Sort has no stars. **Resolved:** the
+    contract now says `stars` is `null` for `hexa-sort`.
+11. `architecture.md` said it was shared by both repositories with the client
+    copy as reference, and the backend `docs/README.md` planned a copy.
+    **Resolved:** the file lives only in the client; the backend links to it.
+12. The panel may import only `src/domain` (plan §4, D-19), but CU-17, CU-18
+    and the panel's login are use cases in `src/application` (decision 19).
+13. The State pattern is listed as possible over-engineering, but CU-06 and
+    `architecture.md` §4 depend on it (decision 20).
+14. `api-contracts.md` marks username, password and rate-limit values as
+    proposed, while HU30-be and T26 treat them as decided (decision 21).
+15. Ports were named in five documents with no single list; `architecture.md`
+    §2 now has one table. New ports are added there first.
