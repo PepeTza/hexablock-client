@@ -215,6 +215,32 @@ One entry per significant use. Copy the template.
   `Direction` would not stop mixing directions of two geometries; a runtime
   check in `HexGeometry` does.
 
+### 2026-11-12 — Generic board (issue #10)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5.
+- **Issue / PR:** #10.
+- **Prompt (paraphrase):** implement #10 through the harness, explaining
+  generics, composition, the board shape and Prototype before asking for
+  approval.
+- **Result:** `BoardShape` (radius and free-form) and `Board<TCell>` with
+  `cellAt`, `place`, `remove`, neighbours, lines, rotation and `clone()` in
+  `src/domain/engine/board`, with 23 test cases and four test cell types.
+- **Team modifications:**
+  - The AI first named the board methods `get`, `set` and `clear`. The team
+    questioned getters and setters; they were renamed to the domain terms
+    `cellAt`, `place` and `remove`.
+  - The AI also proposed a read-only view (`IReadonlyBoard<TCell>`) so that
+    only the rules could change the board; the team rejected it for now.
+  - The team approved an empty cell as `undefined`, with the constraint
+    `TCell extends NonNullable<unknown>`, and a mutable board with
+    `clone()`, as `use-cases.md` describes.
+- **Lessons / limitations:** the AI said a Hexa Fit cell holds "which piece
+  occupies the cell"; the team pointed out that a piece covers several
+  cells (each cell holds the `PieceId` of the piece covering it). While
+  building, the AI noticed that a negative radius gave an empty shape
+  without an error and added the check. `clone()` copies cells, not the
+  values in them, so cell types must stay immutable.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

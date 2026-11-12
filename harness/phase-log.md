@@ -14,3 +14,4 @@ details live in the PR.
 | 2026-11-11 | Shared agent skills | #12 | PepeTza | — | Docs only; 5 skills; shared ones copied to backend #7 |
 | 2026-11-11 | Layer and variant boundaries with lint rules; path aliases | #8 | PepeTza | 14 / 14 | Variants read from folders; `admin/` rule left to #7 (decision 19 still open) |
 | 2026-11-11 | Hex coordinates and geometry | #9 | PepeTza | 44 / 44 | Pointy-top (D-21); directions and axes declared by each geometry |
+| 2026-11-12 | Generic board with injected geometry | #10 | PepeTza | 67 / 67 | `cellAt` / `place` / `remove`; mutable with `clone()` (Prototype); 4 test cell types |
