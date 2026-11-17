@@ -19,7 +19,7 @@ release `v1.0.0` on 2026-12-13, defence on 2026-12-14.
 
 | Iteration | Dates | Goal | Scope | Done when |
 |---|---|---|---|---|
-| I0 Foundations | 11-11 → 11-15 | Projects ready, blocking decisions taken, rendering risk cleared | Setup of the app, the admin panel and the API; CI; branch protection; layer lint; `Coord`, `HexGeometry`, `Board<TCell>`; Skia spike; `/health`; decisions of §7 due by 11-15 | CI green on a PR in both repos; the app opens on a real Android phone; radius-4 board with a draggable piece at ~60 FPS; `/api/v1/health` answers against a local PostgreSQL |
+| I0 Foundations | 11-11 → 11-15 | Projects ready, blocking decisions taken, rendering risk cleared | Setup of the app, the admin panel and the API; CI; branch protection; layer lint; `ICoord`, `HexCoord`, `HexGeometry`, `Board<TCell, TCoord>`; Skia spike; `/health`; decisions of §7 due by 11-15 | CI green on a PR in both repos; the app opens on a real Android phone; radius-4 board with a draggable piece at ~60 FPS; `/api/v1/health` answers against a local PostgreSQL |
 | I1 Engine + Hexa Lines | 11-16 → 11-22 | Generic engine proven with a real variant | `GameEngine`, `BaseGameRules`, domain events, piece sources, scoring, seeded random, piece catalog, use cases + logging aspect, Hexa Lines, menu, result screens, local persistence. Backend: Prisma schema, auth, error format and Swagger, deployment from CI. Diagrams v1 | Hexa Lines playable end to end in the `v0.1.0` APK; engine coverage ≥ 80 %; backend deployed with `/auth/*` |
 | I2 Merge + Fit core + API | 11-23 → 11-29 | Second and third variants; complete API | Command history, Hexa Merge, `LevelBuilder` and validators, Hexa Fit domain and screen, level `spec` schema frozen on 11-25. Backend: progress, scores, leaderboard, levels, seed config. Sort cascade rules started | Merge and Fit playable in `v0.2.0`; every endpoint of the contract deployed with e2e tests |
 | I3 Sort + levels + admin panel | 11-30 → 12-06 | The four variants and their content | Hexa Sort, level selection, stars, 15 Fit and 10 Sort levels, sync queue, score submission, leaderboard, content refresh, admin panel (login, Fit and Sort editors, seed config), seed script, Pact | The four variants with all their levels in `v0.3.0`; a level published from the panel reaches the phone |
@@ -29,7 +29,7 @@ release `v1.0.0` on 2026-12-13, defence on 2026-12-14.
 ### Critical path
 
 1. Decisions due in I0 (Expo, piece catalog D-07)
-2. `Coord` and `HexGeometry` → `Board<TCell>` → `GameEngine` and `BaseGameRules`
+2. `ICoord` / `HexCoord` and `HexGeometry` → `Board<TCell, TCoord>` → `GameEngine` and `BaseGameRules`
 3. Hexa Lines (proves the engine)
 4. Hexa Fit domain and level validator → level `spec` schema (11-25)
 5. Fit level editor in the panel and the 15 Fit levels → final Fit screen
@@ -309,6 +309,47 @@ ESLint's built-in `no-restricted-imports` rule, with one override per folder
   layer import and one external package import.
 - `tsconfig` path aliases (`@domain/*`, `@application/*`) keep imports readable
   and easy to filter.
+
+### Geometry independence and 3D readiness (RNF-14)
+
+While only pointy-top hexagons (`HexGeometry` + `HexCoord`) are implemented for
+this delivery, the engine must remain prepared for other 2D grids (squares,
+triangles) and 3D grids (cubes / voxels or stacked hex layers) without
+rewriting `Board`, `Piece`, `GameEngine` or the variants. Four rules keep that
+boundary clean from I1 onwards:
+
+1. **Coordinate contract and bounded generic (`TCoord extends ICoord = HexCoord`):**
+   `ICoord` (`coord.ts`) defines only what the engine and board need
+   (`equals(other: ICoord): boolean` and `toString(): string`). Each geometry
+   family provides its own value object without dead weight: `HexCoord`
+   (`q, r` and derived `s = -q - r`) for 2D hexagons, and future classes such as
+   `SquareCoord(col, row)` or `CubeCoord(x, y, z)` for 2D squares or 3D cubes.
+   `IBoardGeometry<TCoord extends ICoord = HexCoord>` exposes
+   `readonly origin: TCoord`, and `BoardShape<TCoord extends ICoord = HexCoord>`
+   and `Board<TCell, TCoord extends ICoord = HexCoord>` use `TCoord` with
+   `= HexCoord` as default, so existing 2D variants still write `Board<Color>`
+   while the compiler prevents mixing coordinate types across geometries (LSP +
+   bounded parametric polymorphism).
+2. **Opaque coordinates outside the geometry:** Outside `IBoardGeometry`
+   implementations and the board projection adapter, no class in `domain/`
+   (`Board`, `BoardShape`, `Piece`, `GameEngine`, variant rules) reads `.q`,
+   `.r` or `.s` directly. Coordinate translation goes through the geometry or
+   `TCoord` methods, and `Board` / `BoardShape` index cells exclusively by
+   `String(coord)`.
+3. **Rotation steps and segregated 3D rotation (`IBoardGeometry.rotate`):**
+   `Piece` (`T12`) and variants (`Hexa Fit` in `HU16`, `Hexa Lines` random
+   spawn orientation in `D-07`) query `geometry.rotationSteps` instead of
+   hardcoding `% 6`. `IBoardGeometry.rotate(coord, steps, centre?)` stays clean
+   for 2D planar rotation around `centre` without an unused `axis` parameter;
+   any future 3D rotation around a spatial axis belongs in a segregated
+   interface (`ISP`), never as an ignored parameter in `HexGeometry`.
+4. **Distance shells (`IBoardGeometry.ring`) and screen projection (`IBoardProjection`):**
+   `BoardShape.ofRadius` treats `ring(centre, radius)` as the shell of cells at
+   exact distance `radius` from `centre` (without assuming a 2D clockwise
+   perimeter outside `HexGeometry`), and converting `TCoord ↔ screen (x, y)`
+   lives behind a projection adapter in layers 3–4, never in `domain/` or
+   `application/`. Switching to squares or an isometric/perspective 3D cube view
+   only replaces the geometry and the projection adapter.
 
 ## 5. Setup task
 

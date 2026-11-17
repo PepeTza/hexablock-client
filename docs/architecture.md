@@ -39,9 +39,9 @@ Four concentric layers; **dependencies only point inwards**.
 
 | Layer | Content | Rule |
 |---|---|---|
-| 1. Entities / Domain | `Coord`, `Board<TCell>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TState>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
+| 1. Entities / Domain | `ICoord`, `HexCoord`, `Board<TCell, TCoord>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TState>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
 | 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase<...>`, `ApplyMoveUseCase<...>`, `FinishGameUseCase`), the aspects that wrap them, and the ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
-| 3. Interface adapters | Presenters / view models / controllers, repositories implementing the ports, entity ↔ DTO mappers, per-variant state serialisation | Translate between domain and frameworks. |
+| 3. Interface adapters | Presenters / view models / controllers, `IBoardProjection` (`TCoord` ↔ screen), repositories implementing the ports, entity ↔ DTO mappers, per-variant state serialisation | Translate between domain and frameworks. |
 | 4. Frameworks & drivers | UI / rendering, local database, HTTP client, audio, remote database (PostgreSQL on Supabase) and the REST backend as an external service | Replaceable without touching inner layers. |
 
 ### Ports
@@ -65,12 +65,19 @@ or in the domain model is listed here; a new port is added here first.
 
 ## 3. Generic engine
 
-- **`Board<TCell>`**: instantiated with `Color`, `PieceId`, `ColorStack` or
-  `Tile`. It is the statement's `HexBoard<TCell>`, generalised.
-- **`IBoardGeometry`**: geometry injected into the board by composition
-  (Strategy): neighbourhood, axes and rotation. Today `HexGeometry`; changing
-  the cell shape (e.g. squares) means adding another implementation without
-  touching the board (RNF-14).
+- **`Board<TCell, TCoord extends ICoord = HexCoord>`**: instantiated with `Color`,
+  `PieceId`, `ColorStack` or `Tile` (and `HexCoord` by default). It is the
+  statement's `HexBoard<TCell>`, generalised across both cell values and
+  coordinate systems.
+- **`IBoardGeometry<TCoord extends ICoord = HexCoord>`**: geometry injected into
+  the board by composition (Strategy): `origin`, `rotationSteps`,
+  neighbourhood, axes and planar rotation (`rotate(coord, steps, centre?)`).
+  Today `HexGeometry` with `HexCoord`; changing to another 2D cell shape (e.g.
+  squares) or a 3D grid (e.g. `CubeCoord` + `CubeGeometry`) means adding a new
+  `ICoord` and `IBoardGeometry<TCoord>` implementation (plus an `IBoardProjection`
+  adapter in layer 3) without touching `Board` or the rules (RNF-14). Any
+  future 3D-axis rotation lives in its own segregated interface (ISP) rather
+  than adding unused parameters to 2D geometries.
 - **`IGameRules<TCell, TMove, TState>`**: `legalMoves`, `apply`, `resolve`,
   `evaluateEnd`.
 - **`GameEngine<TCell, TMove, TState>`**: orchestrates the turn; emits events;

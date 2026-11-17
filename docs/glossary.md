@@ -14,7 +14,7 @@ no synonyms: if a concept is missing, add it here first.
 | Board shape | Forma del tablero | Hexagon of radius 4 or 2, or a free-form figure (Fit) |
 | Figure | Figura | In Hexa Fit, the set of cells that must be covered |
 | Cell | Celda | One hexagonal slot of the board |
-| Coord | Coordenada | The position of a cell: two integers interpreted by the geometry (axial coordinates `q, r` on the hex board) |
+| Coord (`ICoord` / `HexCoord`) | Coordenada | The position of a cell: `ICoord` is the geometry-agnostic contract; `HexCoord` uses axial integers `q, r` on the hex board |
 | Board geometry | Geometría del tablero | Defines neighbourhood, axes and rotation of cells; hexagonal today |
 | Neighbor | Vecina | An adjacent cell (up to six) |
 | Direction | Dirección | One of the six neighbourhood directions |
