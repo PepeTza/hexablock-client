@@ -1,7 +1,7 @@
 import { Axis } from './axis';
 import type { IBoardGeometry } from './board-geometry';
-import { Coord } from './coord';
 import { Direction } from './direction';
+import { HexCoord } from './hex-coord';
 
 // Axial coordinates on pointy-top hexagons, following Red Blob Games,
 // "Hexagonal Grids" (https://www.redblobgames.com/grids/hexagons/):
@@ -66,24 +66,30 @@ const AXIS_DIRECTIONS = new Map<Axis, readonly [Direction, Direction]>([
 const DIRECTIONS_PER_TURN = DIRECTIONS.length;
 
 /**
- * Strategy: the hexagonal implementation of `IBoardGeometry`, with axial
- * coordinates `q, r` (see `Coord`).
+ * Strategy: the hexagonal implementation of `IBoardGeometry<HexCoord>`, with
+ * axial coordinates `q, r` (see `HexCoord`).
  */
-export class HexGeometry implements IBoardGeometry {
+export class HexGeometry implements IBoardGeometry<HexCoord> {
+  readonly origin = HexCoord.ORIGIN;
   readonly directions = DIRECTIONS;
   readonly axes = AXES;
+  readonly rotationSteps = DIRECTIONS_PER_TURN;
 
-  neighbour(coord: Coord, direction: Direction): Coord {
+  neighbour(coord: HexCoord, direction: Direction): HexCoord {
     const [dq, dr] = lookup(OFFSETS, direction, 'direction');
-    return new Coord(coord.q + dq, coord.r + dr);
+    return new HexCoord(coord.q + dq, coord.r + dr);
   }
 
-  neighbours(coord: Coord): Coord[] {
+  neighbours(coord: HexCoord): HexCoord[] {
     return DIRECTIONS.map((direction) => this.neighbour(coord, direction));
   }
 
   /** Ordered west to east (R), north-west to south-east (Q) or south-west to north-east (S). */
-  line(coord: Coord, axis: Axis, isInside: (cell: Coord) => boolean): Coord[] {
+  line(
+    coord: HexCoord,
+    axis: Axis,
+    isInside: (cell: HexCoord) => boolean,
+  ): HexCoord[] {
     if (!isInside(coord)) {
       return [];
     }
@@ -96,7 +102,7 @@ export class HexGeometry implements IBoardGeometry {
       previous = this.neighbour(start, backward);
     }
 
-    const cells: Coord[] = [];
+    const cells: HexCoord[] = [];
     for (
       let cell = start;
       isInside(cell);
@@ -108,7 +114,7 @@ export class HexGeometry implements IBoardGeometry {
   }
 
   /** Clockwise, starting at the cell `radius` steps east of `centre`. */
-  ring(centre: Coord, radius: number): Coord[] {
+  ring(centre: HexCoord, radius: number): HexCoord[] {
     if (!Number.isInteger(radius) || radius < 0) {
       throw new RangeError(
         `Ring radius must be a non-negative integer: ${radius}`,
@@ -122,7 +128,7 @@ export class HexGeometry implements IBoardGeometry {
     // clockwise, the side after the corner in direction i runs in
     // direction i + 2 (from the east corner, south-west).
     let cell = this.walk(centre, HexDirection.EAST, radius);
-    const cells: Coord[] = [];
+    const cells: HexCoord[] = [];
     for (let side = 0; side < DIRECTIONS_PER_TURN; side++) {
       const direction = directionAt(side + 2);
       for (let step = 0; step < radius; step++) {
@@ -133,7 +139,11 @@ export class HexGeometry implements IBoardGeometry {
     return cells;
   }
 
-  rotate(coord: Coord, steps: number, centre: Coord = Coord.ORIGIN): Coord {
+  rotate(
+    coord: HexCoord,
+    steps: number,
+    centre: HexCoord = HexCoord.ORIGIN,
+  ): HexCoord {
     if (!Number.isInteger(steps)) {
       throw new RangeError(`Rotation steps must be an integer: ${steps}`);
     }
@@ -146,10 +156,10 @@ export class HexGeometry implements IBoardGeometry {
       // and -s = q + r.
       [q, r] = [-r, q + r];
     }
-    return new Coord(q + centre.q, r + centre.r);
+    return new HexCoord(q + centre.q, r + centre.r);
   }
 
-  private walk(from: Coord, direction: Direction, steps: number): Coord {
+  private walk(from: HexCoord, direction: Direction, steps: number): HexCoord {
     let cell = from;
     for (let step = 0; step < steps; step++) {
       cell = this.neighbour(cell, direction);

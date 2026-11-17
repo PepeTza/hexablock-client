@@ -1,57 +1,66 @@
 import type { IBoardGeometry } from '../geometry/board-geometry';
-import { Coord } from '../geometry/coord';
+import type { ICoord } from '../geometry/coord';
+import type { HexCoord } from '../geometry/hex-coord';
 
 /**
  * Value object: the set of cells that exist on a board (glossary: Board
- * shape). Either every cell within a radius of the centre (the radius-4 and
- * radius-2 hexagons on the hex geometry) or a free-form figure (Hexa Fit).
+ * shape). Either every cell within a radius of the geometry's origin (the
+ * radius-4 and radius-2 hexagons on the hex geometry) or a free-form figure
+ * (Hexa Fit).
  *
+ * Parameterised by `TCoord extends ICoord` (defaulting to `HexCoord`) so any
+ * geometry family defines its own board shapes without changing this class.
  * `contains` is what the board passes to the geometry as `isInside`.
  */
-export class BoardShape {
+export class BoardShape<TCoord extends ICoord = HexCoord> {
   /** The cells of the shape, each once, in the order they were given. */
-  readonly coords: readonly Coord[];
+  readonly coords: readonly TCoord[];
   private readonly keys: ReadonlySet<string>;
 
-  private constructor(coords: readonly Coord[]) {
+  private constructor(coords: readonly TCoord[]) {
     this.coords = coords;
     this.keys = new Set(coords.map(String));
   }
 
   /**
-   * Every cell at most `radius` steps from the origin, built from the rings
-   * of `geometry`: 61 cells for radius 4 and 19 for radius 2 on hexagons.
+   * Every cell at most `radius` steps from `geometry.origin`, built from the
+   * rings of `geometry`: 61 cells for radius 4 and 19 for radius 2 on hexagons.
    */
-  static ofRadius(geometry: IBoardGeometry, radius: number): BoardShape {
+  static ofRadius<TCoord extends ICoord>(
+    geometry: IBoardGeometry<TCoord>,
+    radius: number,
+  ): BoardShape<TCoord> {
     if (!Number.isInteger(radius) || radius < 0) {
       throw new RangeError(
         `Board radius must be a non-negative integer: ${radius}`,
       );
     }
-    const coords: Coord[] = [];
+    const coords: TCoord[] = [];
     for (let ring = 0; ring <= radius; ring++) {
-      coords.push(...geometry.ring(Coord.ORIGIN, ring));
+      coords.push(...geometry.ring(geometry.origin, ring));
     }
-    return new BoardShape(coords);
+    return new BoardShape<TCoord>(coords);
   }
 
   /** A free-form figure with exactly the given cells; repeated cells count once. */
-  static of(coords: Iterable<Coord>): BoardShape {
-    const unique = new Map<string, Coord>();
+  static of<TCoord extends ICoord>(
+    coords: Iterable<TCoord>,
+  ): BoardShape<TCoord> {
+    const unique = new Map<string, TCoord>();
     for (const coord of coords) {
       unique.set(String(coord), coord);
     }
     if (unique.size === 0) {
       throw new RangeError('A board shape needs at least one cell');
     }
-    return new BoardShape([...unique.values()]);
+    return new BoardShape<TCoord>([...unique.values()]);
   }
 
   get size(): number {
     return this.coords.length;
   }
 
-  contains(coord: Coord): boolean {
+  contains(coord: TCoord): boolean {
     return this.keys.has(String(coord));
   }
 }

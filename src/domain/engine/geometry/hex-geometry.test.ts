@@ -1,14 +1,14 @@
-import { Coord } from './coord';
 import { Axis } from './axis';
 import { Direction } from './direction';
+import { HexCoord } from './hex-coord';
 import { HexAxis, HexDirection, HexGeometry } from './hex-geometry';
 
 /** Inside a hexagonal board of radius 4 (61 cells) centred on the origin. */
-function insideRadius4(cell: Coord): boolean {
+function insideRadius4(cell: HexCoord): boolean {
   return Math.max(Math.abs(cell.q), Math.abs(cell.r), Math.abs(cell.s)) <= 4;
 }
 
-const keys = (cells: Coord[]): string[] => cells.map(String);
+const keys = (cells: HexCoord[]): string[] => cells.map(String);
 
 describe('HexGeometry', () => {
   describe('directions and axes', () => {
@@ -28,13 +28,22 @@ describe('HexGeometry', () => {
       expect(geometry.axes.map(String)).toEqual(['Q', 'R', 'S']);
     });
 
+    it('should_expose_origin_and_six_rotation_steps_when_geometry_is_hexagonal', () => {
+      // Arrange / Act
+      const geometry = new HexGeometry();
+
+      // Assert
+      expect(geometry.origin.equals(HexCoord.ORIGIN)).toBe(true);
+      expect(geometry.rotationSteps).toBe(6);
+    });
+
     it('should_throw_when_direction_does_not_belong_to_geometry', () => {
       // Arrange
       const geometry = new HexGeometry();
       const squareNorth = new Direction('NORTH');
 
       // Act
-      const move = () => geometry.neighbour(Coord.ORIGIN, squareNorth);
+      const move = () => geometry.neighbour(HexCoord.ORIGIN, squareNorth);
 
       // Assert
       expect(move).toThrow(RangeError);
@@ -46,7 +55,7 @@ describe('HexGeometry', () => {
       const squareRow = new Axis('ROW');
 
       // Act
-      const line = () => geometry.line(Coord.ORIGIN, squareRow, () => true);
+      const line = () => geometry.line(HexCoord.ORIGIN, squareRow, () => true);
 
       // Assert
       expect(line).toThrow(RangeError);
@@ -66,7 +75,7 @@ describe('HexGeometry', () => {
       (direction, expected) => {
         // Arrange
         const geometry = new HexGeometry();
-        const cell = new Coord(2, -1);
+        const cell = new HexCoord(2, -1);
 
         // Act
         const neighbour = geometry.neighbour(cell, direction);
@@ -79,7 +88,7 @@ describe('HexGeometry', () => {
     it('should_return_six_distinct_neighbours_when_cell_is_any_coord', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const cell = new Coord(-3, 5);
+      const cell = new HexCoord(-3, 5);
 
       // Act
       const neighbours = geometry.neighbours(cell);
@@ -105,20 +114,20 @@ describe('HexGeometry', () => {
         const geometry = new HexGeometry();
 
         // Act
-        const line = geometry.line(Coord.ORIGIN, axis, insideRadius4);
+        const line = geometry.line(HexCoord.ORIGIN, axis, insideRadius4);
 
         // Assert
         expect(line).toHaveLength(9);
         expect(line[0]?.toString()).toBe(first);
         expect(line[8]?.toString()).toBe(last);
-        expect(line.some((cell) => cell.equals(Coord.ORIGIN))).toBe(true);
+        expect(line.some((cell) => cell.equals(HexCoord.ORIGIN))).toBe(true);
       },
     );
 
     it('should_return_five_cells_when_line_runs_along_edge_of_radius_4_board', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const edgeCell = new Coord(2, -4);
+      const edgeCell = new HexCoord(2, -4);
 
       // Act
       const line = geometry.line(edgeCell, HexAxis.R, insideRadius4);
@@ -130,7 +139,7 @@ describe('HexGeometry', () => {
     it('should_return_empty_line_when_coord_is_outside', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const outside = new Coord(5, 0);
+      const outside = new HexCoord(5, 0);
 
       // Act
       const line = geometry.line(outside, HexAxis.R, insideRadius4);
@@ -144,7 +153,7 @@ describe('HexGeometry', () => {
     it('should_return_only_centre_when_ring_radius_is_zero', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const centre = new Coord(1, 1);
+      const centre = new HexCoord(1, 1);
 
       // Act
       const ring = geometry.ring(centre, 0);
@@ -160,7 +169,7 @@ describe('HexGeometry', () => {
         const geometry = new HexGeometry();
 
         // Act
-        const ring = geometry.ring(Coord.ORIGIN, radius);
+        const ring = geometry.ring(HexCoord.ORIGIN, radius);
 
         // Assert
         expect(ring).toHaveLength(6 * radius);
@@ -178,7 +187,7 @@ describe('HexGeometry', () => {
     it('should_return_neighbours_when_ring_radius_is_one', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const centre = new Coord(2, -3);
+      const centre = new HexCoord(2, -3);
 
       // Act
       const ring = geometry.ring(centre, 1);
@@ -192,7 +201,7 @@ describe('HexGeometry', () => {
       const geometry = new HexGeometry();
 
       // Act
-      const ring = () => geometry.ring(Coord.ORIGIN, -1);
+      const ring = () => geometry.ring(HexCoord.ORIGIN, -1);
 
       // Assert
       expect(ring).toThrow(RangeError);
@@ -203,21 +212,21 @@ describe('HexGeometry', () => {
     it('should_rotate_east_neighbour_to_south_east_when_rotating_one_step', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const east = geometry.neighbour(Coord.ORIGIN, HexDirection.EAST);
+      const east = geometry.neighbour(HexCoord.ORIGIN, HexDirection.EAST);
 
       // Act
       const rotated = geometry.rotate(east, 1);
 
       // Assert
       expect(rotated).toEqual(
-        geometry.neighbour(Coord.ORIGIN, HexDirection.SOUTH_EAST),
+        geometry.neighbour(HexCoord.ORIGIN, HexDirection.SOUTH_EAST),
       );
     });
 
     it('should_return_same_coord_when_rotating_six_steps', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const cell = new Coord(3, -1);
+      const cell = new HexCoord(3, -1);
 
       // Act
       const rotated = geometry.rotate(cell, 6);
@@ -229,7 +238,7 @@ describe('HexGeometry', () => {
     it('should_rotate_counter_clockwise_when_steps_are_negative', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const cell = new Coord(3, -1);
+      const cell = new HexCoord(3, -1);
 
       // Act
       const rotated = geometry.rotate(cell, -1);
@@ -244,7 +253,7 @@ describe('HexGeometry', () => {
       const geometry = new HexGeometry();
 
       // Act
-      const rotate = () => geometry.rotate(Coord.ORIGIN, 1.5);
+      const rotate = () => geometry.rotate(HexCoord.ORIGIN, 1.5);
 
       // Assert
       expect(rotate).toThrow(RangeError);
@@ -253,8 +262,8 @@ describe('HexGeometry', () => {
     it('should_rotate_around_centre_when_centre_is_given', () => {
       // Arrange
       const geometry = new HexGeometry();
-      const centre = new Coord(2, 3);
-      const eastOfCentre = new Coord(3, 3);
+      const centre = new HexCoord(2, 3);
+      const eastOfCentre = new HexCoord(3, 3);
 
       // Act
       const rotated = geometry.rotate(eastOfCentre, 1, centre);
