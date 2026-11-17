@@ -135,10 +135,10 @@ except the registry line):
 **Modified:** two lines in the composition root (the two `register(...)`
 calls) and the list of games in the menu configuration.
 
-**Not touched:** `Board`, `HexGeometry`, `GameEngine`, `BaseGameRules`,
-`IGameRules`, `CommandHistory`, every use case (`StartGameUseCase`,
-`ApplyMoveUseCase`, ...), the aspects, the repositories, the API and the four
-existing variants.
+**Not touched:** `ICoord`, `HexCoord`, `Board`, `HexGeometry`, `GameEngine`,
+`BaseGameRules`, `IGameRules`, `CommandHistory`, every use case
+(`StartGameUseCase`, `ApplyMoveUseCase`, ...), the aspects, the repositories,
+the API and the four existing variants.
 
 ### Ideas to explore
 
@@ -155,7 +155,7 @@ existing variants.
 |---|---|---|
 | Time-limit mode, boosters or score multipliers for any variant | A **rules decorator**: a class that implements `IGameRules`, wraps another rules object and adds behaviour (e.g. `TimeLimitRulesDecorator`, `BonusMultiplierDecorator`). Decorators can be stacked | The engine and the decorated variant |
 | A new piece shape | A new entry in the piece catalog (data) | All code |
-| Another cell shape (e.g. squares) | A new `IBoardGeometry` implementation | `Board`, rules that use the geometry abstraction |
+| Another 2D cell shape or 3D grid (e.g. squares or cubes) | New `ICoord` + `IBoardGeometry<TCoord>` implementations, plus an `IBoardProjection` adapter in presentation (and a segregated rotation interface if 3D axis rotation is needed) | `Board`, `BoardShape`, `GameEngine`, and rules that keep coordinates opaque |
 | Another scoring or progress model | A new `IScoringPolicy` / `IProgressModel`, selected by the factory | The engine and the use cases |
 | Another database | See the backend [`data-model.md` §8](https://github.com/PepeTza/hexablock-backend/blob/main/docs/data-model.md) | Domain and use cases |
 

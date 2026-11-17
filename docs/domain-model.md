@@ -10,7 +10,7 @@ Names follow the [glossary](./glossary.md); rules (RN-xx) are in
 | Bounded context | A part of the system with its own model and vocabulary |
 | Aggregate | A cluster of objects changed together as one unit, through its **root** |
 | Entity | An object with identity that lasts over time (`sessionId`, `userId`) |
-| Value object | An immutable object defined only by its values (`Coord`, `Seed`) |
+| Value object | An immutable object defined only by its values (`HexCoord`, `Seed`) |
 | Invariant | A rule that must always hold inside an aggregate |
 | Domain event | Something that happened in the domain that others may react to |
 | Repository | Loads and saves a whole aggregate; one per aggregate |
@@ -38,7 +38,7 @@ identity `sessionId`. It contains the board (`Board<TCell>`), the state
 strategies (rules, piece source, scoring and progress) are not part of the
 aggregate: the factory injects them.
 
-**Value objects:** `Coord`, `Direction`, `Axis`, `BoardShape`, `PieceShape`,
+**Value objects:** `HexCoord` (implementing `ICoord`), `Direction`, `Axis`, `BoardShape`, `PieceShape`,
 `Piece` (shape, rotation and, in Fit, `PieceId`), `Tray`, `Color`, `Chip`,
 `ColorStack`, `Tile`, the moves (`PlacePieceMove`, `FitMove`,
 `PlaceStackMove`, `SlideMove`), `Seed` and `GameStatus`.

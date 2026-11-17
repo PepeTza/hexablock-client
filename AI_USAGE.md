@@ -10,6 +10,7 @@ whether or not it was AI-assisted, and must be able to explain any part of it.
 |---|---|---|
 | Claude (claude.ai) | Claude Opus 5.5 | Requirements analysis, business rules, use cases, domain model, API contract, repository documentation. Consulted for design options; decisions are taken by the team. |
 | Claude Code | To be recorded per entry | Implementation of approved tasks through the harness (`harness/`). Writes code and tests under human approval at each gate. |
+| Antigravity | Gemini | Design review, geometry refactoring (`ICoord` / `HexCoord`) and verification under human approval at each gate. |
 
 Add a row when a new tool is used.
 
@@ -240,6 +241,38 @@ One entry per significant use. Copy the template.
   building, the AI noticed that a negative radius gave an empty shape
   without an error and added the check. `clone()` copies cells, not the
   values in them, so cell types must stay immutable.
+
+### 2026-11-17 — Coordinate contract ICoord and HexCoord (issues #9, #10)
+
+- **Tool / model:** Antigravity (Gemini).
+- **Issue / PR:** #25 (follow-up on #9 and #10; branch `refactor/25-coord-generic-geometry`).
+- **Prompt (paraphrase):** review the repository state and project statement,
+  advise how to keep the geometry layer ready for future 2D/3D topologies
+  (`RNF-14`) without rewriting the engine, update the implementation plan and
+  refactor the affected geometry and board files accordingly.
+- **Result:** `ICoord` (`coord.ts`), `HexCoord` (`hex-coord.ts`),
+  parameterised `IBoardGeometry<TCoord extends ICoord = HexCoord>` (with
+  `origin` and `rotationSteps`), `BoardShape<TCoord>` and
+  `Board<TCell, TCoord>`, 4 new test cases (including 3D test coordinates),
+  and updated design documentation (`implementation-plan.md`,
+  `architecture.md`, `EXTENSIBILITY.md`, `glossary.md`, `domain-model.md`).
+- **Team modifications:**
+  - The AI first suggested adding an optional `z = 0` attribute to `Coord`. The
+    team rejected it because every 2D board would carry a dead-weight `z = 0`
+    attribute and a hexagonal `.s` getter would be mixed into 3D coordinates.
+    It was replaced by `ICoord` + `TCoord extends ICoord = HexCoord`.
+  - The AI kept the name `Coord` for the hexagonal class; the team pointed out
+    the asymmetry with `HexDirection`, `HexAxis` and `HexGeometry`, so it was
+    renamed `HexCoord`.
+  - The AI proposed adding `_axis?: Axis` to `IBoardGeometry.rotate` and
+    ignoring it in `HexGeometry`. The team caught that this violates ISP and
+    makes no mathematical sense in 2D (where rotating around an in-plane axis
+    would flip the piece, forbidden by RN-03); `rotate` stayed planar and 3D
+    axis rotation was left for a segregated interface.
+- **Lessons / limitations:** initial AI proposals tried to pack 3D concerns
+  into 2D types via optional fields and ignored parameters; questioning each
+  design choice against SOLID (ISP, LSP) and domain invariants caught all
+  three issues before writing code.
 
 ## 3. Critical evaluation
 
