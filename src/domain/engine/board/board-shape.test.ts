@@ -1,6 +1,68 @@
-import { Coord } from '../geometry/coord';
+import { Axis } from '../geometry/axis';
+import type { IBoardGeometry } from '../geometry/board-geometry';
+import type { ICoord } from '../geometry/coord';
+import { Direction } from '../geometry/direction';
+import { HexCoord } from '../geometry/hex-coord';
 import { HexGeometry } from '../geometry/hex-geometry';
 import { BoardShape } from './board-shape';
+
+class TestCubeCoord implements ICoord {
+  constructor(
+    readonly x: number,
+    readonly y: number,
+    readonly z: number,
+  ) {}
+
+  equals(other: ICoord): boolean {
+    return (
+      other instanceof TestCubeCoord &&
+      this.x === other.x &&
+      this.y === other.y &&
+      this.z === other.z
+    );
+  }
+
+  toString(): string {
+    return `${this.x},${this.y},${this.z}`;
+  }
+}
+
+class FakeCubeGeometry implements IBoardGeometry<TestCubeCoord> {
+  readonly origin = new TestCubeCoord(0, 0, 0);
+  readonly directions = [new Direction('UP'), new Direction('DOWN')];
+  readonly axes = [new Axis('Z')];
+  readonly rotationSteps = 4;
+
+  neighbour(coord: TestCubeCoord): TestCubeCoord {
+    return coord;
+  }
+
+  neighbours(): TestCubeCoord[] {
+    return [];
+  }
+
+  line(): TestCubeCoord[] {
+    return [];
+  }
+
+  ring(centre: TestCubeCoord, radius: number): TestCubeCoord[] {
+    if (radius === 0) {
+      return [centre];
+    }
+    return [
+      new TestCubeCoord(centre.x + radius, centre.y, centre.z),
+      new TestCubeCoord(centre.x - radius, centre.y, centre.z),
+      new TestCubeCoord(centre.x, centre.y + radius, centre.z),
+      new TestCubeCoord(centre.x, centre.y - radius, centre.z),
+      new TestCubeCoord(centre.x, centre.y, centre.z + radius),
+      new TestCubeCoord(centre.x, centre.y, centre.z - radius),
+    ];
+  }
+
+  rotate(coord: TestCubeCoord): TestCubeCoord {
+    return coord;
+  }
+}
 
 describe('BoardShape', () => {
   it('should_have_61_cells_when_radius_is_4', () => {
@@ -24,8 +86,8 @@ describe('BoardShape', () => {
 
     // Assert
     expect(shape.size).toBe(19);
-    expect(shape.contains(new Coord(2, -2))).toBe(true);
-    expect(shape.contains(new Coord(3, 0))).toBe(false);
+    expect(shape.contains(new HexCoord(2, -2))).toBe(true);
+    expect(shape.contains(new HexCoord(3, 0))).toBe(false);
   });
 
   it('should_throw_when_radius_is_negative', () => {
@@ -41,20 +103,20 @@ describe('BoardShape', () => {
 
   it('should_contain_only_given_cells_when_shape_is_free_form', () => {
     // Arrange
-    const cells = [new Coord(0, 0), new Coord(1, 0), new Coord(5, -3)];
+    const cells = [new HexCoord(0, 0), new HexCoord(1, 0), new HexCoord(5, -3)];
 
     // Act
     const shape = BoardShape.of(cells);
 
     // Assert
     expect(shape.size).toBe(3);
-    expect(shape.contains(new Coord(5, -3))).toBe(true);
-    expect(shape.contains(new Coord(2, 0))).toBe(false);
+    expect(shape.contains(new HexCoord(5, -3))).toBe(true);
+    expect(shape.contains(new HexCoord(2, 0))).toBe(false);
   });
 
   it('should_ignore_duplicates_when_free_form_repeats_a_coord', () => {
     // Arrange
-    const cells = [new Coord(0, 0), new Coord(1, 0), new Coord(0, 0)];
+    const cells = [new HexCoord(0, 0), new HexCoord(1, 0), new HexCoord(0, 0)];
 
     // Act
     const shape = BoardShape.of(cells);
@@ -69,5 +131,18 @@ describe('BoardShape', () => {
 
     // Assert
     expect(create).toThrow(RangeError);
+  });
+
+  it('should_build_shape_from_custom_coord_geometry_when_not_hexagonal', () => {
+    // Arrange
+    const cubeGeometry = new FakeCubeGeometry();
+
+    // Act
+    const shape = BoardShape.ofRadius(cubeGeometry, 1);
+
+    // Assert
+    expect(shape.size).toBe(7);
+    expect(shape.contains(new TestCubeCoord(0, 0, 1))).toBe(true);
+    expect(shape.contains(new TestCubeCoord(1, 1, 1))).toBe(false);
   });
 });

@@ -1,10 +1,11 @@
-import { Coord } from './coord';
+import type { ICoord } from './coord';
+import { HexCoord } from './hex-coord';
 
-describe('Coord', () => {
+describe('HexCoord', () => {
   it('should_be_equal_when_coords_have_same_q_and_r', () => {
     // Arrange
-    const first = new Coord(2, -1);
-    const second = new Coord(2, -1);
+    const first = new HexCoord(2, -1);
+    const second = new HexCoord(2, -1);
 
     // Act
     const equal = first.equals(second);
@@ -14,9 +15,24 @@ describe('Coord', () => {
     expect(first.toString()).toBe(second.toString());
   });
 
+  it('should_not_be_equal_when_compared_with_non_hex_coord', () => {
+    // Arrange
+    const hex = new HexCoord(2, -1);
+    const otherCoord: ICoord = {
+      equals: () => false,
+      toString: () => '2,-1',
+    };
+
+    // Act
+    const equal = hex.equals(otherCoord);
+
+    // Assert
+    expect(equal).toBe(false);
+  });
+
   it('should_derive_s_when_coord_is_created', () => {
     // Arrange / Act
-    const coord = new Coord(3, -1);
+    const coord = new HexCoord(3, -1);
 
     // Assert
     expect(coord.s).toBe(-2);
@@ -24,7 +40,7 @@ describe('Coord', () => {
 
   it('should_throw_when_component_is_not_an_integer', () => {
     // Arrange / Act
-    const create = () => new Coord(0.5, 1);
+    const create = () => new HexCoord(0.5, 1);
 
     // Assert
     expect(create).toThrow(RangeError);
@@ -32,7 +48,7 @@ describe('Coord', () => {
 
   it('should_store_zero_when_component_is_negative_zero', () => {
     // Arrange / Act
-    const coord = new Coord(-0, -0);
+    const coord = new HexCoord(-0, -0);
 
     // Assert
     expect(Object.is(coord.q, 0)).toBe(true);

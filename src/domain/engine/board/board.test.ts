@@ -1,4 +1,8 @@
-import { Coord } from '../geometry/coord';
+import { Axis } from '../geometry/axis';
+import type { IBoardGeometry } from '../geometry/board-geometry';
+import type { ICoord } from '../geometry/coord';
+import { Direction } from '../geometry/direction';
+import { HexCoord } from '../geometry/hex-coord';
 import { HexAxis, HexGeometry } from '../geometry/hex-geometry';
 import { Board } from './board';
 import { BoardShape } from './board-shape';
@@ -14,6 +18,114 @@ class TestTile {
   constructor(readonly value: number) {}
 }
 
+class TestCubeCoord implements ICoord {
+  constructor(
+    readonly x: number,
+    readonly y: number,
+    readonly z: number,
+  ) {}
+
+  equals(other: ICoord): boolean {
+    return (
+      other instanceof TestCubeCoord &&
+      this.x === other.x &&
+      this.y === other.y &&
+      this.z === other.z
+    );
+  }
+
+  toString(): string {
+    return `${this.x},${this.y},${this.z}`;
+  }
+}
+
+const CubeAxisZ = new Axis('Z');
+const CubeDirection = Object.freeze({
+  POS_X: new Direction('+X'),
+  NEG_X: new Direction('-X'),
+  POS_Y: new Direction('+Y'),
+  NEG_Y: new Direction('-Y'),
+  POS_Z: new Direction('+Z'),
+  NEG_Z: new Direction('-Z'),
+});
+
+class TestCubeGeometry implements IBoardGeometry<TestCubeCoord> {
+  readonly origin = new TestCubeCoord(0, 0, 0);
+  readonly directions = [
+    CubeDirection.POS_X,
+    CubeDirection.NEG_X,
+    CubeDirection.POS_Y,
+    CubeDirection.NEG_Y,
+    CubeDirection.POS_Z,
+    CubeDirection.NEG_Z,
+  ];
+  readonly axes = [CubeAxisZ];
+  readonly rotationSteps = 4;
+
+  neighbour(coord: TestCubeCoord, direction: Direction): TestCubeCoord {
+    switch (direction) {
+      case CubeDirection.POS_X:
+        return new TestCubeCoord(coord.x + 1, coord.y, coord.z);
+      case CubeDirection.NEG_X:
+        return new TestCubeCoord(coord.x - 1, coord.y, coord.z);
+      case CubeDirection.POS_Y:
+        return new TestCubeCoord(coord.x, coord.y + 1, coord.z);
+      case CubeDirection.NEG_Y:
+        return new TestCubeCoord(coord.x, coord.y - 1, coord.z);
+      case CubeDirection.POS_Z:
+        return new TestCubeCoord(coord.x, coord.y, coord.z + 1);
+      case CubeDirection.NEG_Z:
+        return new TestCubeCoord(coord.x, coord.y, coord.z - 1);
+      default:
+        throw new RangeError(`Unknown cube direction: ${String(direction)}`);
+    }
+  }
+
+  neighbours(coord: TestCubeCoord): TestCubeCoord[] {
+    return this.directions.map((dir) => this.neighbour(coord, dir));
+  }
+
+  line(
+    coord: TestCubeCoord,
+    axis: Axis,
+    isInside: (cell: TestCubeCoord) => boolean,
+  ): TestCubeCoord[] {
+    if (axis !== CubeAxisZ || !isInside(coord)) {
+      return [];
+    }
+    let start = coord;
+    while (isInside(this.neighbour(start, CubeDirection.NEG_Z))) {
+      start = this.neighbour(start, CubeDirection.NEG_Z);
+    }
+    const cells: TestCubeCoord[] = [];
+    for (
+      let cell = start;
+      isInside(cell);
+      cell = this.neighbour(cell, CubeDirection.POS_Z)
+    ) {
+      cells.push(cell);
+    }
+    return cells;
+  }
+
+  ring(centre: TestCubeCoord, radius: number): TestCubeCoord[] {
+    if (radius === 0) {
+      return [centre];
+    }
+    return this.directions.map((dir) => {
+      let cell = centre;
+      for (let step = 0; step < radius; step++) {
+        cell = this.neighbour(cell, dir);
+      }
+      return cell;
+    });
+  }
+
+  rotate(coord: TestCubeCoord): TestCubeCoord {
+    return coord;
+  }
+}
+
 const geometry = new HexGeometry();
 
 function radiusBoard<TCell extends NonNullable<unknown>>(
@@ -25,7 +137,7 @@ function radiusBoard<TCell extends NonNullable<unknown>>(
 function storesCell<TCell extends NonNullable<unknown>>(cell: TCell): void {
   // Arrange
   const board = radiusBoard<TCell>(4);
-  const coord = new Coord(1, -2);
+  const coord = new HexCoord(1, -2);
 
   // Act
   board.place(coord, cell);
@@ -66,13 +178,13 @@ describe('Board', () => {
     it('should_be_empty_when_cell_is_cleared', () => {
       // Arrange
       const board = radiusBoard<TestColor>(2);
-      board.place(Coord.ORIGIN, 'blue');
+      board.place(HexCoord.ORIGIN, 'blue');
 
       // Act
-      board.remove(Coord.ORIGIN);
+      board.remove(HexCoord.ORIGIN);
 
       // Assert
-      expect(board.cellAt(Coord.ORIGIN)).toBeUndefined();
+      expect(board.cellAt(HexCoord.ORIGIN)).toBeUndefined();
     });
 
     it('should_throw_when_setting_cell_outside_board', () => {
@@ -80,7 +192,7 @@ describe('Board', () => {
       const board = radiusBoard<TestColor>(2);
 
       // Act
-      const place = () => board.place(new Coord(3, 0), 'red');
+      const place = () => board.place(new HexCoord(3, 0), 'red');
 
       // Assert
       expect(place).toThrow(RangeError);
@@ -91,7 +203,7 @@ describe('Board', () => {
       const board = radiusBoard<TestColor>(2);
 
       // Act
-      const read = () => board.cellAt(new Coord(0, 3));
+      const read = () => board.cellAt(new HexCoord(0, 3));
 
       // Assert
       expect(read).toThrow(RangeError);
@@ -104,7 +216,7 @@ describe('Board', () => {
       const board = radiusBoard<TestColor>(4);
 
       // Act
-      const neighbours = board.neighbours(Coord.ORIGIN);
+      const neighbours = board.neighbours(HexCoord.ORIGIN);
 
       // Assert
       expect(neighbours).toHaveLength(6);
@@ -115,7 +227,7 @@ describe('Board', () => {
       const board = radiusBoard<TestColor>(4);
 
       // Act
-      const neighbours = board.neighbours(new Coord(4, 0));
+      const neighbours = board.neighbours(new HexCoord(4, 0));
 
       // Assert
       expect(neighbours.map(String).sort()).toEqual(['3,0', '3,1', '4,-1']);
@@ -140,7 +252,7 @@ describe('Board', () => {
 
     it('should_stop_line_at_gap_when_shape_is_free_form', () => {
       // Arrange: one row with a gap at (2, 0)
-      const shape = BoardShape.of([0, 1, 3, 4].map((q) => new Coord(q, 0)));
+      const shape = BoardShape.of([0, 1, 3, 4].map((q) => new HexCoord(q, 0)));
       const board = new Board<TestPieceId>(shape, geometry);
 
       // Act
@@ -169,12 +281,12 @@ describe('Board', () => {
     it('should_leave_board_when_rotating_free_form_cell', () => {
       // Arrange
       const board = new Board<TestPieceId>(
-        BoardShape.of([Coord.ORIGIN, new Coord(1, 0)]),
+        BoardShape.of([HexCoord.ORIGIN, new HexCoord(1, 0)]),
         geometry,
       );
 
       // Act
-      const rotated = board.rotate(new Coord(1, 0), 1);
+      const rotated = board.rotate(new HexCoord(1, 0), 1);
 
       // Assert
       expect(board.contains(rotated)).toBe(false);
@@ -186,17 +298,40 @@ describe('Board', () => {
       // Arrange
       const original = radiusBoard<TestTile>(2);
       const tile = new TestTile(4);
-      original.place(Coord.ORIGIN, tile);
+      original.place(HexCoord.ORIGIN, tile);
 
       // Act
       const copy = original.clone();
-      copy.remove(Coord.ORIGIN);
-      copy.place(new Coord(1, 0), new TestTile(2));
+      copy.remove(HexCoord.ORIGIN);
+      copy.place(new HexCoord(1, 0), new TestTile(2));
 
       // Assert
-      expect(original.cellAt(Coord.ORIGIN)).toBe(tile);
-      expect(original.isEmpty(new Coord(1, 0))).toBe(true);
-      expect(copy.isEmpty(Coord.ORIGIN)).toBe(true);
+      expect(original.cellAt(HexCoord.ORIGIN)).toBe(tile);
+      expect(original.isEmpty(new HexCoord(1, 0))).toBe(true);
+      expect(copy.isEmpty(HexCoord.ORIGIN)).toBe(true);
+    });
+  });
+
+  describe('3D coordinate independence', () => {
+    it('should_operate_board_with_3d_test_coord_when_custom_geometry_is_injected', () => {
+      // Arrange
+      const cubeGeometry = new TestCubeGeometry();
+      const shape = BoardShape.ofRadius(cubeGeometry, 1);
+      const board = new Board<TestColor, TestCubeCoord>(shape, cubeGeometry);
+      const top = new TestCubeCoord(0, 0, 1);
+
+      // Act
+      board.place(top, 'red');
+      const copy = board.clone();
+      copy.remove(top);
+      const centreNeighbours = board.neighbours(cubeGeometry.origin);
+      const zLines = board.lines(CubeAxisZ);
+
+      // Assert
+      expect(board.cellAt(top)).toBe('red');
+      expect(copy.isEmpty(top)).toBe(true);
+      expect(centreNeighbours).toHaveLength(6);
+      expect(zLines.some((line) => line.length === 3)).toBe(true);
     });
   });
 });
