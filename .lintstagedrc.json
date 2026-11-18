@@ -3,5 +3,6 @@
     "eslint --max-warnings 0 --no-warn-ignored",
     "prettier --check"
   ],
+  "admin/**/*.{ts,tsx}": ["npm --prefix admin run lint --"],
   "*.{js,mjs,json}": ["prettier --check"]
 }
