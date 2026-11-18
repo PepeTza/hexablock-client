@@ -4,7 +4,7 @@ Technology, layers, generic engine, patterns, SOLID, AOP, persistence and the
 architectural decisions of HexaBlock Suite. This document lives only in the
 client repository; the backend links to it instead of keeping a copy.
 
-The DDD model is in [`domain-model.md`](./domain-model.md).
+The domain entities and value objects are described in [`domain-model.md`](./domain-model.md).
 
 ## 1. Technology
 

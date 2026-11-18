@@ -1,6 +1,6 @@
-# Glossary (ubiquitous language)
+# Glossary
 
-The shared vocabulary of the project (DDD *ubiquitous language*). The
+The shared vocabulary of the project. The
 **Code** column is the name used in code, diagrams and English docs; the
 **Spanish** column is the word the team uses when talking. Use these names and
 no synonyms: if a concept is missing, add it here first.
