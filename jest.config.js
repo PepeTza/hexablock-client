@@ -25,4 +25,7 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}'],
   coverageThreshold,
   moduleNameMapper,
+  // `admin/` is a separate web app tested with Vitest (D-18).
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/admin/'],
+  modulePathIgnorePatterns: ['<rootDir>/admin/'],
 };
