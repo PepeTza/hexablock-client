@@ -10,11 +10,18 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
+    // Lets the lint rule test import eslint-boundaries.js with its JSDoc types.
+    "allowJs": true,
     "types": ["vite/client"],
     // Same alias as vite.config.ts and as the app (D-19).
     "paths": {
       "@domain/*": ["../src/domain/*"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": [
+    "src",
+    "vite.config.ts",
+    "eslint-boundaries.js",
+    "eslint-boundaries.test.ts"
+  ]
 }
