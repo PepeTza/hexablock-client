@@ -10,7 +10,11 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    // Same alias as vite.config.ts and as the app (D-19).
+    "paths": {
+      "@domain/*": ["../src/domain/*"]
+    }
   },
   "include": ["src", "vite.config.ts"]
 }
