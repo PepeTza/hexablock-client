@@ -274,6 +274,30 @@ One entry per significant use. Copy the template.
   design choice against SOLID (ISP, LSP) and domain invariants caught all
   three issues before writing code.
 
+### 2026-11-18 — Admin panel setup (issue #7)
+
+- **Tool / model:** Claude Code, claude-opus-5-5.
+- **Issue / PR:** #7.
+- **Prompt (paraphrase):** implement issue #7 through the harness and explain
+  every step, so the owner can defend it.
+- **Result:** Vite + React + strict TypeScript app in `admin/`; the `@domain`
+  alias in Vite and tsconfig with a page that computes a radius-4 board with
+  the domain; ESLint with an import boundary and six tests proving it; root
+  type-check, Jest and lint-staged adjusted to ignore or lint `admin/`.
+- **Team modifications:**
+  - The owner approved `jsdom`, `@types/react` and `@types/react-dom`, missing
+    from the plan's dependency list, and the D-19 boundary as recorded today
+    (only `src/domain`), since decision 19 is still open.
+  - The owner checked that the engine (Track A) is only used, not modified.
+- **Lessons / limitations:**
+  - The root type-check was silently checking the panel, including its build
+    output; found by listing the files TypeScript included.
+  - `jsdom` 31 needs Node 22.19 (through `undici` 8); `jsdom` 29 is the newest
+    that runs on the Node 22.13 the repository declares.
+  - The first commit message was rejected by commitlint (77 characters);
+    the hook worked as intended.
+  - The panel has no CI job yet: the client CI is issue #6.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

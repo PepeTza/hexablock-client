@@ -41,6 +41,14 @@ explainability over cleverness.
   - `npm run typecheck`: TypeScript in strict mode, no emit.
   - `npm test` / `npm run test:coverage`: Jest; coverage must stay at 80 % or
     more in `src/domain` and `src/application` once those folders exist.
+- Admin panel commands (run from `admin/`, which has its own `package.json`):
+  - `npm install`: installs the panel's dependencies.
+  - `npm run dev` / `npm run build` / `npm run preview`: serve, build or serve
+    the built panel with Vite.
+  - `npm test`: Vitest. `npm run lint`: ESLint with the panel's import
+    boundary (only `@domain`, D-19). `npm run typecheck`: strict TypeScript.
+  - The root type-check and Jest ignore `admin/`; the pre-commit hook lints
+    panel files with the panel's own ESLint config.
 
 ## 2. Workflow: the harness
 
