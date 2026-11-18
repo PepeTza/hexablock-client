@@ -10,7 +10,7 @@ A mobile app (Android or iOS) with four casual puzzle games on hexagonal
 boards, plus a REST backend, in two independent GitHub repositories (client
 and backend). Quality target: a game that could be published on Google Play as
 delivered, that applies the course content (design patterns, generics,
-subtype polymorphism, Clean Architecture, aspects, DDD and testing), and that
+subtype polymorphism, Clean Architecture, aspects and testing), and that
 the team can explain and defend.
 
 **In scope:** generic engine, four variants, menu and level selection, local
@@ -141,5 +141,4 @@ multiplayer, purchases or ads, password recovery by email.
 | RNF-12 | Documentation | All deliverable documentation in English: README in both repos (including the AI Usage Documentation section), `AI_USAGE.md`, `docs/EXTENSIBILITY.md` and diagrams with an editable source in Lucidchart linked from the README (client: class, layer and extensibility; backend: class and layer). Credits and licences of third-party assets in the README. |
 | RNF-13 | Determinism | The domain can be tested without UI or database, with a fixed seed. |
 | RNF-14 | Evolution (desirable) | Board logic is separated from its graphical representation and the geometry is accessed through an abstraction, so that changing the cell shape or the view (e.g. to 3D) only affects the presentation and the geometry implementation, not the rules. Not implemented in this delivery. |
-| RNF-15 | Design | Domain-driven design (DDD): ubiquitous language, bounded contexts, aggregates, entities and value objects, domain events and one repository per aggregate (see [`domain-model.md`](./domain-model.md)). |
 | RNF-16 | Product | Product quality: the game must be at the level of one publishable in an app store: stable, polished, with careful visual and sound feedback and no known blocking bugs (team goal). |

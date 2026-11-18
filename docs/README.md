@@ -6,12 +6,12 @@ model live in the
 
 | Document | Content | Status |
 |---|---|---|
-| [`glossary.md`](./glossary.md) | Ubiquitous language (English / Spanish) | Draft |
+| [`glossary.md`](./glossary.md) | Project glossary (English / Spanish) | Draft |
 | [`requirements.md`](./requirements.md) | Functional (RF) and non-functional (RNF) requirements | Draft |
 | [`business-rules.md`](./business-rules.md) | Business rules RN-01..RN-43 | Draft |
 | [`use-cases.md`](./use-cases.md) | Use cases CU-01..CU-18 | Draft |
 | [`user-stories.md`](./user-stories.md) | User stories HU01..HU35 with acceptance criteria | Draft |
-| [`domain-model.md`](./domain-model.md) | DDD model: bounded contexts, aggregates, value objects, events | Draft |
+| [`domain-model.md`](./domain-model.md) | Domain layer (Layer 1): entities, value objects, invariants and Observer events | Draft |
 | [`architecture.md`](./architecture.md) | Layers, dependency rule, stack, patterns, AOP, decisions | Draft |
 | [`EXTENSIBILITY.md`](./EXTENSIBILITY.md) | How to add a fifth variant; worked example (Hexa Quest) | Draft |
 | [`implementation-plan.md`](./implementation-plan.md) | Iterations, work split, issues, setup and pending decisions | Approved |

@@ -5,7 +5,7 @@ How to add a fifth variant (and other extensions) to HexaBlock Suite
 and user story HU10.
 
 Related: [`architecture.md`](./architecture.md) (layers, patterns),
-[`domain-model.md`](./domain-model.md) (aggregates) and the class diagram in
+[`domain-model.md`](./domain-model.md) (domain entities) and the class diagram in
 [`diagrams/`](./diagrams).
 
 ## 1. The rule

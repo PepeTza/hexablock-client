@@ -17,3 +17,4 @@ details live in the PR.
 | 2026-11-12 | Generic board with injected geometry | #10 | PepeTza | 67 / 67 | `cellAt` / `place` / `remove`; mutable with `clone()` (Prototype); 4 test cell types |
 | 2026-11-17 | Decouple coordinates with ICoord and HexCoord (RNF-14) | #25 | PepeTza | 71 / 71 | `TCoord extends ICoord = HexCoord`; `origin` and `rotationSteps`; 3D test coord |
 | 2026-11-18 | Admin panel setup importing the domain | #7 | KeneFu | 7 / 7 panel, 71 / 71 app | Vite + React in `admin/` (D-18); `@domain` alias and lint boundary as D-19 stands today (decision 19 still open); jsdom 29 for Node 22.13; panel CI job left to #6 |
+| 2026-11-18 | Remove DDD references in favour of Clean Architecture | #43 | PepeTza | — | Docs only; dropped `RNF-15`, bounded contexts and aggregates; twin backend #24 |

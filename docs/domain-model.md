@@ -1,47 +1,43 @@
-# Domain Model (DDD)
+# Domain Model (Clean Architecture — Layer 1)
 
 Names follow the [glossary](./glossary.md); rules (RN-xx) are in
 [`business-rules.md`](./business-rules.md).
 
 ## Quick reference
 
-| Term | Meaning here |
+| Term | Meaning in Clean Architecture |
 |---|---|
-| Bounded context | A part of the system with its own model and vocabulary |
-| Aggregate | A cluster of objects changed together as one unit, through its **root** |
-| Entity | An object with identity that lasts over time (`sessionId`, `userId`) |
-| Value object | An immutable object defined only by its values (`HexCoord`, `Seed`) |
-| Invariant | A rule that must always hold inside an aggregate |
-| Domain event | Something that happened in the domain that others may react to |
-| Repository | Loads and saves a whole aggregate; one per aggregate |
-| Domain service | Domain logic that does not belong to a single aggregate |
+| Entity | A Layer 1 domain object with identity (`sessionId`, `userId`, `levelId`) and business rules |
+| Value object | An immutable object defined only by its values (`HexCoord`, `Seed`, `Tile`) |
+| Invariant | A business rule that must always hold inside a domain entity |
+| Event (Observer) | A notification emitted by the game engine so UI, audio and persistence can react without coupling |
+| Repository port | An interface in Layer 2 (`src/application/ports/`) that loads and saves domain entities |
 
-## Bounded contexts
+## Domain areas
 
-| Context | Content | Where |
+| Area | Content | Where |
 |---|---|---|
-| **Game** | Engine and variants | Client |
-| **Progress & leaderboard** | Account, progress and ranking | Client and server |
-| **Content** | Levels and seed configuration | Server, with a copy on the client |
+| **Game** | Engine and variants | Client (`src/domain/engine`, `src/domain/variants`) |
+| **Progress & leaderboard** | Account, progress and ranking | Client (`src/domain/progress`) and server |
+| **Content** | Levels and seed configuration | Server, with a bundled copy on the client (`src/domain/content`) |
 
 Game reads content when a game starts (CU-01) and hands its result to
-Progress through `FinishGameUseCase` (CU-07), which translates from one
-context to the other; the engine never knows about accounts or leaderboards.
-Client and server share Progress and Content only through the API, verified
-with contract tests.
+Progress through `FinishGameUseCase` (CU-07); the engine never knows about
+accounts or leaderboards. Client and server communicate only through the API,
+verified with contract tests.
 
-## Game context
+## Game
 
-**Aggregate: game session.** Root: `GameEngine<TCell, TMove, TState>`, with
-identity `sessionId`. It contains the board (`Board<TCell>`), the state
-(`TState extends GameState`, a value object) and the command history. The
-strategies (rules, piece source, scoring and progress) are not part of the
-aggregate: the factory injects them.
+**Core entity: game session (`GameEngine<TCell, TMove, TState, TCoord>`).**
+Identified by `sessionId`. It holds the board (`Board<TCell, TCoord>`), the
+state (`TState extends GameState`, a value object) and the command history. The
+strategies (rules, piece source, scoring and progress) are injected by the
+variant factory.
 
-**Value objects:** `HexCoord` (implementing `ICoord`), `Direction`, `Axis`, `BoardShape`, `PieceShape`,
-`Piece` (shape, rotation and, in Fit, `PieceId`), `Tray`, `Color`, `Chip`,
-`ColorStack`, `Tile`, the moves (`PlacePieceMove`, `FitMove`,
-`PlaceStackMove`, `SlideMove`), `Seed` and `GameStatus`.
+**Value objects:** `HexCoord` (implementing `ICoord`), `Direction`, `Axis`,
+`BoardShape`, `PieceShape`, `Piece` (shape, rotation and, in Fit, `PieceId`),
+`Tray`, `Color`, `Chip`, `ColorStack`, `Tile`, the moves (`PlacePieceMove`,
+`FitMove`, `PlaceStackMove`, `SlideMove`), `Seed` and `GameStatus`.
 
 **General invariants**
 
@@ -59,61 +55,53 @@ aggregate: the factory injects them.
 | Sort | No possible transfers and no runs of 10+ same-colour chips after resolving (RN-21, RN-23) |
 | Merge | Tiles are powers of 2; no double merges; a new tile only after a valid move (RN-27, RN-28) |
 
-**Events:** `GameStarted`, `MoveApplied`, `MoveRejected`, `LineCleared`,
+**Observer events:** `GameStarted`, `MoveApplied`, `MoveRejected`, `LineCleared`,
 `StackMerged`, `GoalCompleted`, `TileMerged`, `TileSpawned`, `TargetReached`,
 `MoveUndone`, `MoveRedone`, `GamePaused`, `GameResumed`, `GameOver`,
 `LevelCompleted`.
 
 **Factories:** one per variant, plus the factory registry (CU-01).
 
-No domain services or repositories of its own: finding possible moves is part
-of the rules, and a game in progress is not saved (unless HU34 is done).
+Finding possible moves is part of each variant's rules, and a game in progress
+is not saved (unless HU34 is done).
 
-## Progress & leaderboard context
+## Progress & leaderboard
 
-**Aggregate: player progress (`PlayerProgress`).** One per player (or the
-device's guest) and per variant (RN-33). Contains the record and, per level,
-completed, stars and best score. Invariant: it only improves; merging two
-progresses keeps the best of each (RN-36), and that logic lives inside the
-aggregate.
+**Entity: `PlayerProgress`.** One per player (or the device's guest) and per
+variant (RN-33). Contains the record and, per level, completed, stars and best
+score. Invariant: it only improves; merging two progresses keeps the best of
+each (RN-36), and that logic lives inside `PlayerProgress`.
 
-**Aggregate: user (`User`).** Identity `userId`; unique name, password hash and
-role. Invariants: unique name and password never in plain text.
+**Entity: `User`.** Identity `userId`; unique name, password hash and role.
+Invariants: unique name and password never in plain text.
 
-**Aggregate: leaderboard entry (`LeaderboardEntry`).** One per player and
-table (variant, and level in Fit and Sort), with the best score and its date.
-Invariant: it only improves; on equal score the earliest date wins (RN-43).
+**Entity: `LeaderboardEntry`.** One per player and table (variant, and level in
+Fit and Sort), with the best score and its date. Invariant: it only improves;
+on equal score the earliest date wins (RN-43).
 
 **Value objects:** `Username`, `PasswordHash`, `Role`, `ScoreSubmission`
 (variant, level, score, seed, moves, duration and `sessionId`), `StarCount`.
 
-**Domain service:** score plausibility check, on the server (RN-39).
+**Backend validation:** score plausibility check (RN-39).
 
-**Events:** `UserRegistered`, `ProgressUpdated`, `ScoreAccepted`,
-`ScoreRejected`.
+**Repository ports (Layer 2):** `IProgressRepository` (local and remote
+implementations), `IUserRepository`, `ILeaderboardRepository`.
 
-**Repositories:** `IProgressRepository` (local and remote implementations),
-`IUserRepository`, `ILeaderboardRepository`.
+## Content
 
-## Content context
+**Entity: `LevelDefinition`.** Identity `levelId`; a common part and a part
+specific to the variant. Invariants: immutable once published and always at the
+end of the order (RN-37); in Fit, the pieces' area equals the figure's and
+there is a solution (RN-13).
 
-**Aggregate: level definition (`LevelDefinition`).** Identity `levelId`; a
-common part and a part specific to the variant. Invariants: immutable once
-published and always at the end of the order (RN-37); in Fit, the pieces'
-area equals the figure's and there is a solution (RN-13).
-
-**Aggregate: seed configuration (`SeedConfig`).** One per variant, and per
-level in Sort. Invariant: if the mode is fixed, it has a value.
+**Entity: `SeedConfig`.** One per variant, and per level in Sort. Invariant: if
+the mode is fixed, it has a value.
 
 **Value objects:** `Figure`, `StarThresholds`, the parameters of a Sort level,
 `SeedMode`.
 
-**Domain services:** level validators, one per level-based variant behind
-`ILevelValidator` (Fit searches for a solution), and the candidate generator
-(D-09).
+**Validators & builder:** level validators behind `ILevelValidator` (Fit
+searches for a solution), the candidate generator (D-09), and the level
+`LevelBuilder`.
 
-**Factory:** the level Builder.
-
-**Events:** `LevelPublished`, `SeedConfigChanged`.
-
-**Repositories:** `ILevelRepository`, `ISeedConfigRepository`.
+**Repository ports (Layer 2):** `ILevelRepository`, `ISeedConfigRepository`.

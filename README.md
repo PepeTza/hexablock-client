@@ -28,7 +28,7 @@ _Coming soon: screenshots or GIFs of the four variants._
 ## Architecture
 
 _Coming soon._ Clean Architecture with four layers (entities, use cases,
-interface adapters, frameworks & drivers) and DDD bounded contexts. The layer
+interface adapters, frameworks & drivers). The layer
 diagram will be embedded here; sources in [`docs/`](./docs).
 
 ## Generic Engine
