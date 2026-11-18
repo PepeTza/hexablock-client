@@ -63,6 +63,21 @@ npm start       # starts Expo; scan the QR code with Expo Go
 npm run android # starts Expo and opens an Android emulator or device
 ```
 
+### Admin panel
+
+The admin web panel lives in [`admin/`](./admin): a separate Vite + React app
+(D-18) with its own `package.json`. It reuses the game's domain through the
+`@domain` alias (D-19), and a lint rule forbids it from importing anything
+else of the app.
+
+```bash
+cd admin
+npm install     # installs the panel's dependencies
+npm run dev     # serves the panel at http://localhost:5173
+npm run build   # type-checks and builds it into admin/dist
+npm run preview # serves the built panel
+```
+
 ## Running Tests
 
 ```bash
@@ -70,6 +85,14 @@ npm test               # unit and UI tests
 npm run test:coverage  # same, with the 80 % coverage threshold
 npm run lint           # ESLint
 npm run format:check   # Prettier
+npm run typecheck      # TypeScript strict mode
+```
+
+Admin panel, from `admin/`:
+
+```bash
+npm test               # Vitest: the page and the import boundary rule
+npm run lint           # ESLint, including the import boundary
 npm run typecheck      # TypeScript strict mode
 ```
 
