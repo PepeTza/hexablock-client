@@ -322,12 +322,28 @@ back in progress.
 
 **Design notes**
 
-- **State** pattern: each game state is an object that decides what it allows
-  (in progress accepts moves and pause; paused rejects moves and accepts
-  resume; finished only allows retry or quit), with no conditionals spread
-  through the code. States proposed by the statement: `PlayingState`,
-  `ResolvingState` (the RN-06 lock), `PausedState`, `GameOverState`,
-  `VictoryState` and `MenuState`.
+- **State** pattern (D-22): each session state is an object that decides
+  what it allows, with no conditionals spread through the engine.
+  `GameEngine` keeps the current state and delegates every action to it.
+  "Ignored" means nothing happens and no event is emitted (A1); "rejected"
+  means `MoveRejected` is emitted and the game stays as it was.
+
+  | Action | `PlayingState` | `ResolvingState` | `PausedState` | `FinishedState` |
+  |---|---|---|---|---|
+  | `applyMove` | Validates and applies; if valid → Resolving | Rejected (RN-06) | Rejected (A2) | Rejected |
+  | `undo` / `redo` | Applies → Resolving | Rejected | Rejected | Rejected |
+  | `pause` | → Paused, clock stops | → Paused, the lock is dropped | Ignored (A1) | Ignored (A1) |
+  | `resume` | Ignored | Ignored | → Playing, or → Finished if the last move ended the game | Ignored |
+  | `resolutionDone` | Ignored | → Playing, or → Finished if the last move ended the game | Ignored | Ignored |
+
+- The rules evaluate the end of the game when the move is applied, not when
+  the animation ends, so the result is known if the app is paused mid-animation.
+- `FinishedState` carries an `outcome` (victory or defeat). Reaching the Hexa
+  Merge target emits `TargetReached` and the game stays in `PlayingState`
+  (HU28).
+- Of the six states proposed by the statement, `MenuState` was dropped (the
+  menu is navigation, D-20) and `GameOverState` and `VictoryState` became
+  `FinishedState`, because they allow the same actions.
 - Saving is not part of this use case: the save component listens to the
   "game paused" event (**Observer**).
 
@@ -736,7 +752,7 @@ is invalid (`400`).
 **Design note (CU-17 and CU-18):** the panel lives in the client repo and
 imports the game's level validators directly (D-16), so it never approves a
 level the game considers invalid. The server only checks the format, and the
-game validates every level again when it downloads it (CU-15 A2). Where these
-two use cases and the panel's login (CU-11 A4) live, in `src/application` or
-inside `admin/`, is decision 19 of the
-[implementation plan](./implementation-plan.md#7-pending-decisions).
+game validates every level again when it downloads it (CU-15 A2). These two
+use cases and the panel's login (CU-11 A4) are the generic classes of
+`src/application`; the panel imports them and provides its own adapters for
+their ports (D-19).
