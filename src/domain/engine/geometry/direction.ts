@@ -8,8 +8,14 @@
  *
  * Each geometry creates its directions once, so they can be compared with
  * `===`.
+ *
+ * `kind` exists only for the compiler: TypeScript compares classes by their
+ * shape, so without a private member a `Direction` and an `Axis` (both just a
+ * `name`) would be accepted in place of each other.
  */
 export class Direction {
+  private readonly kind = 'direction';
+
   constructor(readonly name: string) {}
 
   toString(): string {

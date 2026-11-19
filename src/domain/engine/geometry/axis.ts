@@ -6,6 +6,9 @@
  * creates its axes once, so they can be compared with `===`.
  */
 export class Axis {
+  /** Only for the compiler: keeps `Axis` and `Direction` apart (see `Direction`). */
+  private readonly kind = 'axis';
+
   constructor(readonly name: string) {}
 
   toString(): string {
