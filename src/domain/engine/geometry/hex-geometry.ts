@@ -2,6 +2,7 @@ import { Axis } from './axis';
 import type { IBoardGeometry } from './board-geometry';
 import { Direction } from './direction';
 import { HexCoord } from './hex-coord';
+import type { IPlanarRotation } from './planar-rotation';
 
 // Axial coordinates on pointy-top hexagons, following Red Blob Games,
 // "Hexagonal Grids" (https://www.redblobgames.com/grids/hexagons/):
@@ -67,9 +68,12 @@ const DIRECTIONS_PER_TURN = DIRECTIONS.length;
 
 /**
  * Strategy: the hexagonal implementation of `IBoardGeometry<HexCoord>`, with
- * axial coordinates `q, r` (see `HexCoord`).
+ * axial coordinates `q, r` (see `HexCoord`). It also implements
+ * `IPlanarRotation<HexCoord>`: 60° turns around a centre cell.
  */
-export class HexGeometry implements IBoardGeometry<HexCoord> {
+export class HexGeometry
+  implements IBoardGeometry<HexCoord>, IPlanarRotation<HexCoord>
+{
   readonly origin = HexCoord.ORIGIN;
   readonly directions = DIRECTIONS;
   readonly axes = AXES;

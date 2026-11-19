@@ -89,15 +89,6 @@ export class Board<
   }
 
   /**
-   * `coord` turned `steps` turns clockwise around `centre`, as the geometry
-   * does it. The result may fall outside the board: check it with
-   * `contains`.
-   */
-  rotate(coord: TCoord, steps: number, centre?: TCoord): TCoord {
-    return this.geometry.rotate(coord, steps, centre);
-  }
-
-  /**
    * An independent copy with the same shape, geometry and cells. The cell
    * values themselves are shared, so cell types must be immutable value
    * objects (as `domain-model.md` defines them).

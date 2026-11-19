@@ -31,7 +31,6 @@ class FakeCubeGeometry implements IBoardGeometry<TestCubeCoord> {
   readonly origin = new TestCubeCoord(0, 0, 0);
   readonly directions = [new Direction('UP'), new Direction('DOWN')];
   readonly axes = [new Axis('Z')];
-  readonly rotationSteps = 4;
 
   neighbour(coord: TestCubeCoord): TestCubeCoord {
     return coord;
@@ -57,10 +56,6 @@ class FakeCubeGeometry implements IBoardGeometry<TestCubeCoord> {
       new TestCubeCoord(centre.x, centre.y, centre.z + radius),
       new TestCubeCoord(centre.x, centre.y, centre.z - radius),
     ];
-  }
-
-  rotate(coord: TestCubeCoord): TestCubeCoord {
-    return coord;
   }
 }
 
@@ -144,5 +139,31 @@ describe('BoardShape', () => {
     expect(shape.size).toBe(7);
     expect(shape.contains(new TestCubeCoord(0, 0, 1))).toBe(true);
     expect(shape.contains(new TestCubeCoord(1, 1, 1))).toBe(false);
+  });
+
+  describe('rotation', () => {
+    it('should_keep_every_cell_inside_when_rotating_hexagon_shape', () => {
+      // Arrange
+      const geometry = new HexGeometry();
+      const shape = BoardShape.ofRadius(geometry, 4);
+
+      // Act
+      const rotated = shape.coords.map((coord) => geometry.rotate(coord, 1));
+
+      // Assert
+      expect(rotated.every((coord) => shape.contains(coord))).toBe(true);
+    });
+
+    it('should_leave_shape_when_rotating_free_form_cell', () => {
+      // Arrange
+      const geometry = new HexGeometry();
+      const shape = BoardShape.of([HexCoord.ORIGIN, new HexCoord(1, 0)]);
+
+      // Act
+      const rotated = geometry.rotate(new HexCoord(1, 0), 1);
+
+      // Assert
+      expect(shape.contains(rotated)).toBe(false);
+    });
   });
 });
