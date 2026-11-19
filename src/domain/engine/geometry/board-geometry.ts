@@ -4,7 +4,7 @@ import type { Direction } from './direction';
 import type { HexCoord } from './hex-coord';
 
 /**
- * Neighbourhood, axes and rotation of the cells of a board (RF-01).
+ * Neighbourhood and axes of the cells of a board (RF-01).
  *
  * Parameterised by `TCoord extends ICoord` (defaulting to `HexCoord`) so each
  * geometry defines its own coordinate value object without burdening 2D grids
@@ -17,19 +17,22 @@ import type { HexCoord } from './hex-coord';
  * hexagonal board and a free-form figure.
  *
  * `Board<TCell, TCoord>` receives an implementation by composition (Strategy).
+ * Rotation is not part of it: planar geometries also implement
+ * `IPlanarRotation` (Interface Segregation), so a 3D grid is not forced to
+ * fake one.
  */
 export interface IBoardGeometry<TCoord extends ICoord = HexCoord> {
-  /** The origin cell used as default centre for radius shapes and rotation. */
+  /** The origin cell, used as the default centre of radius shapes. */
   readonly origin: TCoord;
 
-  /** The neighbourhood directions of a cell, in clockwise order. */
+  /**
+   * The neighbourhood directions of a cell, in a fixed order that each
+   * geometry documents (clockwise from east on hexagons).
+   */
   readonly directions: readonly Direction[];
 
   /** The line orientations of the grid. */
   readonly axes: readonly Axis[];
-
-  /** Number of discrete steps in a full planar turn (6 on hexagons). */
-  readonly rotationSteps: number;
 
   /**
    * The cell one step from `coord` in `direction`. Throws when `direction`
@@ -56,11 +59,4 @@ export interface IBoardGeometry<TCoord extends ICoord = HexCoord> {
    * the radius is 0.
    */
   ring(centre: TCoord, radius: number): TCoord[];
-
-  /**
-   * `coord` turned clockwise around `centre` (`origin` by default) by
-   * `steps` turns of one rotation step each (60° on hexagons); negative steps
-   * turn counter-clockwise.
-   */
-  rotate(coord: TCoord, steps: number, centre?: TCoord): TCoord;
 }

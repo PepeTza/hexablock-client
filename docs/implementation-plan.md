@@ -336,13 +336,15 @@ boundary clean from I1 onwards:
    `.r` or `.s` directly. Coordinate translation goes through the geometry or
    `TCoord` methods, and `Board` / `BoardShape` index cells exclusively by
    `String(coord)`.
-3. **Rotation steps and segregated 3D rotation (`IBoardGeometry.rotate`):**
-   `Piece` (`T12`) and variants (`Hexa Fit` in `HU16`, `Hexa Lines` random
-   spawn orientation in `D-07`) query `geometry.rotationSteps` instead of
-   hardcoding `% 6`. `IBoardGeometry.rotate(coord, steps, centre?)` stays clean
-   for 2D planar rotation around `centre` without an unused `axis` parameter;
-   any future 3D rotation around a spatial axis belongs in a segregated
-   interface (`ISP`), never as an ignored parameter in `HexGeometry`.
+3. **Rotation in its own interface (`IPlanarRotation`, ISP):** rotation is
+   not part of `IBoardGeometry`. Planar geometries also implement
+   `IPlanarRotation<TCoord>` (`rotationSteps`, `rotate(coord, steps, centre?)`),
+   so a 3D geometry is never forced to fake a rotation. `Piece` (`T12`) and
+   variants (`Hexa Fit` in `HU16`, `Hexa Lines` random spawn orientation in
+   `D-07`) receive an `IPlanarRotation` and query `rotationSteps` instead of
+   hardcoding `% 6`; the variant factory passes the same `HexGeometry`. `Board`
+   does not rotate. A future 3D rotation around a spatial axis gets its own
+   interface, with the axis as a parameter.
 4. **Distance shells (`IBoardGeometry.ring`) and screen projection (`IBoardProjection`):**
    `BoardShape.ofRadius` treats `ring(centre, radius)` as the shell of cells at
    exact distance `radius` from `centre` (without assuming a 2D clockwise

@@ -155,7 +155,7 @@ the API and the four existing variants.
 |---|---|---|
 | Time-limit mode, boosters or score multipliers for any variant | A **rules decorator**: a class that implements `IGameRules`, wraps another rules object and adds behaviour (e.g. `TimeLimitRulesDecorator`, `BonusMultiplierDecorator`). Decorators can be stacked | The engine and the decorated variant |
 | A new piece shape | A new entry in the piece catalog (data) | All code |
-| Another 2D cell shape or 3D grid (e.g. squares or cubes) | New `ICoord` + `IBoardGeometry<TCoord>` implementations, plus an `IBoardProjection` adapter in presentation (and a segregated rotation interface if 3D axis rotation is needed) | `Board`, `BoardShape`, `GameEngine`, and rules that keep coordinates opaque |
+| Another 2D cell shape or 3D grid (e.g. squares or cubes) | New `ICoord` + `IBoardGeometry<TCoord>` implementations, plus an `IBoardProjection` adapter in presentation (plus `IPlanarRotation` for a 2D grid that rotates pieces; a 3D grid that needs rotation gets its own interface with an axis) | `Board`, `BoardShape`, `GameEngine`, and rules that keep coordinates opaque |
 | Another scoring or progress model | A new `IScoringPolicy` / `IProgressModel`, selected by the factory | The engine and the use cases |
 | Another database | See the backend [`data-model.md` §8](https://github.com/PepeTza/hexablock-backend/blob/main/docs/data-model.md) | Domain and use cases |
 

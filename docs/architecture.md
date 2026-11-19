@@ -70,14 +70,16 @@ or in the domain model is listed here; a new port is added here first.
   statement's `HexBoard<TCell>`, generalised across both cell values and
   coordinate systems.
 - **`IBoardGeometry<TCoord extends ICoord = HexCoord>`**: geometry injected into
-  the board by composition (Strategy): `origin`, `rotationSteps`,
-  neighbourhood, axes and planar rotation (`rotate(coord, steps, centre?)`).
+  the board by composition (Strategy): `origin`, neighbourhood and axes.
+  Planar geometries also implement **`IPlanarRotation<TCoord>`**
+  (`rotationSteps`, `rotate(coord, steps, centre?)`), used by pieces and
+  variants that rotate (ISP).
   Today `HexGeometry` with `HexCoord`; changing to another 2D cell shape (e.g.
   squares) or a 3D grid (e.g. `CubeCoord` + `CubeGeometry`) means adding a new
   `ICoord` and `IBoardGeometry<TCoord>` implementation (plus an `IBoardProjection`
-  adapter in layer 3) without touching `Board` or the rules (RNF-14). Any
-  future 3D-axis rotation lives in its own segregated interface (ISP) rather
-  than adding unused parameters to 2D geometries.
+  adapter in layer 3) without touching `Board` or the rules (RNF-14). A 3D
+  grid does not implement `IPlanarRotation`; if it needs rotation, it gets its
+  own interface with the axis as a parameter.
 - **`IGameRules<TCell, TMove, TState>`**: `legalMoves`, `apply`, `resolve`,
   `evaluateEnd`.
 - **`GameEngine<TCell, TMove, TState>`**: orchestrates the turn; emits events;

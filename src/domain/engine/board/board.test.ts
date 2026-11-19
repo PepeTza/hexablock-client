@@ -60,7 +60,6 @@ class TestCubeGeometry implements IBoardGeometry<TestCubeCoord> {
     CubeDirection.NEG_Z,
   ];
   readonly axes = [CubeAxisZ];
-  readonly rotationSteps = 4;
 
   neighbour(coord: TestCubeCoord, direction: Direction): TestCubeCoord {
     switch (direction) {
@@ -119,10 +118,6 @@ class TestCubeGeometry implements IBoardGeometry<TestCubeCoord> {
       }
       return cell;
     });
-  }
-
-  rotate(coord: TestCubeCoord): TestCubeCoord {
-    return coord;
   }
 }
 
@@ -263,33 +258,6 @@ describe('Board', () => {
         ['0,0', '1,0'],
         ['3,0', '4,0'],
       ]);
-    });
-  });
-
-  describe('rotation', () => {
-    it('should_keep_every_cell_inside_when_rotating_hexagon_board', () => {
-      // Arrange
-      const board = radiusBoard<TestColor>(4);
-
-      // Act
-      const rotated = board.shape.coords.map((coord) => board.rotate(coord, 1));
-
-      // Assert
-      expect(rotated.every((coord) => board.contains(coord))).toBe(true);
-    });
-
-    it('should_leave_board_when_rotating_free_form_cell', () => {
-      // Arrange
-      const board = new Board<TestPieceId>(
-        BoardShape.of([HexCoord.ORIGIN, new HexCoord(1, 0)]),
-        geometry,
-      );
-
-      // Act
-      const rotated = board.rotate(new HexCoord(1, 0), 1);
-
-      // Assert
-      expect(board.contains(rotated)).toBe(false);
     });
   });
 
