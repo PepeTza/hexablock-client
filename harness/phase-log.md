@@ -20,3 +20,4 @@ details live in the PR.
 | 2026-11-18 | Remove DDD references in favour of Clean Architecture | #43 | PepeTza | — | Docs only; dropped `RNF-15`, bounded contexts and aggregates; twin backend #24 |
 | 2026-11-18 | Record pending decisions 19 and 20 (D-19 extended, D-22) | #45 | PepeTza | — | Docs only; session states with transition table in CU-06; panel imports `src/application`; lint change left to #46; decision 8 (Lines) to Track B, 21 to Track C |
 | 2026-11-19 | Record error security as decision 22 | #48 | PepeTza | — | Docs only; generic errors outside, detail only in logs; criteria added to backend #18 (T17); client part in HU30 |
+| 2026-11-19 | Segregate planar rotation from board geometry; keep Direction and Axis apart | #51 | PepeTza | 73 / 73 | `IPlanarRotation` (ISP); `Board.rotate` removed, its tests moved; type test checked only by `npm run typecheck` until CI (#6) |
