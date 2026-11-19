@@ -258,7 +258,7 @@ hexablock-client/
 │       └── composition-root.ts    # factory registration (the only place with `register`)
 ├── levels/                        # hexa-fit/*.json, hexa-sort/*.json (copy bundled with the app)
 ├── assets/                        # sounds, fonts, images
-├── admin/                         # admin panel (Vite + React): own package.json, imports @domain/*
+├── admin/                         # admin panel (Vite + React): own package.json, imports @domain/* and @application/*
 ├── docs/diagrams/
 └── .claude/skills/
 ```
@@ -294,10 +294,10 @@ ESLint's built-in `no-restricted-imports` rule, with one override per folder
 | Folder | Cannot import |
 |---|---|
 | `domain/**` | `application`, `adapters`, `frameworks`, or external packages (`react*`, `expo*`, `@shopify/*`, `@nestjs/*`, `@prisma/*`...) |
-| `application/**` | `adapters`, `frameworks` |
+| `application/**` | `adapters`, `frameworks`, or external packages (D-19: the panel imports this layer in a browser) |
 | `adapters/**` | `frameworks` |
 | `domain/variants/<variant>/**` | the other variants (only `engine/`) |
-| `admin/**` | anything outside `src/domain` (never the mobile UI) |
+| `admin/**` | anything outside `src/domain` and `src/application` (never `adapters`, `frameworks` or the mobile UI) |
 
 - `frameworks/composition-root.ts` is the only file in `frameworks/` that
   imports `adapters/`; `frameworks/` itself has no import restriction.
@@ -468,7 +468,7 @@ record is `architecture.md` §10) or resolved by a pull request.
 | 5 | Navigation | React Navigation / Expo Router | **React Navigation:** screens stay in `frameworks/ui` | 11-15 | Taken: D-20 (client #16) |
 | 6 | D-10 backend hosting | Render free / Railway / Fly.io / Koyeb | **Render free + Supabase free.** Risks: ~30–60 s cold start (warm it up before the defence) and Supabase pauses after 7 days without use | 11-15 | Taken: D-10 (client #16) |
 | 7 | D-07 piece catalog | Every shape of 1–5 cells (1+1+3+10+33 without flips) / a selection | **The 15 shapes of 1–4 cells plus ~6 of 5 cells**, with spawn weights in Lines. Still open: whether Lines spawns pieces in a random orientation (RN-11 only forbids the player rotating them) | 11-17 | Taken: D-07 (client #16), including random orientation in Lines |
-| 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 | Open |
+| 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 | Open. Lines formula owned by Track B (HU12, #31); the `IScoringPolicy` signature by Track A (HU09, #28) |
 | 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 | Open |
 | 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`. Changes the contract: PR to the backend with approval | 11-25 | Open |
 | 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of 3 stacks, parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Open |
@@ -479,16 +479,14 @@ record is `architecture.md` §10) or resolved by a pull request.
 | 16 | i18n and audio libraries | Own vs i18next; `expo-audio` | Own + `expo-localization`; `expo-audio` | 12-01 | Open |
 | 17 | Extra label | §7 labels only / add `panel` | **Add `panel`:** there is no label for the admin panel today | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #16, backend #9) |
 | 18 | Backend issue ids | — | Same user story id with a `-be` suffix | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #16, backend #9) |
-| 19 | Where the admin panel's use cases live | `admin/` may import `src/application` too / CU-17, CU-18 and the panel's login are panel-local classes in `admin/src` | **Allow `src/application`:** CU-17, CU-18 and CU-11 stay the generic classes of `use-cases.md`; the panel is a layer-4 app that brings its own adapters (HTTP, browser storage for drafts) for the ports; the lint rule of §4 and D-19 change from "only `src/domain`" to "only `src/domain` and `src/application`" | 11-15 | Open; blocks T05 (#7) and T06 (#8) |
-| 20 | State pattern in the engine | Six state classes (`MenuState` … `VictoryState`) / a `GameStatus` value checked by the engine | **`GameStatus` value** plus the RN-06 lock in the engine; the six classes stay only if HU08 shows a real benefit. If dropped, the CU-06 design note and the `architecture.md` §4 row change in the same PR | 11-16 | Open; blocks HU08 (I1) |
-| 21 | Proposed values of the API contract | Accept the *(proposed)* values (username 3–20, password 8–72, rate limits) / change them | **Accept them** and mark them decided in `api-contracts.md`: HU30-be, T26 and the `bcrypt` row already assume them | 11-16 | Open; blocks HU30-be (I1) |
+| 19 | Where the admin panel's use cases live | `admin/` may import `src/application` too / CU-17, CU-18 and the panel's login are panel-local classes in `admin/src` | **Allow `src/application`:** CU-17, CU-18 and CU-11 stay the generic classes of `use-cases.md`; the panel is a layer-4 app that brings its own adapters (HTTP, browser storage for drafts) for the ports; the lint rule of §4 and D-19 change from "only `src/domain`" to "only `src/domain` and `src/application`" | 11-15 | Taken: D-19 extended on 11-18; `src/application` also forbids external packages. Lint change pending (T06 follow-up) |
+| 20 | State pattern in the engine | Six state classes (`MenuState` … `VictoryState`) / a `GameStatus` value checked by the engine | **`GameStatus` value** plus the RN-06 lock in the engine; the six classes stay only if HU08 shows a real benefit. If dropped, the CU-06 design note and the `architecture.md` §4 row change in the same PR | 11-16 | Taken: D-22, State limited to four session states (`PlayingState`, `ResolvingState`, `PausedState`, `FinishedState`) |
+| 21 | Proposed values of the API contract | Accept the *(proposed)* values (username 3–20, password 8–72, rate limits) / change them | **Accept them** and mark them decided in `api-contracts.md`: HU30-be, T26 and the `bcrypt` row already assume them | 11-16 | Open; owned by Track C (contract values); blocks HU30-be (I1) |
 
 ### Possible over-engineering
 
 Items of `architecture.md` to confirm or drop:
 
-- **State** with six classes (`MenuState` … `VictoryState`): a `GameStatus` in
-  the engine plus navigation may be enough.
 - **Singleton** `AudioManager` and `SessionManager`: single-scope dependency
   injection is enough.
 - **Prototype** and **Iterator**: name them only if there is a real `clone()`
@@ -531,8 +529,10 @@ resolved by guessing.
     **Resolved:** the file lives only in the client; the backend links to it.
 12. The panel may import only `src/domain` (plan §4, D-19), but CU-17, CU-18
     and the panel's login are use cases in `src/application` (decision 19).
+    **Resolved** by the extended D-19: the panel imports `src/application` too.
 13. The State pattern is listed as possible over-engineering, but CU-06 and
     `architecture.md` §4 depend on it (decision 20).
+    **Resolved** by D-22: four session states; CU-06 and §4 updated.
 14. `api-contracts.md` marks username, password and rate-limit values as
     proposed, while HU30-be and T26 treat them as decided (decision 21).
 15. Ports were named in five documents with no single list; `architecture.md`

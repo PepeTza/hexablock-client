@@ -107,7 +107,7 @@ or in the domain model is listed here; a new port is added here first.
 | Adapter / Facade | Wrapping database, network and audio; `GameServiceFacade` |
 | Observer | Domain events to UI, audio and analytics |
 | Command | Each move as a command for undo/redo |
-| State | `MenuState`, `PlayingState`, `ResolvingState`, `PausedState`, `GameOverState`, `VictoryState` |
+| State | `PlayingState`, `ResolvingState`, `PausedState`, `FinishedState`: the session states inside `GameEngine`, each deciding which actions it allows (D-22). The menu is navigation, not a game state |
 | Template Method | Turn skeleton: validate, apply, resolve, evaluate |
 | Iterator | Traversal by axes, rings and neighbourhood |
 
@@ -202,9 +202,10 @@ comfort; affinity with the course language (TypeScript).
 | D-15 | The admin configures the seed mode (fixed or random) of Hexa Lines, Hexa Merge and each Hexa Sort level; the seed is shown at the end (RN-05) |
 | D-17 | Client on Expo, managed workflow (2026-11-11): Skia, Reanimated and Gesture Handler are supported, the app runs on phones through Expo Go from day one, and the APK is built in GitHub Actions with `expo prebuild` and Gradle, with no external build account |
 | D-18 | Admin panel with Vite + React + TypeScript (2026-11-11): the same React as the app; no server rendering is needed, so Next.js was not chosen; React Native Web was not chosen because Skia on the web is complex. The level editor draws the hex grid with SVG |
-| D-19 | The admin panel imports the domain through a `@domain` path alias to `src/domain` (2026-11-11), with no shared package (D-16). The panel is an outer layer importing the innermost one, which the dependency rule allows; lint forbids it from importing anything else |
+| D-19 | The admin panel imports the domain and the application layer through the `@domain` and `@application` path aliases (2026-11-11, extended to `src/application` on 2026-11-18), with no shared package (D-16). The panel is a separate layer-4 web app, not part of the APK: it reuses the generic use cases (CU-11, CU-17, CU-18) and brings its own adapters for their ports (HTTP, browser storage for drafts). Lint forbids it from importing `adapters`, `frameworks` or the mobile UI packages. So the panel always builds in a browser, `src/application`, like `src/domain`, imports no external package: anything platform-specific (ids, clock, storage) goes through a port |
 | D-20 | Navigation with React Navigation (2026-11-11): screens are declared in code inside `src/frameworks/ui`; Expo Router was not chosen because it derives routes from an `app/` folder outside the layers |
 | D-21 | Pointy-top hexagons with axial coordinates (2026-11-11): the six directions are east, south-east, south-west, west, north-west and north-east (`HexDirection`), and rows run west to east. The renderer and the Hexa Merge swipe use the same orientation. Directions and axes are declared by each geometry, so another cell shape is a new `IBoardGeometry` in its own file |
+| D-22 | State pattern limited to the game session (2026-11-18): `GameEngine` delegates `applyMove`, `undo`, `redo`, `pause`, `resume` and `resolutionDone` to one of four states, `PlayingState`, `ResolvingState` (the RN-06 lock, released by the UI with `resolutionDone` when its animation ends), `PausedState` and `FinishedState` (with `outcome` victory or defeat), and exposes the current one as a `GameStatus` value. Of the six states of the statement, `MenuState` was dropped because the menu is navigation (D-20), and `GameOverState` and `VictoryState` became one state because they allow the same actions. The rules check for the end of the game when the move is applied, so pausing during an animation goes to `PausedState` and `resume` goes straight to `PlayingState` or `FinishedState`. Undo is rejected once the game is finished. Reaching the Hexa Merge target emits `TargetReached` and the game stays in `PlayingState` (HU28). Transition table in `use-cases.md` CU-06 |
 | — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |
