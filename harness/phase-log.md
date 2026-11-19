@@ -18,3 +18,4 @@ details live in the PR.
 | 2026-11-17 | Decouple coordinates with ICoord and HexCoord (RNF-14) | #25 | PepeTza | 71 / 71 | `TCoord extends ICoord = HexCoord`; `origin` and `rotationSteps`; 3D test coord |
 | 2026-11-18 | Admin panel setup importing the domain | #7 | KeneFu | 7 / 7 panel, 71 / 71 app | Vite + React in `admin/` (D-18); `@domain` alias and lint boundary as D-19 stands today (decision 19 still open); jsdom 29 for Node 22.13; panel CI job left to #6 |
 | 2026-11-18 | Remove DDD references in favour of Clean Architecture | #43 | PepeTza | — | Docs only; dropped `RNF-15`, bounded contexts and aggregates; twin backend #24 |
+| 2026-11-18 | Record pending decisions 19 and 20 (D-19 extended, D-22) | #45 | PepeTza | — | Docs only; session states with transition table in CU-06; panel imports `src/application`; lint change left to #46; decision 8 (Lines) to Track B, 21 to Track C |
