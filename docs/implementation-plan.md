@@ -171,7 +171,7 @@ C = Kenneth Fung.
 | T15 | ci: build Android APK and attach it to releases | cl | S-02 | Tag `v*` → APK in the release; tested with `v0.1.0` | C | I1 | chore |
 | HU29 | feat: save progress and records locally per variant | cl | RF-20, D-06 | Survives closing the app, offline | C | I1 | adapters, frameworks, feature |
 | T16 | feat(db): Prisma schema and initial migration | be | data-model §2–6 | Migrates an empty database; partial indexes present | C | I1 | frameworks, feature |
-| T17 | feat(api): error format, validation, logging interceptor and Swagger | be | RF-26 | Errors use the contract's body; one log line per request; Swagger decorators on every DTO and controller so `/api/docs` matches the contract | C | I1 | adapters, frameworks, feature |
+| T17 | feat(api): error format, validation, logging interceptor and Swagger | be | RF-26, decision 22 | Errors use the contract's body; one log line per request; Swagger decorators on every DTO and controller so `/api/docs` matches the contract; error security of decision 22 (generic `500` with `requestId`, no secrets in logs, Swagger off in production) | C | I1 | adapters, frameworks, feature |
 | HU30-be | feat(api): register, login and refresh with JWT roles | be | RF-22, RN-42, RNF-10 | bcrypt; 90 days; generic 401; 409; 429 | C | I1 | application, adapters, feature |
 | T18 | ci: deploy backend on merge to main | be | D-10 | `/health` answers on the public URL | C | I1 | chore |
 | T19 | docs: diagrams v1 in Lucidchart | cl+be | RNF-12 | Ronald: client classes; Jesus: layers and extensibility; Kenneth: backend | All | I1 | docs |
@@ -195,7 +195,7 @@ C = Kenneth Fung.
 | HU33-be | feat(api): list and publish levels with format check | be | RN-37 | No update or delete; 422 on schema errors | C | I2 | application, adapters, feature |
 | HU35-be | feat(api): get and configure seed config | be | RN-05, D-15 | Per variant and per Sort level; audit of who and when | C | I2 | application, adapters, feature |
 | HU20 | feat(hexa-sort): place stacks with cascading transfer | cl | RN-20, RN-21, RN-22 | Deterministic on ties | C | I2 | hexa-sort, domain, feature |
-| HU30 | feat: register and log in from the app | cl | CU-10, CU-11, RN-32 | The game stays usable as a guest | A | I3 | application, adapters, frameworks, feature |
+| HU30 | feat: register and log in from the app | cl | CU-10, CU-11, RN-32, decision 22 | The game stays usable as a guest; HTTP errors are mapped to application errors and the player never sees a server message (decision 22) | A | I3 | application, adapters, frameworks, feature |
 | HU21 | feat(hexa-sort): clear runs of ten chips as goals | cl | RN-23, RN-40 | Visible goal counter | C | I3 | hexa-sort, domain, feature |
 | HU22 | feat(hexa-sort): win by goals and lose on a full board | cl | RN-24 | Correct result screens | C | I3 | hexa-sort, domain, feature |
 | T27 | feat(ui): Hexa Sort game screen | cl | RF-10 | Visible cascade; input ignored while resolving | C | I3 | hexa-sort, adapters, frameworks, feature |
@@ -455,7 +455,7 @@ approval per commit, every agent needs its human at each gate of the
 
 ## 7. Pending decisions
 
-Twenty-one decisions, each with a recommendation. The five due on 11-12 block
+Twenty-two decisions, each with a recommendation. The five due on 11-12 block
 the setup. The **Status** column is updated when a decision is taken (the
 record is `architecture.md` §10) or resolved by a pull request.
 
@@ -482,6 +482,7 @@ record is `architecture.md` §10) or resolved by a pull request.
 | 19 | Where the admin panel's use cases live | `admin/` may import `src/application` too / CU-17, CU-18 and the panel's login are panel-local classes in `admin/src` | **Allow `src/application`:** CU-17, CU-18 and CU-11 stay the generic classes of `use-cases.md`; the panel is a layer-4 app that brings its own adapters (HTTP, browser storage for drafts) for the ports; the lint rule of §4 and D-19 change from "only `src/domain`" to "only `src/domain` and `src/application`" | 11-15 | Taken: D-19 extended on 11-18; `src/application` also forbids external packages. Lint change pending (T06 follow-up) |
 | 20 | State pattern in the engine | Six state classes (`MenuState` … `VictoryState`) / a `GameStatus` value checked by the engine | **`GameStatus` value** plus the RN-06 lock in the engine; the six classes stay only if HU08 shows a real benefit. If dropped, the CU-06 design note and the `architecture.md` §4 row change in the same PR | 11-16 | Taken: D-22, State limited to four session states (`PlayingState`, `ResolvingState`, `PausedState`, `FinishedState`) |
 | 21 | Proposed values of the API contract | Accept the *(proposed)* values (username 3–20, password 8–72, rate limits) / change them | **Accept them** and mark them decided in `api-contracts.md`: HU30-be, T26 and the `bcrypt` row already assume them | 11-16 | Open; owned by Track C (contract values); blocks HU30-be (I1) |
+| 22 | Error security (information disclosure) | Return the server's messages as they are / generic messages with the detail only in the log | **Generic outside, detailed inside.** Backend (T17, Track C): a global filter turns any unmapped error into a generic `500` with a `requestId`; no stack, SQL or Prisma detail in responses; logs never hold `/auth/*` bodies, the `Authorization` header or secrets; Swagger off in production; no `X-Powered-By`. Accepted risks: `409` on register reveals a username exists (mitigated by `429`), `/health` reports the database state. Client (HU30, HU31, T29, HU32, HU33, Track A): the HTTP adapter maps status codes to application errors (`InvalidCredentials`, `RateLimited`, `Offline`, `Unexpected`); the UI shows its own translated text and at most the `requestId`; the local `ILogger` never writes tokens or passwords. The contract (`api-contracts.md` §1) gets the `500` row and an "Error security" subsection, with approval | 11-22 (backend, with T17); I3 (client) | Open; criteria added to backend #18 |
 
 ### Possible over-engineering
 
