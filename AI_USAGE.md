@@ -298,6 +298,36 @@ One entry per significant use. Copy the template.
     the hook worked as intended.
   - The panel has no CI job yet: the client CI is issue #6.
 
+### 2026-11-20 — Piece catalog as data (issue #29)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5 (`claude-opus-5-5`).
+- **Issue / PR:** #29 (T12); follow-up issue #56.
+- **Prompt (paraphrase):** after a class-by-class walkthrough of the engine,
+  plan and build T12 following the harness, explaining every new concept, so
+  the owner can explain the code.
+- **Result:** `PieceShape`, `Piece` and `PieceCatalog` in `engine/pieces/`;
+  `translate` in `IBoardGeometry`; the hexagonal data (`hex-pieces.json`, 21
+  shapes) and its loader in `engine/hex/`; 20 tests; `docs/piece-catalog.md`
+  with every shape drawn. The 48 shapes of 1 to 5 cells were enumerated with
+  a throwaway script (not in the repository) and checked against OEIS A006534.
+- **Team modifications:**
+  - The owner found that placing a piece needs coordinate translation, which
+    the geometry did not offer (RNF-14 forbids reading `q` and `r`); `translate`
+    was added after his approval.
+  - The AI proposed keeping `equals` in `ICoord` "until T12 needs it". The
+    owner asked why to keep unused code; a compiler test showed that without
+    `equals`, `ICoord` accepts any value. The comment of `coord.ts` was
+    corrected and the deeper fix (`key()`) became issue #56.
+  - The owner asked for 6 base 5-cell shapes plus a page listing the other 27,
+    so the Hexa Lines owner can change the selection.
+  - The owner questioned whether the rotation-duplicate check was needed; it
+    was kept because it is what proves the hand-checked catalog is complete.
+- **Lessons / limitations:**
+  - The fixture linter of the lint tests does not parse `import type`; found
+    when two fixtures failed with a parsing error.
+  - The choice of the 6 shapes of 5 cells is a guess at variety, not tested
+    with players; the Hexa Lines owner reviews it.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
