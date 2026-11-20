@@ -27,6 +27,7 @@ no synonyms: if a concept is missing, add it here first.
 |---|---|---|
 | Piece | Pieza | A group of 1 to 5 connected cells (Lines and Fit) |
 | Piece catalog | Catálogo de piezas | The configurable list of piece shapes |
+| Piece centre | Centro de la pieza | The cell of a piece it turns around, `[0, 0]` in the catalog |
 | Tray | Bandeja | The pieces or stacks offered to the player |
 | Stack | Pila | In Hexa Sort, the coloured chips stacked on a cell |
 | Chip | Ficha (Sort) | Each coloured chip of a stack |
