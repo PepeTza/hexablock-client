@@ -101,6 +101,22 @@ npm run typecheck      # TypeScript strict mode
 See [`AI_USAGE.md`](./AI_USAGE.md). AI agents follow [`AGENTS.md`](./AGENTS.md)
 and the [`harness/`](./harness/README.md).
 
+## References
+
+External sources of algorithms and ideas. We reimplement them; we do not copy
+their code. Each one is also cited in a comment in the file that uses it.
+
+| Source | What we took | Where |
+|---|---|---|
+| Red Blob Games, ["Hexagonal Grids"](https://www.redblobgames.com/grids/hexagons/) | Axial and cube coordinates; neighbours, rings and 60° rotation | `src/domain/engine/hex/hex-coord.ts`, `hex-geometry.ts` |
+
+### Third-party assets
+
+Credits and licences of sounds, fonts and images (RNF-12). None yet.
+
+| Asset | Author | Licence | Where |
+|---|---|---|---|
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md): Conventional Commits, branch
