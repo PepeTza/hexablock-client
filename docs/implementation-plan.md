@@ -124,18 +124,23 @@ wait for it to merge (`CONTRIBUTING.md` §3).
 One issue per user story (HU01–HU35) plus the technical tasks (T01–T43): 35
 stories, 43 tasks, the five `-be` stories and one extra issue per repository
 for the eight `cl+be` tasks (T01, T06, T11, T19, T34, T39, T40, T41), so 91
-issues in total. Issues are created **at the start of each iteration**, so
-GitHub only shows work that is decided. The issues of I0 already exist: client
-[#3–#12](https://github.com/PepeTza/hexablock-client/issues) and backend
-[#3–#8](https://github.com/PepeTza/hexablock-backend/issues); backend #8 is
-the twin of the `CONTRIBUTING.md` change made in T02 (client #4). Tasks that
-touch both repositories get one issue in each, naming its twin.
+issues in total. The issues of I0 and I1 were created at the start of their
+iteration. On 2026-11-20 the team chose to create **every remaining issue
+ahead** (I2 to the buffer: client
+[#58–#100](https://github.com/PepeTza/hexablock-client/issues) and backend
+[#26–#36](https://github.com/PepeTza/hexablock-backend/issues)), so the whole
+plan and its dependencies are visible. The optional HU34 and T43 are created
+only if I3 is complete on 12-06. Tasks that touch both repositories get one
+issue in each, naming its twin.
 
 - **Labels** (`CONTRIBUTING.md` §7): variant `hexa-lines`, `hexa-fit`,
   `hexa-sort`, `hexa-merge`, `engine`; layer `domain`, `application`,
   `adapters`, `frameworks`; type `feature`, `bug`, `docs`, `test`, `chore`;
   plus `panel` (decision 17).
 - **No milestones:** the iteration and its dates are written in each issue.
+- **Dependencies:** each issue has a `Blocked by:` line with the issues it
+  needs. An issue is unblocked when all of them are closed; the
+  `harness-task` skill stops when one is still open.
 - The acceptance criteria of a user story always include those of
   `user-stories.md`; the table adds the concrete ones.
 
