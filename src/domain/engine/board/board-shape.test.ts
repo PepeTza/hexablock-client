@@ -44,6 +44,18 @@ class FakeCubeGeometry implements IBoardGeometry<TestCubeCoord> {
     return [];
   }
 
+  translate(
+    coord: TestCubeCoord,
+    from: TestCubeCoord,
+    to: TestCubeCoord,
+  ): TestCubeCoord {
+    return new TestCubeCoord(
+      coord.x - from.x + to.x,
+      coord.y - from.y + to.y,
+      coord.z - from.z + to.z,
+    );
+  }
+
   ring(centre: TestCubeCoord, radius: number): TestCubeCoord[] {
     if (radius === 0) {
       return [centre];
