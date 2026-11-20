@@ -196,4 +196,62 @@ describe('layer boundaries', () => {
     // Assert
     expect(errors).toEqual([]);
   });
+  it('should_report_error_when_generic_engine_imports_hex', () => {
+    // Arrange
+    const code = "import { HexCoord } from '../hex/hex-coord';";
+
+    // Act
+    const errors = lint('src/domain/engine/board/board.ts', code);
+
+    // Assert
+    expect(errors).toEqual([RESTRICTED]);
+  });
+
+  it('should_report_error_when_generic_engine_imports_hex_by_alias', () => {
+    // Arrange
+    const code =
+      "import { HexGeometry } from '@domain/engine/hex/hex-geometry';";
+
+    // Act
+    const errors = lint('src/domain/engine/geometry/board-geometry.ts', code);
+
+    // Assert
+    expect(errors).toEqual([RESTRICTED]);
+  });
+
+  it('should_pass_when_hex_imports_generic_engine', () => {
+    // Arrange
+    const code = [
+      "import { Board } from '../board/board';",
+      "import { ICoord } from '../geometry/coord';",
+    ].join('\n');
+
+    // Act
+    const errors = lint('src/domain/engine/hex/hex-board.ts', code);
+
+    // Assert
+    expect(errors).toEqual([]);
+  });
+
+  it('should_pass_when_engine_test_imports_hex', () => {
+    // Arrange
+    const code = "import { HexGeometry } from '../hex/hex-geometry';";
+
+    // Act
+    const errors = lint('src/domain/engine/board/board.test.ts', code);
+
+    // Assert
+    expect(errors).toEqual([]);
+  });
+
+  it('should_pass_when_generic_engine_file_starts_with_hex', () => {
+    // Arrange
+    const code = "import { hexagonCount } from './hexagon-count';";
+
+    // Act
+    const errors = lint('src/domain/engine/board/board.ts', code);
+
+    // Assert
+    expect(errors).toEqual([]);
+  });
 });

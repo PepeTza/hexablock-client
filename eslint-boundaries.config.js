@@ -52,6 +52,17 @@ const DOMAIN_PATTERNS = [
   outerLayersPattern(['application', 'adapters', 'frameworks'], 'domain'),
 ];
 
+// Dependency inversion inside the engine (issue #53): the generic engine
+// (geometry/, board/ and the rest of engine/) never imports a concrete
+// geometry; the hexagonal one in engine/hex/ imports the generic engine, never
+// the reverse. Test files are exempt: they use the hexagonal geometry as a
+// real example of the generic classes.
+const CONCRETE_GEOMETRY_PATTERN = {
+  regex: '^(@domain/engine/|(\\.{1,2}/)+)hex(/|$)',
+  message:
+    'The generic engine cannot import the hexagonal geometry: concrete geometries depend on the engine, not the reverse (DIP, docs/architecture.md §3).',
+};
+
 /**
  * Restriction for one variant: it cannot import any other variant, by alias
  * (`@domain/variants/hexa-sort/...`) or by relative path
@@ -96,6 +107,11 @@ function layerBoundaries(variants) {
 
   return [
     { files: [`src/domain/${FILES}`], rules: restrict(DOMAIN_PATTERNS) },
+    {
+      files: [`src/domain/engine/${FILES}`],
+      ignores: [`src/domain/engine/hex/${FILES}`, '**/*.test.{ts,tsx}'],
+      rules: restrict([...DOMAIN_PATTERNS, CONCRETE_GEOMETRY_PATTERN]),
+    },
     ...variantBlocks,
     {
       files: [`src/application/${FILES}`],
