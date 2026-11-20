@@ -60,4 +60,11 @@ export interface IBoardGeometry<TCoord extends ICoord> {
    * the radius is 0.
    */
   ring(centre: TCoord, radius: number): TCoord[];
+
+  /**
+   * `coord` moved by the same offset that takes `from` to `to`. Used to place
+   * a piece, whose cells are relative to its centre, at a cell of the board,
+   * without reading the components of a coordinate (RNF-14).
+   */
+  translate(coord: TCoord, from: TCoord, to: TCoord): TCoord;
 }

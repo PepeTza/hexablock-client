@@ -272,4 +272,18 @@ describe('HexGeometry', () => {
       expect(rotated.toString()).toBe('2,4');
     });
   });
+  describe('translate', () => {
+    it('should_move_cell_by_offset_when_translating', () => {
+      // Arrange
+      const geometry = new HexGeometry();
+      const from = new HexCoord(0, 0);
+      const to = new HexCoord(3, -2);
+
+      // Act
+      const moved = geometry.translate(new HexCoord(1, 1), from, to);
+
+      // Assert
+      expect(moved).toEqual(new HexCoord(4, -1));
+    });
+  });
 });

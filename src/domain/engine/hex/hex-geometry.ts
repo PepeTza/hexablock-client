@@ -143,6 +143,10 @@ export class HexGeometry
     return cells;
   }
 
+  translate(coord: HexCoord, from: HexCoord, to: HexCoord): HexCoord {
+    return new HexCoord(coord.q - from.q + to.q, coord.r - from.r + to.r);
+  }
+
   rotate(
     coord: HexCoord,
     steps: number,
