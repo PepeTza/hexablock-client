@@ -86,6 +86,14 @@ or in the domain model is listed here; a new port is added here first.
   adapter in layer 3) without touching `Board` or the rules (RNF-14). A 3D
   grid does not implement `IPlanarRotation`; if it needs rotation, it gets its
   own interface with the axis as a parameter.
+- **Pieces (`engine/pieces/`)**: `PieceShape<TCoord>` is one shape of the
+  catalog, with cells relative to its centre (the origin); `Piece<TCoord>` is
+  a shape in a rotation, immutable, and gives the board cells it would cover
+  with `cellsAt(anchor)` (turn with `IPlanarRotation`, then move with
+  `IBoardGeometry.translate`). `PieceCatalog<TCoord>` loads the shapes from
+  data and rejects repeated ids, oversized shapes and shapes that are another
+  one turned. The hexagonal data and its loader live in `engine/hex/` (D-07).
+  Whether a piece fits on the board (RN-02) is decided by the variant rules.
 - **`IGameRules<TCell, TMove, TState>`**: `legalMoves`, `apply`, `resolve`,
   `evaluateEnd`.
 - **`GameEngine<TCell, TMove, TState>`**: orchestrates the turn; emits events;
@@ -200,7 +208,7 @@ comfort; affinity with the course language (TypeScript).
 | D-03 | AI tooling: Claude as the common tool; `AI-Assisted` commit footer; `AGENTS.md` and the harness |
 | D-05 | Test coverage: 80 % in domain and use cases; Pact contract tests between client and backend |
 | D-06 | Client local storage (provisional, 2026-11-11): SQLite behind `IProgressRepository`. A key-value JSON store was the alternative; the question is open with the professor, and changing it only touches the storage adapter |
-| D-07 | Piece catalog (2026-11-11): the 15 poly-hex shapes of 1 to 4 cells plus about 6 shapes of 5 cells, kept as data. Hexa Lines gives each shape a spawn weight and may spawn a piece already rotated; the player still cannot rotate it (RN-11) |
+| D-07 | Piece catalog (2026-11-11): the 15 poly-hex shapes of 1 to 4 cells plus about 6 shapes of 5 cells, kept as data. Hexa Lines gives each shape a spawn weight and may spawn a piece already rotated; the player still cannot rotate it (RN-11). Format (T12, 2026-11-20): `src/domain/engine/hex/hex-pieces.json`, one entry per shape with a stable `id` (`p<cells>-<nn>`) and its axial cells relative to the piece's centre `[0, 0]`, the cell it turns around (the cell closest to all the others). The 5-cell selection is `p5-01`, `p5-07`, `p5-16`, `p5-22`, `p5-26` and `p5-33`; [`piece-catalog.md`](./piece-catalog.md) draws every shape and the 27 alternatives. Spawn weights are not in the catalog: they belong to Hexa Lines |
 | D-10 | Backend deployed online on Render (free plan), with the database on Supabase (free plan). Known limits: the service sleeps after 15 minutes idle (first request takes 30–60 s) and Supabase pauses a project after 7 days without use |
 | D-11 | All documentation in English |
 | D-12 | Basic server-side score validation (RN-39); the leaderboard shows the top 50 and the player's position |
