@@ -22,3 +22,4 @@ details live in the PR.
 | 2026-11-19 | Record error security as decision 22 | #48 | PepeTza | — | Docs only; generic errors outside, detail only in logs; criteria added to backend #18 (T17); client part in HU30 |
 | 2026-11-19 | Segregate planar rotation from board geometry; keep Direction and Axis apart | #51 | PepeTza | 73 / 73 | `IPlanarRotation` (ISP); `Board.rotate` removed, its tests moved; type test checked only by `npm run typecheck` until CI (#6) |
 | 2026-11-20 | Remove hexagonal defaults from the generic engine | #53 | PepeTza | 78 / 78 | DIP: no `= HexCoord`; hex files moved to `engine/hex/` with `HexBoard<TCell>`; lint rule forbids the generic engine importing `engine/hex/` (tests exempt) |
+| 2026-11-20 | Cite external sources and keep a references list | #50 | PepeTza | — | Red Blob Games cited in `hex-coord.ts`; README References; gate 4 and `log-ai-usage` check sources; backend twin of the skill pending |
