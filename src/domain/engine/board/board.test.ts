@@ -2,9 +2,10 @@ import { Axis } from '../geometry/axis';
 import type { IBoardGeometry } from '../geometry/board-geometry';
 import type { ICoord } from '../geometry/coord';
 import { Direction } from '../geometry/direction';
-import { HexCoord } from '../geometry/hex-coord';
-import { HexAxis, HexGeometry } from '../geometry/hex-geometry';
+import { HexCoord } from '../hex/hex-coord';
+import { HexAxis, HexGeometry } from '../hex/hex-geometry';
 import { Board } from './board';
+import type { HexBoard } from '../hex/hex-board';
 import { BoardShape } from './board-shape';
 
 // Test cell types, shaped like the real ones that arrive with each variant:
@@ -125,8 +126,11 @@ const geometry = new HexGeometry();
 
 function radiusBoard<TCell extends NonNullable<unknown>>(
   radius: number,
-): Board<TCell> {
-  return new Board<TCell>(BoardShape.ofRadius(geometry, radius), geometry);
+): HexBoard<TCell> {
+  return new Board<TCell, HexCoord>(
+    BoardShape.ofRadius(geometry, radius),
+    geometry,
+  );
 }
 
 function storesCell<TCell extends NonNullable<unknown>>(cell: TCell): void {
@@ -248,7 +252,7 @@ describe('Board', () => {
     it('should_stop_line_at_gap_when_shape_is_free_form', () => {
       // Arrange: one row with a gap at (2, 0)
       const shape = BoardShape.of([0, 1, 3, 4].map((q) => new HexCoord(q, 0)));
-      const board = new Board<TestPieceId>(shape, geometry);
+      const board = new Board<TestPieceId, HexCoord>(shape, geometry);
 
       // Act
       const lines = board.lines(HexAxis.R);

@@ -1,8 +1,8 @@
-import { Axis } from './axis';
-import type { IBoardGeometry } from './board-geometry';
-import { Direction } from './direction';
+import { Axis } from '../geometry/axis';
+import type { IBoardGeometry } from '../geometry/board-geometry';
+import { Direction } from '../geometry/direction';
 import { HexCoord } from './hex-coord';
-import type { IPlanarRotation } from './planar-rotation';
+import type { IPlanarRotation } from '../geometry/planar-rotation';
 
 // Axial coordinates on pointy-top hexagons, following Red Blob Games,
 // "Hexagonal Grids" (https://www.redblobgames.com/grids/hexagons/):

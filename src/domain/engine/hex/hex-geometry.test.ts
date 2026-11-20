@@ -1,5 +1,5 @@
-import { Axis } from './axis';
-import { Direction } from './direction';
+import { Axis } from '../geometry/axis';
+import { Direction } from '../geometry/direction';
 import { HexCoord } from './hex-coord';
 import { HexAxis, HexDirection, HexGeometry } from './hex-geometry';
 

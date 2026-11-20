@@ -1,4 +1,4 @@
-import type { ICoord } from './coord';
+import type { ICoord } from '../geometry/coord';
 
 /**
  * Value object: the position of a cell on a hexagonal board, as axial

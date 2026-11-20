@@ -1,4 +1,4 @@
-import type { ICoord } from './coord';
+import type { ICoord } from '../geometry/coord';
 import { HexCoord } from './hex-coord';
 
 describe('HexCoord', () => {

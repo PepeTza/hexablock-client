@@ -1,5 +1,4 @@
 import type { ICoord } from './coord';
-import type { HexCoord } from './hex-coord';
 
 /**
  * Rotation of cells in the plane of a 2D grid, in discrete steps (60° on
@@ -11,7 +10,7 @@ import type { HexCoord } from './hex-coord';
  * axis. A 3D grid that needs rotation adds its own interface, with the axis
  * as a parameter (RNF-14).
  */
-export interface IPlanarRotation<TCoord extends ICoord = HexCoord> {
+export interface IPlanarRotation<TCoord extends ICoord> {
   /** Number of discrete steps in a full turn (6 on hexagons). */
   readonly rotationSteps: number;
 

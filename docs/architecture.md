@@ -65,11 +65,17 @@ or in the domain model is listed here; a new port is added here first.
 
 ## 3. Generic engine
 
-- **`Board<TCell, TCoord extends ICoord = HexCoord>`**: instantiated with `Color`,
-  `PieceId`, `ColorStack` or `Tile` (and `HexCoord` by default). It is the
-  statement's `HexBoard<TCell>`, generalised across both cell values and
-  coordinate systems.
-- **`IBoardGeometry<TCoord extends ICoord = HexCoord>`**: geometry injected into
+- **`Board<TCell, TCoord extends ICoord>`**: instantiated with `Color`,
+  `PieceId`, `ColorStack` or `Tile`. On hexagons the variants write
+  **`HexBoard<TCell>`**, the statement's name, an alias for
+  `Board<TCell, HexCoord>`.
+- **No default coordinate type (DIP):** the generic engine (`engine/geometry/`,
+  `engine/board/` and the rest of `engine/`) never imports a concrete
+  geometry. The hexagonal one (`HexCoord`, `HexGeometry`, `HexBoard`) lives in
+  `engine/hex/` and depends on the generic engine, never the reverse. A lint
+  rule enforces it (test files are exempt, as they use the hexagonal geometry
+  as an example).
+- **`IBoardGeometry<TCoord extends ICoord>`**: geometry injected into
   the board by composition (Strategy): `origin`, neighbourhood and axes.
   Planar geometries also implement **`IPlanarRotation<TCoord>`**
   (`rotationSteps`, `rotate(coord, steps, centre?)`), used by pieces and

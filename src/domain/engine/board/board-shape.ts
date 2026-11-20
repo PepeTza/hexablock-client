@@ -1,6 +1,5 @@
 import type { IBoardGeometry } from '../geometry/board-geometry';
 import type { ICoord } from '../geometry/coord';
-import type { HexCoord } from '../geometry/hex-coord';
 
 /**
  * Value object: the set of cells that exist on a board (glossary: Board
@@ -8,11 +7,11 @@ import type { HexCoord } from '../geometry/hex-coord';
  * radius-4 and radius-2 hexagons on the hex geometry) or a free-form figure
  * (Hexa Fit).
  *
- * Parameterised by `TCoord extends ICoord` (defaulting to `HexCoord`) so any
- * geometry family defines its own board shapes without changing this class.
+ * Parameterised by `TCoord extends ICoord` so any geometry family defines its
+ * own board shapes without changing this class.
  * `contains` is what the board passes to the geometry as `isInside`.
  */
-export class BoardShape<TCoord extends ICoord = HexCoord> {
+export class BoardShape<TCoord extends ICoord> {
   /** The cells of the shape, each once, in the order they were given. */
   readonly coords: readonly TCoord[];
   private readonly keys: ReadonlySet<string>;

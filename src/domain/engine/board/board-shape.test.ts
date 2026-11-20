@@ -2,8 +2,8 @@ import { Axis } from '../geometry/axis';
 import type { IBoardGeometry } from '../geometry/board-geometry';
 import type { ICoord } from '../geometry/coord';
 import { Direction } from '../geometry/direction';
-import { HexCoord } from '../geometry/hex-coord';
-import { HexGeometry } from '../geometry/hex-geometry';
+import { HexCoord } from '../hex/hex-coord';
+import { HexGeometry } from '../hex/hex-geometry';
 import { BoardShape } from './board-shape';
 
 class TestCubeCoord implements ICoord {

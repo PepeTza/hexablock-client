@@ -1,15 +1,16 @@
 import type { Axis } from './axis';
 import type { ICoord } from './coord';
 import type { Direction } from './direction';
-import type { HexCoord } from './hex-coord';
 
 /**
  * Neighbourhood and axes of the cells of a board (RF-01).
  *
- * Parameterised by `TCoord extends ICoord` (defaulting to `HexCoord`) so each
- * geometry defines its own coordinate value object without burdening 2D grids
- * with unused attributes, while the compiler prevents mixing coordinates from
- * different geometries (RNF-14, docs/EXTENSIBILITY.md).
+ * Parameterised by `TCoord extends ICoord` so each geometry defines its own
+ * coordinate value object without burdening 2D grids with unused attributes,
+ * while the compiler prevents mixing coordinates from different geometries
+ * (RNF-14, docs/EXTENSIBILITY.md). There is no default coordinate type: the
+ * generic engine never imports a concrete geometry (DIP); the hexagonal one
+ * lives in `engine/hex/`.
  *
  * A geometry works on an unbounded grid: it knows nothing about the shape or
  * the edges of a board. Whatever needs edges (`line`) receives an
@@ -21,7 +22,7 @@ import type { HexCoord } from './hex-coord';
  * `IPlanarRotation` (Interface Segregation), so a 3D grid is not forced to
  * fake one.
  */
-export interface IBoardGeometry<TCoord extends ICoord = HexCoord> {
+export interface IBoardGeometry<TCoord extends ICoord> {
   /** The origin cell, used as the default centre of radius shapes. */
   readonly origin: TCoord;
 
