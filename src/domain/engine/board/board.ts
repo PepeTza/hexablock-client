@@ -1,16 +1,16 @@
 import type { Axis } from '../geometry/axis';
 import type { IBoardGeometry } from '../geometry/board-geometry';
 import type { ICoord } from '../geometry/coord';
-import type { HexCoord } from '../geometry/hex-coord';
 import type { BoardShape } from './board-shape';
 
 /**
- * The generic board of every variant (RF-01, HU07): `Board<Color>` in Hexa
- * Lines, `Board<PieceId>` in Hexa Fit, `Board<ColorStack>` in Hexa Sort and
- * `Board<Tile>` in Hexa Merge.
+ * The generic board of every variant (RF-01, HU07). On hexagons the variants
+ * use the `HexBoard<TCell>` alias (`engine/hex/hex-board.ts`):
+ * `HexBoard<Color>` in Hexa Lines, `HexBoard<PieceId>` in Hexa Fit,
+ * `HexBoard<ColorStack>` in Hexa Sort and `HexBoard<Tile>` in Hexa Merge.
  *
- * Parameterised by `TCell` (cell content) and `TCoord extends ICoord`
- * (defaulting to `HexCoord`), receiving its shape and geometry by composition.
+ * Parameterised by `TCell` (cell content) and `TCoord extends ICoord`, with
+ * no default (DIP), receiving its shape and geometry by composition.
  * It knows nothing about hexagons, 3D grids, or any variant. Which moves are
  * legal is decided by the rules of each variant, not here.
  *
@@ -20,10 +20,7 @@ import type { BoardShape } from './board-shape';
  * Prototype: `clone()` returns an independent copy, used to simulate a move
  * (CU-03) and to keep the board before a move so it can be undone (CU-05).
  */
-export class Board<
-  TCell extends NonNullable<unknown>,
-  TCoord extends ICoord = HexCoord,
-> {
+export class Board<TCell extends NonNullable<unknown>, TCoord extends ICoord> {
   private readonly cells = new Map<string, TCell>();
 
   constructor(

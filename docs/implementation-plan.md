@@ -239,7 +239,7 @@ stops an inner layer from importing an outer one.
 hexablock-client/
 ├── src/
 │   ├── domain/                    # layer 1 — plain TypeScript, no external imports
-│   │   ├── engine/                # geometry/ board/ game/ rules/ commands/ events/ random/ pieces/ state/
+│   │   ├── engine/                # geometry/ board/ hex/ game/ rules/ commands/ events/ random/ pieces/ state/
 │   │   ├── variants/              # hexa-lines/ hexa-fit/ hexa-sort/ hexa-merge/
 │   │   ├── progress/              # PlayerProgress, progress models
 │   │   └── content/               # LevelDefinition, LevelBuilder, ILevelValidator, SeedConfig
@@ -318,18 +318,20 @@ triangles) and 3D grids (cubes / voxels or stacked hex layers) without
 rewriting `Board`, `Piece`, `GameEngine` or the variants. Four rules keep that
 boundary clean from I1 onwards:
 
-1. **Coordinate contract and bounded generic (`TCoord extends ICoord = HexCoord`):**
+1. **Coordinate contract and bounded generic (`TCoord extends ICoord`):**
    `ICoord` (`coord.ts`) defines only what the engine and board need
    (`equals(other: ICoord): boolean` and `toString(): string`). Each geometry
    family provides its own value object without dead weight: `HexCoord`
    (`q, r` and derived `s = -q - r`) for 2D hexagons, and future classes such as
    `SquareCoord(col, row)` or `CubeCoord(x, y, z)` for 2D squares or 3D cubes.
-   `IBoardGeometry<TCoord extends ICoord = HexCoord>` exposes
-   `readonly origin: TCoord`, and `BoardShape<TCoord extends ICoord = HexCoord>`
-   and `Board<TCell, TCoord extends ICoord = HexCoord>` use `TCoord` with
-   `= HexCoord` as default, so existing 2D variants still write `Board<Color>`
-   while the compiler prevents mixing coordinate types across geometries (LSP +
-   bounded parametric polymorphism).
+   `IBoardGeometry<TCoord extends ICoord>` exposes `readonly origin: TCoord`,
+   and `BoardShape<TCoord extends ICoord>` and `Board<TCell, TCoord extends ICoord>`
+   use `TCoord` with **no default**, so the compiler prevents mixing coordinate
+   types across geometries (LSP + bounded parametric polymorphism) and the
+   generic engine never imports a concrete geometry (DIP). The hexagonal
+   implementation lives in `engine/hex/`, where `HexBoard<TCell>` (alias of
+   `Board<TCell, HexCoord>`) keeps variant code short. A lint rule forbids the
+   generic engine from importing `engine/hex/` (test files exempt).
 2. **Opaque coordinates outside the geometry:** Outside `IBoardGeometry`
    implementations and the board projection adapter, no class in `domain/`
    (`Board`, `BoardShape`, `Piece`, `GameEngine`, variant rules) reads `.q`,

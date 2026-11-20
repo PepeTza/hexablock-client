@@ -1,5 +1,5 @@
-import { HexCoord } from './hex-coord';
-import { HexAxis, HexDirection, HexGeometry } from './hex-geometry';
+import { HexCoord } from '../hex/hex-coord';
+import { HexAxis, HexDirection, HexGeometry } from '../hex/hex-geometry';
 
 // These tests check two things. The `@ts-expect-error` lines are checked by
 // `npm run typecheck`: if a Direction were accepted where an Axis is expected
