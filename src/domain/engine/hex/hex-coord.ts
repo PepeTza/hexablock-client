@@ -8,6 +8,11 @@ import type { ICoord } from '../geometry/coord';
  * Two `HexCoord` instances with the same `q` and `r` represent the same
  * position: compare them with `equals`, or use `toString` as a key in a `Map`
  * or `Set`.
+ *
+ * Axial and cube coordinates (with `q + r + s = 0`) follow Red Blob Games,
+ * "Hexagonal Grids", sections "Cube coordinates" and "Axial coordinates"
+ * (https://www.redblobgames.com/grids/hexagons/). The integer check and the
+ * `-0` normalisation are ours.
  */
 export class HexCoord implements ICoord {
   static readonly ORIGIN = new HexCoord(0, 0);
