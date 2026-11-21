@@ -39,7 +39,7 @@ Four concentric layers; **dependencies only point inwards**.
 
 | Layer | Content | Rule |
 |---|---|---|
-| 1. Entities / Domain | `ICoord`, `HexCoord`, `Board<TCell, TCoord>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TState>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
+| 1. Entities / Domain | `ICoord`, `HexCoord`, `Board<TCell, TCoord>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TResolution>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
 | 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase<...>`, `ApplyMoveUseCase<...>`, `FinishGameUseCase`), the aspects that wrap them, and the ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
 | 3. Interface adapters | Presenters / view models / controllers, `IBoardProjection` (`TCoord` ↔ screen), repositories implementing the ports, entity ↔ DTO mappers, per-variant state serialisation | Translate between domain and frameworks. |
 | 4. Frameworks & drivers | UI / rendering, local database, HTTP client, audio, remote database (PostgreSQL on Supabase) and the REST backend as an external service | Replaceable without touching inner layers. |
@@ -94,21 +94,36 @@ or in the domain model is listed here; a new port is added here first.
   data and rejects repeated ids, oversized shapes and shapes that are another
   one turned. The hexagonal data and its loader live in `engine/hex/` (D-07).
   Whether a piece fits on the board (RN-02) is decided by the variant rules.
-- **`IGameRules<TCell, TMove, TState>`**: `legalMoves`, `apply`, `resolve`,
-  `evaluateEnd`.
-- **`GameEngine<TCell, TMove, TState>`**: orchestrates the turn; emits events;
-  does not know the variant.
-- **`IPieceSource<TPiece>`, `IScoringPolicy<TState>`, `IProgressModel`**:
-  interchangeable piece source, scoring and progress.
+- **`IGameRules<TCell, TCoord, TMove, TState>`**: `play(board, state, move)` returns a
+  `MoveOutcome`: rejected with a reason, or applied with the new state, its
+  points, the variant's events and the outcome if the game ended. Variants
+  extend **`BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`**, whose
+  `play` is the Template Method: `validate` → `apply` → `resolve` → score →
+  `evaluateEnd` (`engine/game/`).
+- **`GameEngine<TCell, TCoord, TMove, TState>`** (`engine/game/`): the game session. It plays
+  each move on a copy of the board (`Board.clone`, Prototype) and keeps the
+  copy only when the move is applied, so a rejected move or an error changes
+  nothing. Its session state (`PlayingState`, `ResolvingState`, `PausedState`,
+  `FinishedState`, D-22) decides what each action does. Listeners receive the
+  events (Observer). `preview(move)` answers CU-03 without changing the game.
+  It does not know the variant.
+- **`IScoringPolicy<TResolution>`** (`engine/scoring/`): `pointsFor(resolution)`,
+  where the resolution is what happened in the move as the rules describe it
+  (for example cells placed, lines cleared and streak in Hexa Lines). It is
+  injected into the rules, so the engine never sees the resolution type.
+- **`IPieceSource<TPiece>`, `IProgressModel`**: interchangeable piece source
+  and progress.
 - **Type constraints** (to be justified in the README): e.g.
   `TCell extends IMergeable<TCell>` for Merge; `TMove extends ICommandable` to
   support undo.
 - **ISP:** `IUndoable`, `ITimed`, `IRandomSeeded` as separate interfaces;
   Hexa Lines does not implement `IUndoable`.
-- **Common state:** every variant state extends `GameState` (score, game
-  status, seed, move count and duration), and the engine requires it with the
-  constraint `TState extends GameState`. Move count and duration let the
-  server validate scores (RN-39).
+- **Common state:** every variant state extends `GameState` (score and move
+  count), an immutable plain object, and the engine requires it with the
+  constraint `TState extends GameState`. The status is the engine's session
+  state (D-22) and the seed belongs to the engine, since both concern the
+  whole game; the duration arrives with the clock (T35). Move count and
+  duration let the server validate scores (RN-39).
 
 ## 4. Design patterns
 

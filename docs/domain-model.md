@@ -28,7 +28,7 @@ verified with contract tests.
 
 ## Game
 
-**Core entity: game session (`GameEngine<TCell, TMove, TState, TCoord>`).**
+**Core entity: game session (`GameEngine<TCell, TCoord, TMove, TState>`).**
 Identified by `sessionId`. It holds the board (`Board<TCell, TCoord>`), the
 state (`TState extends GameState`, a value object) and the command history. The
 strategies (rules, piece source, scoring and progress) are injected by the

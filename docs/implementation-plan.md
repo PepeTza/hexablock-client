@@ -96,9 +96,10 @@ their own work and it forces a shared schedule in I1.
 
 ### Everyone can explain the engine
 
-- **Mob sessions on the engine (I0–I1):** three sessions of about 2 h for
-  `Board`, `GameEngine` and `BaseGameRules`. The person at the keyboard
-  rotates every 20 minutes and commits their own part.
+- **Engine walkthrough (I1):** the mob sessions planned for `Board`,
+  `GameEngine` and `BaseGameRules` were replaced on 2026-11-21: Ronald built
+  the engine (HU08) and walks the other two through it once merged, class by
+  class, so each can explain it.
 - Every variant is written against the engine, so each owner learns its
   extension points.
 - Pull requests labelled `engine` request a review from the two other members.
@@ -161,7 +162,7 @@ C = Kenneth Fung.
 | T10 | ci: add backend CI with a PostgreSQL service | be | RNF-05 | Lint, types, unit and e2e on PRs; 80 % coverage | C | I0 | chore |
 | T11 | docs: add shared agent skills | cl+be | §6 | Skills created and listed in `AGENTS.md` | A | I0 | docs |
 | HU07 | feat(engine): add generic board with injected geometry | cl | RF-01 | Instantiated with at least two test cell types in I0 (the four real cell types arrive with their variants in I1–I3); radius 4, radius 2 and free-form shapes | A | I0 | engine, domain, feature |
-| HU08 | feat(engine): game engine, rules template and domain events | cl | RF-02, RF-03, RF-06, RN-06 | Works with a test cell; no `if` per variant; emits events; an error leaves the state unchanged | A (mob) | I1 | engine, domain, feature |
+| HU08 | feat(engine): game engine, rules template and domain events | cl | RF-02, RF-03, RF-06, RN-06 | Works with a test cell; no `if` per variant; emits events; an error leaves the state unchanged | A | I1 | engine, domain, feature |
 | HU09 | feat(engine): interchangeable piece sources, scoring and seeded random | cl | RF-04, RF-05, RN-05 | Changing a policy does not touch the engine; same seed → same sequence | A | I1 | engine, domain, feature |
 | T12 | feat(engine): piece catalog as data | cl | RN-03, D-07 | JSON catalog and loader; connected shapes of 1–5 cells | A | I1 | engine, domain, feature |
 | HU11 | feat(usecases): start, apply and finish game use cases with logging aspect | cl | RNF-04, CU-01, CU-02, CU-07 | The `ApplyMoveUseCase` log appears for every variant | A | I1 | application, feature |
