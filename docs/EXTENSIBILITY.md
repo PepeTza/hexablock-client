@@ -28,8 +28,8 @@ What a new variant **must** provide, and what it **can reuse**.
 | Cell type (`TCell`) | Yes | `Color`, `ColorStack`, `Tile`, `PieceId` if they fit |
 | Move (`TMove`) | Yes | `PlacePieceMove`, `PlaceStackMove`, `SlideMove`, `FitMove` |
 | State (`TState extends GameState`) | Yes | — |
-| Rules (`extends BaseGameRules<TCell, TMove, TState>`) | Yes | — |
-| Scoring (`IScoringPolicy<TState>`) | No | Any existing policy |
+| Rules (`extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`) | Yes | — |
+| Scoring (`IScoringPolicy<TResolution>`) | No | Any existing policy |
 | Progress (`IProgressModel`) | No | `HighScoreProgress`, `LevelStarsProgress`, `LevelProgress` |
 | Piece source (`IPieceSource<TPiece>`) | No | `RandomPieceSource`, `FixedPieceSource` |
 | Undo (`IUndoable` on the state) | Optional | `CommandHistory`, `ApplyMoveCommand` |
@@ -93,7 +93,7 @@ variants are finished and polished.
 | `TMove` | `SlideMove` (one direction) | **Reused** from Merge |
 | Interaction | `Entity implements IMergeable<Entity>` | Reuses the **bounded generic** of Merge |
 | `TState` | `QuestState extends GameState`: hero health, turn, `levelId` | **New** |
-| Rules | `HexaQuestRules<TEntity extends IMergeable<TEntity>> extends BaseGameRules<TEntity, SlideMove, QuestState>` | **New** |
+| Rules | `HexaQuestRules<TEntity extends IMergeable<TEntity>> extends BaseGameRules<TEntity, HexCoord, SlideMove, QuestState, QuestTurn>` | **New** |
 | Enemy spawns | `RandomPieceSource<Entity>` with the seed | Reused |
 | Scoring | `QuestScoringPolicy` (e.g. turns, health left, enemies defeated) | **New** |
 | Progress | `LevelStarsProgress` | Reused from Fit |

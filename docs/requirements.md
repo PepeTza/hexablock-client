@@ -61,12 +61,12 @@ multiplayer, purchases or ads, password recovery by email.
   today.
 - **RF-02:** the engine runs the game loop (initialise, receive move,
   validate, apply, resolve, evaluate, notify) independently of the variant and
-  of the UI framework (`GameEngine<TCell, TMove, TState>`).
+  of the UI framework (`GameEngine<TCell, TCoord, TMove, TState>`).
 - **RF-03:** each variant provides its rules through
-  `IGameRules<TCell, TMove, TState>`; the engine has no conditionals per
+  `IGameRules<TCell, TCoord, TMove, TState>`; the engine has no conditionals per
   variant.
 - **RF-04:** the piece source, the scoring policy and the progress model are
-  interchangeable (`IPieceSource<TPiece>`, `IScoringPolicy<TState>`,
+  interchangeable (`IPieceSource<TPiece>`, `IScoringPolicy<TResolution>`,
   `IProgressModel`).
 - **RF-05:** random generation is injectable and reproducible by seed.
 - **RF-06:** the engine emits domain events (`LineCleared`, `StackMerged`,
