@@ -1,5 +1,5 @@
 import { BoardShape } from '@domain/engine/board/board-shape';
-import { HexGeometry } from '@domain/engine/geometry/hex-geometry';
+import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 
 // Radius of the Hexa Lines board (requirements §3).
 const LINES_BOARD_RADIUS = 4;
