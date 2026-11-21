@@ -22,8 +22,9 @@ explainability over cleverness.
 
 - React Native + TypeScript app: generic engine, the four variants, use
   cases, UI, local storage and HTTP adapters.
-- The admin web panel (`admin/`), which uses the same domain code to build
-  and validate levels before publishing them through the API.
+- The admin web panel (`admin/`), which uses the same domain and application
+  code to build, validate and publish levels and configure seeds through the
+  API.
 - Game and domain docs live here in [`docs/`](./docs/README.md) (glossary,
   requirements, business rules, use cases, user stories, domain model,
   architecture). They are being translated from the team's technical document;
@@ -46,7 +47,8 @@ explainability over cleverness.
   - `npm run dev` / `npm run build` / `npm run preview`: serve, build or serve
     the built panel with Vite.
   - `npm test`: Vitest. `npm run lint`: ESLint with the panel's import
-    boundary (only `@domain`, D-19). `npm run typecheck`: strict TypeScript.
+    boundary (only `@domain` and `@application`, D-19). `npm run typecheck`:
+    strict TypeScript.
   - The root type-check and Jest ignore `admin/`; the pre-commit hook lints
     panel files with the panel's own ESLint config.
 

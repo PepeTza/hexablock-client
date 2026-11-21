@@ -389,6 +389,34 @@ One entry per significant use. Copy the template.
     exceeded 100 characters (`body-max-line-length`); wrapping the body at 72
     characters fixed it.
 
+### 2026-11-21 — Admin panel application-layer boundary (issue #46)
+
+- **Tool / model:** Antigravity, Gemini 4 Neon.
+- **Issue / PR:** #46 (follow-up of #7, #8 and #45).
+- **Prompt (paraphrase):** explain what #46 is based on and what it unblocks,
+  confirm `src/domain` already forbids external packages, and implement #46
+  through the harness.
+- **Result:** `@application` alias configured in `admin/tsconfig.json` and
+  `admin/vite.config.ts` (including `server.fs.allow`); updated
+  `admin/eslint-boundaries.js` and `eslint-boundaries.config.js` so `admin/`
+  may import `@application/*` while `src/application/**` forbids external
+  packages (D-19); updated fixtures (9 panel tests, 19 root boundary tests);
+  updated `AGENTS.md` and `README.md`; fixed stale `HexGeometry` import path in
+  `admin/src/App.tsx` left behind by #53 in a separate commit.
+- **Team modifications:**
+  - The issue text suggested removing `application` from both the alias and
+    relative-path patterns in `admin/eslint-boundaries.js`; after explaining the
+    layer rule in plain terms, the owner approved keeping relative `src/` paths
+    forbidden for both `domain` and `application` so the panel always uses the
+    aliases consistently.
+  - The owner approved fixing the broken `HexGeometry` import in
+    `admin/src/App.tsx` in a separate `fix(panel)` commit so `admin/` builds
+    and passes type-check and tests cleanly.
+- **Lessons / limitations:**
+  - Because `admin/` is excluded from root `tsc` and Jest (and CI #6 is not yet
+    in place), moving `HexGeometry` in #53 silently broke `admin/src/App.tsx`
+    until `admin/` checks were run locally.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
