@@ -95,6 +95,17 @@ describe('layer boundaries', () => {
     expect(errors).toEqual([RESTRICTED]);
   });
 
+  it('should_report_error_when_application_imports_external_package', () => {
+    // Arrange
+    const code = "import { useState } from 'react';";
+
+    // Act
+    const errors = lint('src/application/use-cases/finish-game.ts', code);
+
+    // Assert
+    expect(errors).toEqual([RESTRICTED]);
+  });
+
   it('should_pass_when_application_imports_domain', () => {
     // Arrange
     const code = [

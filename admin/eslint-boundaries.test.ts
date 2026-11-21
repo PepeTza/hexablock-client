@@ -63,10 +63,22 @@ describe('admin panel import boundary', () => {
     expect(errors).toEqual([RESTRICTED]);
   });
 
-  it('should_report_an_error_when_admin_imports_the_application_layer', () => {
+  it('should_allow_an_import_from_the_application_alias', () => {
     // Arrange
     const code =
       "import { StartGameUseCase } from '@application/use-cases/start-game';";
+
+    // Act
+    const errors = lint(code);
+
+    // Assert
+    expect(errors).toEqual([]);
+  });
+
+  it('should_report_an_error_when_admin_imports_the_adapters_layer', () => {
+    // Arrange
+    const code =
+      "import { SqliteProgressRepository } from '@adapters/persistence/sqlite-progress-repository';";
 
     // Act
     const errors = lint(code);
@@ -79,6 +91,18 @@ describe('admin panel import boundary', () => {
     // Arrange
     const code =
       "import { BoardShape } from '../../../src/domain/engine/board/board-shape';";
+
+    // Act
+    const errors = lint(code);
+
+    // Assert
+    expect(errors).toEqual([RESTRICTED]);
+  });
+
+  it('should_report_an_error_when_admin_reaches_application_by_relative_path', () => {
+    // Arrange
+    const code =
+      "import { StartGameUseCase } from '../../../src/application/use-cases/start-game';";
 
     // Act
     const errors = lint(code);

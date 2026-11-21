@@ -37,18 +37,27 @@ function outerLayersPattern(outerLayers, layer) {
   };
 }
 
-// `no-restricted-imports` has no "any external package" option, so the
-// domain forbids every specifier that is not relative (`./`, `../`) and not a
+// `no-restricted-imports` has no "any external package" option, so inner
+// layers forbid every specifier that is not relative (`./`, `../`) and not a
 // layer alias. The alias of an outer layer (`@frameworks/...`) is left to
-// the layer pattern below, so it is reported once, with its own message.
-const EXTERNAL_PACKAGE_PATTERN = {
-  regex: '^(?!\\.{1,2}/|@(domain|application|adapters|frameworks)/)',
+// the layer pattern above, so it is reported once, with its own message.
+const EXTERNAL_PACKAGE_REGEX =
+  '^(?!\\.{1,2}/|@(domain|application|adapters|frameworks)/)';
+
+const DOMAIN_EXTERNAL_PACKAGE_PATTERN = {
+  regex: EXTERNAL_PACKAGE_REGEX,
   message:
     'The domain cannot import external packages or outer layers: it is plain TypeScript (ADR-03).',
 };
 
+const APPLICATION_EXTERNAL_PACKAGE_PATTERN = {
+  regex: EXTERNAL_PACKAGE_REGEX,
+  message:
+    'The application layer cannot import external packages: it is plain TypeScript so the admin panel can import it in a browser (D-19).',
+};
+
 const DOMAIN_PATTERNS = [
-  EXTERNAL_PACKAGE_PATTERN,
+  DOMAIN_EXTERNAL_PACKAGE_PATTERN,
   outerLayersPattern(['application', 'adapters', 'frameworks'], 'domain'),
 ];
 
@@ -116,6 +125,7 @@ function layerBoundaries(variants) {
     {
       files: [`src/application/${FILES}`],
       rules: restrict([
+        APPLICATION_EXTERNAL_PACKAGE_PATTERN,
         outerLayersPattern(['adapters', 'frameworks'], 'application'),
       ]),
     },
