@@ -328,6 +328,34 @@ One entry per significant use. Copy the template.
   - The choice of the 6 shapes of 5 cells is a guess at variety, not tested
     with players; the Hexa Lines owner reviews it.
 
+### 2026-11-21 — Game engine, rules template and domain events (issue #27)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5 (`claude-opus-5-5`).
+- **Issue / PR:** #27 (HU08).
+- **Prompt (paraphrase):** plan and build the engine with the harness,
+  explaining it with concrete examples before deciding; the owner chose to
+  build it without the planned mob sessions.
+- **Result:** `GameEngine` (moves played on a copy of the board, the four
+  session states of D-22, listeners, `preview`), `IGameRules` and
+  `BaseGameRules` (Template Method), `GameState`, the engine events and
+  `IScoringPolicy<TResolution>`; 18 tests with two test variants.
+- **Team modifications:**
+  - The owner asked for the design to be explained with a worked example and
+    a class diagram before answering the four design questions.
+  - The owner chose the Template Method in `BaseGameRules`, the scoring policy
+    on the resolution of the move injected into the rules (the documents said
+    `IScoringPolicy<TState>`; they were updated), a minimal `GameState` and
+    `preview` in this task.
+  - The mob sessions of the plan were replaced by a walkthrough for the team.
+- **Lessons / limitations:**
+  - TypeScript rejects extra fields in an object literal typed as the base
+    `DomainEvent`; a union of the engine events (`EngineEvent`) keeps each one
+    checked against its exact shape.
+  - `play` of `BaseGameRules` must not be overridden, but TypeScript has no
+    `final`: it is stated in the doc comment only.
+  - `board` and `state` of the engine are readable and the board is mutable:
+    nothing stops a caller from changing it directly.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
