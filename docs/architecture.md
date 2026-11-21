@@ -111,8 +111,19 @@ or in the domain model is listed here; a new port is added here first.
   where the resolution is what happened in the move as the rules describe it
   (for example cells placed, lines cleared and streak in Hexa Lines). It is
   injected into the rules, so the engine never sees the resolution type.
-- **`IPieceSource<TPiece>`, `IProgressModel`**: interchangeable piece source
-  and progress.
+- **`IRandomSource` and `SeededRandom`** (`engine/random/`): injectable,
+  seedable randomness (Strategy, RF-05, RN-05) implemented with `mulberry32`.
+  Exposes `next`, `nextInt`, `pick`, `pickWeighted` and `clone` (Prototype),
+  so undo (RN-31) and move previews (CU-03) can restore or fork the generator
+  without leaking its internal state.
+- **`IPieceSource<TPiece>`** (`engine/pieces/`): interchangeable source of
+  pieces, stacks or tiles (Strategy, RF-04) with `next`, `draw`, `hasNext`
+  and `clone` (Prototype). Ships with `FixedPieceSource<TPiece>` (finite,
+  ordered lists such as Hexa Fit levels) and `RandomPieceSource<TPiece>`
+  (uniform or weighted draws backed by `IRandomSource`); variants with custom
+  generation (Hexa Lines rotated spawns, Hexa Sort stacks) implement the same
+  interface.
+- **`IProgressModel`**: interchangeable progress model per variant.
 - **Type constraints** (to be justified in the README): e.g.
   `TCell extends IMergeable<TCell>` for Merge; `TMove extends ICommandable` to
   support undo.

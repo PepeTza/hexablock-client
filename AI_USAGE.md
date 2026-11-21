@@ -356,6 +356,39 @@ One entry per significant use. Copy the template.
   - `board` and `state` of the engine are readable and the board is mutable:
     nothing stops a caller from changing it directly.
 
+### 2026-11-21 — Interchangeable piece sources and seeded random (issue #28)
+
+- **Tool / model:** Antigravity, Gemini 4 Neon.
+- **Issue / PR:** #28 (HU09).
+- **Prompt (paraphrase):** recommend the next I1 issue to tackle, then plan
+  and implement #28 through the harness, explaining the design and checking
+  the owner's understanding before committing.
+- **Result:** `IRandomSource` and `SeededRandom` (`mulberry32`, cited in code
+  and `README.md`) in `src/domain/engine/random/`; `IPieceSource<TPiece>`,
+  `FixedPieceSource<TPiece>` and `RandomPieceSource<TPiece>` (uniform and
+  weighted) in `src/domain/engine/pieces/`; 24 unit/integration tests proving
+  determinism, weighted draws, independent cloning and swapping strategies
+  without modifying `GameEngine`; updated `docs/architecture.md` and
+  `README.md`.
+- **Team modifications:**
+  - Before approving the plan, the owner asked how `FixedPieceSource` and
+    `RandomPieceSource` differ and how Hexa Lines and Hexa Sort plug into
+    `IPieceSource` (reusing vs composing/implementing custom sources).
+  - Before approving the second commit, the owner questioned `Iterable<TPiece>`
+    (confirming it is TypeScript's built-in iteration protocol, not our GoF
+    Iterator implementation) and reviewed why `clone()` (Prototype) encapsulates
+    internal state, why `RandomPieceSource` validates weights eagerly (fail
+    fast), and why `GameEngine` stays unaware of `IPieceSource` and
+    `IScoringPolicy` (OCP).
+- **Lessons / limitations:**
+  - `tsconfig.json` enables `noUncheckedIndexedAccess: true`, which caught
+    direct array indexing in `SeededRandom.pick` and `pickWeighted` on the
+    first type-check; `pickWeighted` was rewritten without casts using a
+    `for...of` loop tracking the last entry.
+  - `commitlint` rejected the first commit attempt because the unwrapped body
+    exceeded 100 characters (`body-max-line-length`); wrapping the body at 72
+    characters fixed it.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
