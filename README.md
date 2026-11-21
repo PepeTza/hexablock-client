@@ -66,9 +66,9 @@ npm run android # starts Expo and opens an Android emulator or device
 ### Admin panel
 
 The admin web panel lives in [`admin/`](./admin): a separate Vite + React app
-(D-18) with its own `package.json`. It reuses the game's domain through the
-`@domain` alias (D-19), and a lint rule forbids it from importing anything
-else of the app.
+(D-18) with its own `package.json`. It reuses the game's domain and
+application layers through the `@domain` and `@application` aliases (D-19),
+and a lint rule forbids it from importing anything else of the app.
 
 ```bash
 cd admin
