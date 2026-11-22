@@ -105,9 +105,14 @@ or in the domain model is listed here; a new port is added here first.
   each move on a copy of the board (`Board.clone`, Prototype) and keeps the
   copy only when the move is applied, so a rejected move or an error changes
   nothing. Its session state (`PlayingState`, `ResolvingState`, `PausedState`,
-  `FinishedState`, D-22) decides what each action does. Listeners receive the
-  events (Observer). `preview(move)` answers CU-03 without changing the game.
-  It does not know the variant.
+  `FinishedState`, D-22) decides what each action does. `applyMove` returns a
+  `MoveResult` (rejected with its reason, or applied with its points and the
+  pending outcome), so the UI never guesses what happened (CU-02). Listeners
+  receive the events (Observer) only once an action is complete: events are
+  queued while the session state works and delivered after it, so after a
+  move the session is already `resolving` (RN-06), and a listener that throws
+  does not stop the others (`onListenerError`, #113). `preview(move)` answers
+  CU-03 without changing the game. It does not know the variant.
 - **`IScoringPolicy<TResolution>`** (`engine/scoring/`): `pointsFor(resolution)`,
   where the resolution is what happened in the move as the rules describe it
   (for example cells placed, lines cleared and streak in Hexa Lines). It is
@@ -139,7 +144,11 @@ or in the domain model is listed here; a new port is added here first.
 - **`IVariantFactory` and `VariantFactoryRegistry`** (`engine/game/`): Abstract
   Factory contract producing a variant's `IGameSession` (`GameEngine`) and
   `IProgressModel`, registered by open `GameId` (`string`) so adding a fifth
-  variant touches neither the engine nor the use cases (OCP, RNF-01).
+  variant touches neither the engine nor the use cases (OCP, RNF-01). The
+  registry erases the move type (`IGameSession`); `applyMove` is a
+  function-typed property, which TypeScript checks contravariantly, so the
+  type can only be recovered with one explicit cast in the variant's
+  presentation factory, never in generic code.
 - **`IProgressModel` and `PlayerProgress`** (`domain/progress/`): Strategy
   evaluating finished games (high score, level stars, unlocks) plus
   `mergeProgress` keeping the best of each (RN-36).

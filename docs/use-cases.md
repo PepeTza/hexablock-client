@@ -134,7 +134,9 @@ resolution is running (RN-06).
 
 - **A1. Invalid move** (step 2): nothing changes and it does not count as a
   move; the piece returns to its place (RN-14) and the UI shows the rejection.
-- **A2. A resolution is running:** input is ignored (RN-06).
+- **A2. A resolution is running:** the engine rejects the move
+  (`MoveRejected`, CU-06 table) and the UI ignores it, so the player sees
+  nothing happen (RN-06).
 - **A3. The game ends** (step 6): it becomes victory or defeat and CU-07 is
   launched. In Merge, on winning the player is offered to keep playing
   (RN-30).

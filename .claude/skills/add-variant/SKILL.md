@@ -44,7 +44,11 @@ source as a field of the rules. Name every pattern in the class doc comment
 - `ICellRenderer<TCell>`: how a cell is drawn.
 - `IInputMapper<TMove>`: how a gesture becomes a move (drag or swipe mapper
   may be reused).
-- `VariantPresentationFactory` for the variant.
+- `VariantPresentationFactory` for the variant. It is the only place that
+  recovers the move type of the session, with one commented cast
+  (`session as IGameSession<YourMove, YourState>`); screens read the
+  `MoveResult` of `applyMove` (`kind`, `reason`, `points`, `pendingOutcome`)
+  instead of guessing from `status`.
 
 ## 4. Register — the only lines outside the variant's folders
 
