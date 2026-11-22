@@ -646,6 +646,37 @@ One entry per significant use. Copy the template.
     Lines and Merge), not on the code.
   - Checked by reverting to `useEffect`: the "new record" test failed.
 
+### 2026-11-22 — Typed end-of-game events and resilient queueing (issue #115)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5 (`claude-opus-5-5`).
+- **Issue / PR:** #115.
+- **Prompt (paraphrase):** plan and build #115 through the harness with
+  approval per commit.
+- **Result:** the `GameFinished` and `LevelCompleted` event types in
+  `domain/progress/progress-events.ts`, published with their data by
+  `FinishGameUseCase`; a private `attempt()` helper so a failing save,
+  session check or queue task only logs a warning; progress sync queued
+  only after a successful save; `StartGameUseCase` rejecting a level that
+  `findByGame` does not list; eight new or updated tests; domain model and
+  CU-07 updated.
+- **Team modifications:** none beyond the decisions taken in the audit. The
+  team accepted two choices made during planning: the score submission is
+  still tried when queueing the progress sync fails, and the events live in
+  the progress domain, not in the engine.
+- **Lessons / limitations:**
+  - The plan had `attempt()` return a boolean; while building it became
+    generic with a fallback value, because the session check needs the
+    value it returns. It is a private helper, so the change was reported
+    instead of re-planned.
+  - The existing quit test also asserted the old `GameOver` event; that
+    assertion moved to a dedicated quit test with the full event data.
+  - Checked by mutation: removing the not-found guard, syncing after a
+    failed save and calling the session check without `attempt()` each
+    made its guarding test fail. The first run passed the source file to
+    Jest, which ran no tests; it was repeated with the test file.
+  - The first docs commit header was 73 characters and commitlint rejected
+    it; it was shortened.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
