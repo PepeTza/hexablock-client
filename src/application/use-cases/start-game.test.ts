@@ -62,6 +62,8 @@ function createFakeFactory(
 function createHarness(
   options: {
     levels?: readonly ILevelSummary[];
+    /** What `findByGame` lists; defaults to `levels`. */
+    listedLevels?: readonly ILevelSummary[];
     progress?: ReadonlyMap<GameId, PlayerProgress>;
     seedConfigs?: ReadonlyMap<string, SeedConfig>;
     generatedSeed?: number;
@@ -95,9 +97,10 @@ function createHarness(
   );
 
   const levelsList = options.levels ?? [];
+  const listedLevels = options.listedLevels ?? levelsList;
   const levels: ILevelRepository = {
     findByGame: (gameId) =>
-      Promise.resolve(levelsList.filter((level) => level.gameId === gameId)),
+      Promise.resolve(listedLevels.filter((level) => level.gameId === gameId)),
     findById: (gameId, levelId) =>
       Promise.resolve(
         levelsList.find(
@@ -249,5 +252,28 @@ describe('StartGameUseCase', () => {
     await expect(
       useCase.execute({ gameId: 'hexa-fit', levelId: 'fit-02' }),
     ).rejects.toThrow(RangeError);
+  });
+
+  it('should_reject_as_not_found_when_level_list_does_not_include_it', async () => {
+    // Arrange
+    const first: ILevelSummary = { id: 'fit-01', gameId: 'hexa-fit', order: 1 };
+    const orphan: ILevelSummary = {
+      id: 'fit-07',
+      gameId: 'hexa-fit',
+      order: 7,
+    };
+    const { useCase, received } = createHarness({
+      levels: [first, orphan],
+      listedLevels: [first],
+    });
+
+    // Act
+    const start = useCase.execute({ gameId: 'hexa-fit', levelId: 'fit-07' });
+
+    // Assert
+    await expect(start).rejects.toThrow(
+      'Level fit-07 was not found for hexa-fit',
+    );
+    expect(received).toEqual([]);
   });
 });
