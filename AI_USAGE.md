@@ -518,6 +518,32 @@ One entry per significant use. Copy the template.
     screen transition back to `'Home'` inside the real native stack navigator
     with zero mocks.
 
+### 2026-11-21 — Require explicit key() in ICoord instead of toString (issue #56)
+
+- **Tool / model:** Antigravity, Gemini 4 Argon.
+- **Issue / PR:** #56.
+- **Prompt (paraphrase):** recommend between #41 and #56, then explain #56 in
+  plain language and design terms, ask two architecture/design check questions
+  before Gate 1, obtain approval per commit, and handle push, PR,
+  rebase-and-merge and cleanup after Gate 4.
+- **Result:** Narrowed `ICoord` (`src/domain/engine/geometry/coord.ts`) to
+  `key(): string` (ISP), updated `Board`, `BoardShape` and `PieceShape` to
+  index cells via `coord.key()`, added `key()` to `HexCoord` while keeping
+  `equals()` and `toString()`, simplified `TestCubeCoord` test doubles, and
+  added a compile-time `@ts-expect-error` type test in `hex-coord.test.ts`
+  (185/185 app tests and 9/9 panel tests passing).
+- **Team modifications:**
+  - Before Gate 1, the owner answered the two design questions on TypeScript
+    structural typing (`Object.prototype.toString` vs explicit `key()`) and
+    coordinate opacity (`RNF-14`), and chose Option 1 (ISP: `ICoord` requires
+    only `key(): string`, keeping `equals` on `HexCoord`).
+- **Lessons / limitations:**
+  - `@typescript-eslint/no-base-to-string` caught calling `.toString()` on a
+    variable typed as `ICoord` once `toString()` was removed from `ICoord`;
+    testing the compile-time rejection via a helper `(coord: ICoord) =>
+    coord.key()` with `@ts-expect-error` satisfied both ESLint and
+    `tsc --noEmit`.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

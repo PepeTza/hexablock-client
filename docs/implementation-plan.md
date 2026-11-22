@@ -327,7 +327,7 @@ boundary clean from I1 onwards:
 
 1. **Coordinate contract and bounded generic (`TCoord extends ICoord`):**
    `ICoord` (`coord.ts`) defines only what the engine and board need
-   (`equals(other: ICoord): boolean` and `toString(): string`). Each geometry
+   (`key(): string`, ISP). Each geometry
    family provides its own value object without dead weight: `HexCoord`
    (`q, r` and derived `s = -q - r`) for 2D hexagons, and future classes such as
    `SquareCoord(col, row)` or `CubeCoord(x, y, z)` for 2D squares or 3D cubes.
@@ -344,7 +344,7 @@ boundary clean from I1 onwards:
    (`Board`, `BoardShape`, `Piece`, `GameEngine`, variant rules) reads `.q`,
    `.r` or `.s` directly. Coordinate translation goes through the geometry or
    `TCoord` methods, and `Board` / `BoardShape` index cells exclusively by
-   `String(coord)`.
+   `coord.key()`.
 3. **Rotation in its own interface (`IPlanarRotation`, ISP):** rotation is
    not part of `IBoardGeometry`. Planar geometries also implement
    `IPlanarRotation<TCoord>` (`rotationSteps`, `rotate(coord, steps, centre?)`),
