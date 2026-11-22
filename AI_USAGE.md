@@ -585,6 +585,47 @@ One entry per significant use. Copy the template.
   - The tests were checked by removing the line that stores the new snapshot:
     exactly the two tests that protect that hole failed.
 
+### 2026-11-22 — Notify after the move and return what happened (issue #113)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5 (`claude-opus-5-5`).
+- **Issue / PR:** #113.
+- **Prompt (paraphrase):** review the remaining audit findings one at a time,
+  in plain language and with a concrete example each, letting the owner
+  explain them back before deciding; open the issues for the start of I2,
+  with the ones that affect teammates first; then plan and build #113
+  through the harness with approval per commit.
+- **Result:** the AI found, by running a temporary test, that the engine
+  notified listeners before moving the session to `resolving` (a throwing
+  listener lost the outcome of a winning move; a listener could slip in a
+  second move), that `ApplyMoveOutput.outcome` was always `null`, and that
+  `IGameSession` accepted moves of another variant because TypeScript checks
+  method parameters bivariantly. It then built an event outbox delivered
+  after each action, listener isolation with `onListenerError`, `MoveResult`
+  returned by `applyMove`, `applyMove` as a function-typed property, tests
+  for the ignored transitions of CU-06, and the doc updates.
+- **Team modifications:**
+  - The owner questioned whether the move-type mix-up could really happen,
+    and checked that the fix kept the dependency rule: no generic code may
+    depend on a concrete variant. That fixed where the one explicit cast
+    lives (each variant's presentation factory), and the owner chose this
+    minimal fix (a function-typed property plus that cast) over the typed
+    registry keys the AI had first recommended, after the AI admitted it had
+    overstated the risk.
+  - The owner set the priority rule for the follow-up issues: those that can
+    affect teammates go first.
+  - In gate 1 the owner approved applying the outbox to every action, not
+    only to moves.
+- **Lessons / limitations:**
+  - The first explanations of these findings were too dense to be
+    understood; one concept at a time, with a concrete example and an
+    explanation back, worked.
+  - The tests were checked by reverting the fixes: delivering events
+    immediately again failed the three tests that protect the bug, and
+    declaring `applyMove` as a method again failed the type test.
+  - Sources cited: the WHATWG DOM Standard ("inner invoke") for isolating
+    listeners, and the TypeScript 2.6 release notes for function parameter
+    variance.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
