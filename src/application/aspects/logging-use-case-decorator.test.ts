@@ -49,6 +49,7 @@ function createStubSession(pointsPerMove: number): IGameSession<string> {
     applyMove: () => {
       score += pointsPerMove;
       moveCount += 1;
+      return { kind: 'applied', points: pointsPerMove, pendingOutcome: null };
     },
     pause: () => undefined,
     resume: () => undefined,

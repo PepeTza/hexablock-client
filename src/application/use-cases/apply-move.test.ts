@@ -94,9 +94,71 @@ class ColourRules extends BaseGameRules<
   }
 }
 
+/** NumberRules where the first applied move wins the game. */
+class WinOnFirstMoveRules extends NumberRules {
+  protected evaluateEnd(): GameOutcome | null {
+    return 'victory';
+  }
+}
+
 const geometry = new HexGeometry();
 
+function startNumbers(rules: NumberRules, radius: number) {
+  return GameEngine.start({
+    board: new Board<number, HexCoord>(
+      BoardShape.ofRadius(geometry, radius),
+      geometry,
+    ),
+    state: { score: 0, moveCount: 0 },
+    rules,
+    seed: 42,
+  });
+}
+
 describe('ApplyMoveUseCase', () => {
+  it('should_return_rejected_result_when_the_move_is_rejected', () => {
+    // Arrange
+    const engine = startNumbers(new NumberRules(), 1);
+    const useCase = new ApplyMoveUseCase<NumberMove>();
+    useCase.execute({
+      gameId: 'variant-numbers',
+      engine,
+      move: { cell: HexCoord.ORIGIN, value: 7 },
+    });
+    engine.resolutionDone();
+
+    // Act
+    const output = useCase.execute({
+      gameId: 'variant-numbers',
+      engine,
+      move: { cell: HexCoord.ORIGIN, value: 3 },
+    });
+
+    // Assert
+    expect(output.result).toEqual({ kind: 'rejected', reason: 'taken' });
+    expect(output.status).toBe('playing');
+  });
+
+  it('should_return_the_pending_outcome_when_the_move_ends_the_game', () => {
+    // Arrange
+    const engine = startNumbers(new WinOnFirstMoveRules(), 0);
+    const useCase = new ApplyMoveUseCase<NumberMove>();
+
+    // Act
+    const output = useCase.execute({
+      gameId: 'variant-numbers',
+      engine,
+      move: { cell: HexCoord.ORIGIN, value: 7 },
+    });
+
+    // Assert
+    expect(output.result).toEqual({
+      kind: 'applied',
+      points: 7,
+      pendingOutcome: 'victory',
+    });
+  });
+
   it('should_delegate_move_to_engine_and_return_updated_state_when_valid', () => {
     // Arrange
     const engine = GameEngine.start({
@@ -119,9 +181,9 @@ describe('ApplyMoveUseCase', () => {
 
     // Assert
     expect(output).toEqual({
+      result: { kind: 'applied', points: 7, pendingOutcome: null },
       state: { score: 7, moveCount: 1 },
       status: 'resolving',
-      outcome: null,
     });
   });
 

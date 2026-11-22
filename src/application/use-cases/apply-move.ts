@@ -1,6 +1,8 @@
-import type { GameOutcome } from '@domain/engine/events/domain-event';
 import type { GameState } from '@domain/engine/game/game-state';
-import type { GameStatus } from '@domain/engine/game/session-states';
+import type {
+  GameStatus,
+  MoveResult,
+} from '@domain/engine/game/session-states';
 import type { IGameSession } from '@domain/engine/game/variant-factory';
 import type { GameId } from '@domain/progress/player-progress';
 
@@ -13,11 +15,15 @@ export interface ApplyMoveInput<TMove, TState extends GameState = GameState> {
   readonly move: TMove;
 }
 
-/** Snapshot returned to the UI right after applying the move (CU-02). */
+/**
+ * What the UI gets right after the move (CU-02): what happened with it
+ * (rejected, or applied with its points and pending outcome), and the state
+ * and status of the game after it.
+ */
 export interface ApplyMoveOutput<TState extends GameState = GameState> {
+  readonly result: MoveResult;
   readonly state: TState;
   readonly status: GameStatus;
-  readonly outcome: GameOutcome | null;
 }
 
 /**
@@ -32,11 +38,11 @@ export class ApplyMoveUseCase<
   TState extends GameState = GameState,
 > implements IUseCase<ApplyMoveInput<TMove, TState>, ApplyMoveOutput<TState>> {
   execute(input: ApplyMoveInput<TMove, TState>): ApplyMoveOutput<TState> {
-    input.engine.applyMove(input.move);
+    const result = input.engine.applyMove(input.move);
     return {
+      result,
       state: input.engine.state,
       status: input.engine.status,
-      outcome: input.engine.outcome,
     };
   }
 }

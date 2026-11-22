@@ -1,6 +1,6 @@
 import type { EventListener, GameOutcome } from '../events/domain-event';
 import type { GameState } from './game-state';
-import type { GameStatus } from './session-states';
+import type { GameStatus, MoveResult } from './session-states';
 import type { GameId } from '../../progress/player-progress';
 import type { IProgressModel } from '../../progress/progress-model';
 
@@ -9,9 +9,18 @@ import type { IProgressModel } from '../../progress/progress-model';
  * use cases (`StartGameUseCase`, `ApplyMoveUseCase`) without coupling them to
  * a variant's `TCell` or `TCoord` types.
  *
- * `TMove` defaults to `never` (contravariant) and `TState` defaults to
- * `GameState` (covariant), so any concrete `GameEngine<TCell, TCoord, TMove,
- * TState>` is structurally assignable to `IGameSession` without casts.
+ * `TMove` defaults to `never` and `TState` to `GameState`, so any concrete
+ * `GameEngine<TCell, TCoord, TMove, TState>` can be kept as an
+ * `IGameSession` (the type of its moves erased), as the factory registry
+ * needs.
+ *
+ * `applyMove` is a function-typed property, not a method, on purpose:
+ * TypeScript compares the parameters of methods loosely (bivariance) but
+ * those of function properties strictly (contravariance). So an erased
+ * session cannot silently become an `IGameSession<SomeMove>`, which would
+ * let one variant's moves reach another variant's engine. Recovering the
+ * type takes one explicit, commented cast, written once in the variant's
+ * presentation factory, never in generic code.
  */
 export interface IGameSession<
   TMove = never,
@@ -22,7 +31,8 @@ export interface IGameSession<
   readonly status: GameStatus;
   readonly outcome: GameOutcome | null;
   subscribe(listener: EventListener): () => void;
-  applyMove(move: TMove): void;
+  /** Plays a move and says what happened (CU-02). */
+  readonly applyMove: (move: TMove) => MoveResult;
   pause(): void;
   resume(): void;
   resolutionDone(): void;

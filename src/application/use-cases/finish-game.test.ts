@@ -28,7 +28,7 @@ function createFactoryWithProgressModel(
     status: 'finished',
     outcome: 'victory',
     subscribe: () => () => undefined,
-    applyMove: () => undefined,
+    applyMove: () => ({ kind: 'rejected', reason: 'stub' }),
     pause: () => undefined,
     resume: () => undefined,
     resolutionDone: () => undefined,
