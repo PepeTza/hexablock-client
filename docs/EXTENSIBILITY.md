@@ -27,8 +27,8 @@ What a new variant **must** provide, and what it **can reuse**.
 |---|---|---|
 | Cell type (`TCell`) | Yes | `Color`, `ColorStack`, `Tile`, `PieceId` if they fit |
 | Move (`TMove`) | Yes | `PlacePieceMove`, `PlaceStackMove`, `SlideMove`, `FitMove` |
-| State (`TState extends GameState`) | Yes | — |
-| Rules (`extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`) | Yes | — |
+| State (`TState extends GameState`, or `SourcedState<TSource>` if it draws during a move) | Yes | — |
+| Rules (`extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`, or `SourcedGameRules<…, TSource>` if the variant draws pieces or randomness during a move) | Yes | — |
 | Scoring (`IScoringPolicy<TResolution>`) | No | Any existing policy |
 | Progress (`IProgressModel`) | No | `HighScoreProgress`, `LevelStarsProgress`, `LevelProgress` |
 | Piece source (`IPieceSource<TPiece>`) | No | `RandomPieceSource`, `FixedPieceSource` |

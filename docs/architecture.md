@@ -124,6 +124,18 @@ or in the domain model is listed here; a new port is added here first.
   (uniform or weighted draws backed by `IRandomSource`); variants with custom
   generation (Hexa Lines rotated spawns, Hexa Sort stacks) implement the same
   interface.
+- **`Snapshot<T extends IPrototype<T>>` and `SourcedGameRules`**
+  (`engine/state/`, `engine/game/`, #111): keep sources inside the atomicity
+  of a move. A variant that draws pieces or randomness during a move keeps
+  its source in the state as a `Snapshot` (Memento), which can only fork new
+  copies, so a saved state never advances. `SourcedGameRules` fills the
+  `resolve` step: it forks the snapshot, hands the working copy to the
+  variant's `resolveWith` and always stores the advanced snapshot. Previews
+  (CU-03), rejected moves, errors and going back to an older state (undo,
+  RN-16, RN-31) therefore never change the pieces a seed deals (RN-05).
+  `IPrototype<T>` names the `clone()` contract that `IPieceSource` and
+  `IRandomSource` follow. Hexa Fit draws nothing during a move and extends
+  `BaseGameRules` directly.
 - **`IVariantFactory` and `VariantFactoryRegistry`** (`engine/game/`): Abstract
   Factory contract producing a variant's `IGameSession` (`GameEngine`) and
   `IProgressModel`, registered by open `GameId` (`string`) so adding a fifth
@@ -141,7 +153,9 @@ or in the domain model is listed here; a new port is added here first.
   constraint `TState extends GameState`. The status is the engine's session
   state (D-22) and the seed belongs to the engine, since both concern the
   whole game; the duration arrives with the clock (T35). Move count and
-  duration let the server validate scores (RN-39).
+  duration let the server validate scores (RN-39). Rules and scoring
+  policies keep no memory between moves: the tray, a streak or the position
+  of a source go in the state (a source as a `Snapshot`).
 
 ## 4. Design patterns
 
@@ -150,7 +164,8 @@ or in the domain model is listed here; a new port is added here first.
 | Strategy (required) | Interchangeable resolution rules, scoring, piece source, progress model and level validator; board geometry |
 | Abstract Factory (required) | `HexaLinesFactory`, `HexaFitFactory`, `HexaSortFactory`, `HexaMergeFactory` create rules, source, scoring and board shape |
 | Builder | Building Fit and Sort levels from JSON (ADR-07) |
-| Prototype | Cloning pieces and states for rotation, preview and undo |
+| Prototype | Cloning pieces, boards and states for rotation, preview and undo; forking piece and random sources (`IPrototype<T>`) |
+| Memento | `Snapshot<T>`: a frozen point of a piece or random source kept in the game state, which can only fork copies (#111) |
 | Singleton / single-scope DI | `AudioManager`, `SessionManager` |
 | Decorator | The basis of AOP on use cases (logging, security, retries, cache). Rules decorators (time limit, boosters) are a planned extension point (see [`EXTENSIBILITY.md`](./EXTENSIBILITY.md)) |
 | Adapter / Facade | Wrapping database, network and audio; `GameServiceFacade` |

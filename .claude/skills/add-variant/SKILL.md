@@ -23,8 +23,8 @@ touch.
 |---|---|
 | Cell type `TCell` | Yes (or reuse `Color`, `ColorStack`, `Tile`, `PieceId`) |
 | Move `TMove` | Yes (or reuse an existing move) |
-| State `TState extends GameState` | Yes |
-| Rules `extends BaseGameRules<TCell, TMove, TState>` | Yes |
+| State `TState extends GameState` (`SourcedState<TSource>` if it draws during a move) | Yes |
+| Rules `extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`, or `SourcedGameRules<…, TSource>` if it draws pieces or randomness during a move | Yes |
 | Scoring `IScoringPolicy<TState>` | Only if no existing policy fits |
 | Progress `IProgressModel` | Only if no existing model fits |
 | Piece source `IPieceSource<TPiece>` | Only if no existing source fits |
@@ -33,7 +33,10 @@ touch.
 | Factory `VariantFactory<TCell, TMove, TState>` | Yes |
 
 The rules implement the Template Method steps: `validate`, `apply`, `resolve`,
-`evaluateEnd`. Name every pattern in the class doc comment
+`evaluateEnd` (with `SourcedGameRules`, `resolveWith` instead of `resolve`).
+Rules and scoring policies keep no memory between moves: everything that
+changes (tray, streak, source) goes in the state. Never keep a piece or random
+source as a field of the rules. Name every pattern in the class doc comment
 (`/** Strategy: ... */`).
 
 ## 3. Presentation — `src/adapters/presentation/variants/<variant>/`
