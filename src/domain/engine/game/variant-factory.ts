@@ -20,7 +20,11 @@ import type { IProgressModel } from '../../progress/progress-model';
  * session cannot silently become an `IGameSession<SomeMove>`, which would
  * let one variant's moves reach another variant's engine. Recovering the
  * type takes one explicit, commented cast, written once in the variant's
- * presentation factory, never in generic code.
+ * presentation factory, never in generic code. The rule is TypeScript's
+ * `strictFunctionTypes`: strict checking "applies to all function types,
+ * except those originating in method or constructor declarations"
+ * (TypeScript 2.6 release notes,
+ * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-6.html).
  */
 export interface IGameSession<
   TMove = never,

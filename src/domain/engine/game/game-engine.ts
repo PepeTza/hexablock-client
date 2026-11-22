@@ -231,6 +231,11 @@ export class GameEngine<
    * of the same queue. A listener that throws does not stop the others: its
    * error goes to `onListenerError`, or, without one, the first error is
    * rethrown after everything was delivered.
+   *
+   * Isolating listeners follows the DOM's `dispatchEvent`, where a listener
+   * that throws has its exception reported and the remaining listeners still
+   * run (WHATWG DOM Standard, "inner invoke",
+   * https://dom.spec.whatwg.org/#concept-event-listener-inner-invoke).
    */
   private deliver(): void {
     let firstError: Error | null = null;
