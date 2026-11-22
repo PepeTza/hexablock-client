@@ -1,30 +1,59 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-export const SUITE_NAME = 'HexaBlock Suite';
+import type { MainMenuViewModel } from '@adapters/presentation/main-menu/main-menu-view-model';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import type { RootStackParamList } from '../navigation/routes';
+import { useServices } from '../services/ServicesContext';
+import { MainMenuView } from './MainMenuView';
+
+type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 /**
- * Placeholder home screen: shows the suite name so the project can be run and
- * tested end to end. The real menu (HU01) replaces its content.
+ * Main menu container screen: loads the view model from `MainMenuPresenter`
+ * and forwards user actions to React Navigation.
  */
-export function HomeScreen() {
+export function HomeScreen({ navigation }: HomeScreenProps) {
+  const { mainMenu } = useServices();
+  const [viewModel, setViewModel] = useState<MainMenuViewModel | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void mainMenu.load().then((loaded) => {
+      if (active) {
+        setViewModel(loaded);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [mainMenu]);
+
+  if (viewModel === null) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator accessibilityLabel="Loading menu" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>
-        {SUITE_NAME}
-      </Text>
-    </View>
+    <MainMenuView
+      viewModel={viewModel}
+      onSelectVariant={(gameId, name) =>
+        navigation.navigate('Variant', { gameId, name })
+      }
+      onOpenSettings={() => navigation.navigate('Settings')}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loading: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
+    backgroundColor: '#f8fafc',
   },
 });
