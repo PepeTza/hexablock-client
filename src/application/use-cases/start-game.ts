@@ -88,6 +88,11 @@ export class StartGameUseCase implements IUseCase<
       (a, b) => a.order - b.order,
     );
     const position = ordered.findIndex((item) => item.id === level.id);
+    if (position === -1) {
+      // Without its place in the list the unlock check cannot run, so the
+      // level is treated as missing rather than as unlocked (CU-01 A2).
+      throw new RangeError(`Level ${levelId} was not found for ${gameId}`);
+    }
     if (position > 0) {
       const previous = ordered[position - 1];
       if (previous !== undefined) {
