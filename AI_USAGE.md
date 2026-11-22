@@ -626,6 +626,26 @@ One entry per significant use. Copy the template.
     listeners, and the TypeScript 2.6 release notes for function parameter
     variance.
 
+### 2026-11-22 — Refresh the main menu on focus (issue #114)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5 (`claude-opus-5-5`).
+- **Issue / PR:** #114.
+- **Prompt (paraphrase):** plan and build #114 through the harness with
+  approval per commit.
+- **Result:** `HomeScreen` reloads the progress with `useFocusEffect` every
+  time the menu becomes visible, and `MainMenuPresenter` returns the whole
+  menu without progress labels when loading fails, with tests for both and
+  a minimal navigation stack in `HomeScreen.test.tsx`.
+- **Team modifications:** none beyond the decisions taken in the audit (the
+  fallback lives in the presenter, not in the screen).
+- **Lessons / limitations:**
+  - In tests, the stack header's back button is not a pressable button, so
+    the test goes back through a navigation container reference instead; a
+    throwaway probe test checked this before planning.
+  - The first version of the test failed on its own data ("Best: 0" for both
+    Lines and Merge), not on the code.
+  - Checked by reverting to `useEffect`: the "new record" test failed.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
