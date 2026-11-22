@@ -17,7 +17,8 @@ export interface MenuVariantEntry {
 export interface MenuVariantItem {
   readonly gameId: GameId;
   readonly name: string;
-  readonly progressLabel: string;
+  /** The record or completed levels, or `null` when the progress could not be loaded. */
+  readonly progressLabel: string | null;
 }
 
 /** View model consumed by the passive main menu view. */

@@ -83,4 +83,33 @@ describe('MainMenuView', () => {
     // Assert
     expect(onOpenSettings).toHaveBeenCalledTimes(1);
   });
+
+  it('should_hide_the_progress_label_when_it_is_missing', async () => {
+    // Arrange
+    const viewModel: MainMenuViewModel = {
+      title: 'HexaBlock Suite',
+      variants: [
+        { gameId: 'hexa-lines', name: 'Hexa Lines', progressLabel: null },
+        {
+          gameId: 'hexa-merge',
+          name: 'Hexa Merge',
+          progressLabel: 'Best: 512',
+        },
+      ],
+    };
+
+    // Act
+    await render(
+      <MainMenuView
+        viewModel={viewModel}
+        onSelectVariant={() => undefined}
+        onOpenSettings={() => undefined}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
+    expect(screen.queryByText('null')).toBeNull();
+    expect(screen.getAllByText(/Best:|Levels completed:/)).toHaveLength(1);
+  });
 });
