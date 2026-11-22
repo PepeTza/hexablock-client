@@ -21,7 +21,7 @@ All use cases are wrapped by the **logging aspect**, except CU-03.
 | CU-05 | Redo move | Repeats what was undone (Fit); required by the statement | `RedoMoveUseCase` |
 | CU-06 | Pause and resume | Stops and resumes the game and its time | `PauseGameUseCase` |
 | CU-07 | Finish game | Computes the result and saves high score, stars and unlocks | `FinishGameUseCase` |
-| CU-08 | View levels and progress | Lists levels with stars and locks | `LoadLevelsUseCase` |
+| CU-08 | View levels and progress | Lists levels with stars and locks | `LoadLevelsUseCase`; menu summary: `LoadProgressSummaryUseCase` |
 | CU-09 | Change settings | Sound, music and language | `UpdateSettingsUseCase` |
 | CU-10 | Register | Creates an account | `RegisterUserUseCase` |
 | CU-11 | Log in and log out | Obtains or discards the JWT | `LoginUseCase` |
@@ -461,6 +461,9 @@ with the account (RN-41).
 
 - Unlocking is computed by the same progress model used by CU-07
   (**Strategy**), so there are never two versions of that rule.
+- The main menu summary (`LoadProgressSummaryUseCase`, #36) only reads
+  `IProgressRepository` and counts completed levels; unlocking stays in the
+  progress model used by `LoadLevelsUseCase` (T28).
 - Audio and UI react to settings through **Observer**.
 
 ---

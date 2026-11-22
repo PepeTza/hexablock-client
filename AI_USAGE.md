@@ -452,6 +452,45 @@ One entry per significant use. Copy the template.
     `await`; switching them to `Promise.resolve`/`Promise.reject` fixed all
     lint errors.
 
+### 2026-11-21 — Main menu with variants and settings (issue #36)
+
+- **Tool / model:** Antigravity, Claude Opus 5.5 (after starting the session on Gemini 4 Neon).
+- **Issue / PR:** #36 (HU01).
+- **Prompt (paraphrase):** explain #36 in Clean Architecture layer terms before
+  Gate 1, run architecture-focused check questions, obtain approval per commit,
+  and handle push, PR, rebase-and-merge and cleanup after Gate 4.
+- **Result:** Installed React Navigation dependencies (`@react-navigation/native`,
+  `@react-navigation/native-stack`, `react-native-screens`,
+  `react-native-safe-area-context`), added `LoadProgressSummaryUseCase` in
+  `src/application/use-cases/` (CU-08 summary), `MainMenuPresenter`,
+  `MENU_VARIANTS` and `InMemoryProgressRepository` in `src/adapters/`, and
+  `composition-root.ts`, `ServicesContext`, `RootNavigator`, passive
+  `MainMenuView`, `HomeScreen` container, `SettingsScreen` and
+  `VariantPlaceholderScreen` placeholders in `src/frameworks/`, with 13 new
+  unit/navigation tests (174/174 total).
+- **Team modifications:**
+  - Before Gate 1, the owner asked why menu presentation belonged to Track A
+    (answered from `docs/implementation-plan.md` §2).
+  - Raised iOS playability via a web build and asked to document abandoning
+    Skia on web as an option, which was separated into its own docs issue
+    (decision 23).
+  - Challenged the §4 rule that only `composition-root.ts` imports adapters,
+    leading to clarifying it as "instantiates adapters" (while allowing type
+    imports for view models).
+  - Questioned the need for `LoadProgressSummaryUseCase` versus T28's
+    `LoadLevelsUseCase`, accepting the split after comparing responsibilities
+    (summary query across all variants vs per-variant unlock rules).
+  - Asked what the large diff blocks shown before commits were, shifting later
+    commit previews to `--stat` plus key files and full diffs for docs.
+- **Lessons / limitations:**
+  - `@testing-library/react-native` v14 exposes async `render` and `fireEvent`
+    APIs (`await render(...)`, `await fireEvent.press(...)`).
+  - `@react-navigation/native-stack` rendered and navigated inside Jest under
+    `jest-expo` without requiring global Jest config changes or extra mocks.
+  - Prettier flagged minor formatting differences in generated test files on
+    the first verification pass, so running `prettier --write` before
+    verification prevented hook failures.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

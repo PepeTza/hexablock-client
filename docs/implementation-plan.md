@@ -305,8 +305,9 @@ ESLint's built-in `no-restricted-imports` rule, with one override per folder
 | `domain/variants/<variant>/**` | the other variants (only `engine/`) |
 | `admin/**` | anything outside `src/domain` and `src/application` (never `adapters`, `frameworks` or the mobile UI) |
 
-- `frameworks/composition-root.ts` is the only file in `frameworks/` that
-  imports `adapters/`; `frameworks/` itself has no import restriction.
+- `frameworks/composition-root.ts` is the only file that instantiates
+  adapters; other `frameworks/` files may import their types (for example view
+  models), and `frameworks/` itself has no import restriction.
 - `no-restricted-imports` has no "any external package" option: the
   `domain/**` override forbids every bare module specifier with a pattern
   group and re-allows relative paths and the `@domain/*` alias.
@@ -482,7 +483,7 @@ record is `architecture.md` §10) or resolved by a pull request.
 | 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 | Open |
 | 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`. Changes the contract: PR to the backend with approval | 11-25 | Open |
 | 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of 3 stacks, parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Open |
-| 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 | Open |
+| 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 | Taken: minimum stats in the menu — high score (Lines, Merge) and completed levels (Fit, Sort) from `PlayerProgress`, through `LoadProgressSummaryUseCase` (client #36) |
 | 13 | Pact file exchange | Pactflow (external account) / file copied to the backend | **Versioned pact file** in the backend's `test/pact/`, copied from the client's CI; no broker | 11-29 | Open |
 | 14 | First admin user | Seed with environment variables / CLI | **Seed script** reading `ADMIN_USERNAME` and `ADMIN_PASSWORD` (hosting secrets) | 11-29 | Open |
 | 15 | Admin panel hosting | GitHub Pages / Netlify / local only | **GitHub Pages** (static, no extra account); CORS allows that origin | 12-01 | Open |
@@ -530,6 +531,7 @@ resolved by guessing.
 7. The rules do not define the Sort tray size, the Merge starting tiles or the
    orientation of Lines pieces (decisions 7 and 11).
 8. HU01 mentions "statistics" with no use case or business rule (decision 12).
+   **Resolved** by decision 12 (client #36).
 9. The commands section of `AGENTS.md` is still pending; the setup fills it.
    **Resolved** in the client (#5); pending in the backend until T09 (#4).
 10. `api-contracts.md` §4 said `stars` is 1–3 for both level games, while
