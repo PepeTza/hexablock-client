@@ -123,7 +123,7 @@ function createHarness(options: {
 }
 
 describe('FinishGameUseCase', () => {
-  it('should_evaluate_save_progress_and_publish_event_when_guest_finishes', async () => {
+  it('should_publish_game_finished_with_its_data_when_guest_finishes', async () => {
     // Arrange
     const updated: PlayerProgress = {
       gameId: 'hexa-lines',
@@ -165,7 +165,15 @@ describe('FinishGameUseCase', () => {
     expect(harness.saved).toEqual([updated]);
     expect(harness.syncedGames).toEqual([]);
     expect(harness.submittedScores).toEqual([]);
-    expect(harness.publishedEvents).toEqual([{ type: 'GameOver' }]);
+    expect(harness.publishedEvents).toEqual([
+      {
+        type: 'GameFinished',
+        gameId: 'hexa-lines',
+        reason: 'defeat',
+        score: 320,
+        isNewRecord: true,
+      },
+    ]);
   });
 
   it('should_enqueue_sync_and_score_submission_when_player_has_active_session', async () => {
@@ -232,10 +240,44 @@ describe('FinishGameUseCase', () => {
     expect(harness.saved).toEqual([]);
     expect(harness.syncedGames).toEqual([]);
     expect(harness.submittedScores).toEqual([]);
-    expect(harness.publishedEvents).toEqual([{ type: 'GameOver' }]);
   });
 
-  it('should_publish_level_completed_event_when_a_level_is_won', async () => {
+  it('should_publish_game_finished_with_reason_quit_when_player_quits', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: null,
+        isNewRecord: false,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: false,
+      },
+    });
+
+    // Act
+    await harness.useCase.execute({
+      gameId: 'hexa-fit',
+      levelId: 'fit-01',
+      reason: 'quit',
+      score: 0,
+      moveCount: 2,
+      durationMs: 5_000,
+      seed: null,
+    });
+
+    // Assert
+    expect(harness.publishedEvents).toEqual([
+      {
+        type: 'GameFinished',
+        gameId: 'hexa-fit',
+        reason: 'quit',
+        score: 0,
+        isNewRecord: false,
+      },
+    ]);
+  });
+
+  it('should_publish_level_completed_with_stars_when_a_level_is_won', async () => {
     // Arrange
     const harness = createHarness({
       evaluation: {
@@ -268,7 +310,14 @@ describe('FinishGameUseCase', () => {
     // Assert
     expect(result.stars).toBe(3);
     expect(result.unlockedLevelId).toBe('fit-02');
-    expect(harness.publishedEvents).toEqual([{ type: 'LevelCompleted' }]);
+    expect(harness.publishedEvents).toEqual([
+      {
+        type: 'LevelCompleted',
+        gameId: 'hexa-fit',
+        levelId: 'fit-01',
+        stars: 3,
+      },
+    ]);
   });
 
   it('should_still_return_result_with_warning_when_saving_progress_fails', async () => {

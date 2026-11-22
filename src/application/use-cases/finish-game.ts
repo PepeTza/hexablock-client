@@ -1,8 +1,10 @@
 import type { VariantFactoryRegistry } from '@domain/engine/game/variant-factory';
 import { emptyProgress } from '@domain/progress/player-progress';
+import type { ProgressEvent } from '@domain/progress/progress-events';
 import type {
   FinishedGameSummary,
   FinishReason,
+  ProgressEvaluation,
 } from '@domain/progress/progress-model';
 
 import type { IEventBus } from '../ports/event-bus';
@@ -77,11 +79,7 @@ export class FinishGameUseCase implements IUseCase<
       }
     }
 
-    const eventType =
-      summary.levelId !== null && summary.reason === 'victory'
-        ? 'LevelCompleted'
-        : 'GameOver';
-    this.deps.eventBus.publish({ type: eventType });
+    this.deps.eventBus.publish(this.endEvent(summary, evaluation));
 
     return {
       score: summary.score,
@@ -91,6 +89,28 @@ export class FinishGameUseCase implements IUseCase<
       stars: evaluation.stars,
       unlockedLevelId: evaluation.unlockedLevelId,
       saveFailed,
+    };
+  }
+
+  /** `LevelCompleted` when a level is won, `GameFinished` otherwise (CU-07 step 5). */
+  private endEvent(
+    summary: FinishedGameSummary,
+    evaluation: ProgressEvaluation,
+  ): ProgressEvent {
+    if (summary.levelId !== null && summary.reason === 'victory') {
+      return {
+        type: 'LevelCompleted',
+        gameId: summary.gameId,
+        levelId: summary.levelId,
+        stars: evaluation.stars,
+      };
+    }
+    return {
+      type: 'GameFinished',
+      gameId: summary.gameId,
+      reason: summary.reason,
+      score: summary.score,
+      isNewRecord: evaluation.isNewRecord,
     };
   }
 }
