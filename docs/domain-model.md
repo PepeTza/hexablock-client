@@ -57,8 +57,7 @@ variant factory.
 
 **Observer events:** `GameStarted`, `MoveApplied`, `MoveRejected`, `LineCleared`,
 `StackMerged`, `GoalCompleted`, `TileMerged`, `TileSpawned`, `TargetReached`,
-`MoveUndone`, `MoveRedone`, `GamePaused`, `GameResumed`, `GameOver`,
-`LevelCompleted`.
+`MoveUndone`, `MoveRedone`, `GamePaused`, `GameResumed`, `GameOver`.
 
 **Factories:** one per variant, plus the factory registry (CU-01).
 
@@ -81,6 +80,12 @@ on equal score the earliest date wins (RN-43).
 
 **Value objects:** `Username`, `PasswordHash`, `Role`, `ScoreSubmission`
 (variant, level, score, seed, moves, duration and `sessionId`), `StarCount`.
+
+**Events (CU-07):** after evaluating a finished game, `FinishGameUseCase`
+publishes exactly one: `LevelCompleted` (`gameId`, `levelId`, `stars`) when a
+level is won, or `GameFinished` (`gameId`, `reason`, `score`, `isNewRecord`)
+otherwise, also when the player quits. They differ from the engine's
+`GameOver`, which only says that the rules ended the game.
 
 **Backend validation:** score plausibility check (RN-39).
 
