@@ -32,7 +32,7 @@ export function MainMenuView({
             key={variant.gameId}
             accessibilityRole="button"
             accessibilityLabel={variant.name}
-            accessibilityHint={variant.progressLabel}
+            accessibilityHint={variant.progressLabel ?? undefined}
             onPress={() => onSelectVariant(variant.gameId, variant.name)}
             style={({ pressed }) => [
               styles.card,
@@ -40,7 +40,9 @@ export function MainMenuView({
             ]}
           >
             <Text style={styles.variantName}>{variant.name}</Text>
-            <Text style={styles.progressLabel}>{variant.progressLabel}</Text>
+            {variant.progressLabel !== null && (
+              <Text style={styles.progressLabel}>{variant.progressLabel}</Text>
+            )}
           </Pressable>
         ))}
       </View>

@@ -90,6 +90,28 @@ describe('MainMenuPresenter', () => {
     ]);
   });
 
+  it('should_list_every_variant_without_progress_labels_when_loading_progress_fails', async () => {
+    // Arrange
+    const failingLoadSummary: IUseCase<
+      LoadProgressSummaryInput,
+      Promise<readonly ProgressSummary[]>
+    > = { execute: () => Promise.reject(new Error('storage unavailable')) };
+    const presenter = new MainMenuPresenter(failingLoadSummary, MENU_VARIANTS);
+
+    // Act
+    const viewModel = await presenter.load();
+
+    // Assert
+    expect(viewModel.title).toBe('HexaBlock Suite');
+    expect(viewModel.variants).toEqual(
+      MENU_VARIANTS.map((entry) => ({
+        gameId: entry.gameId,
+        name: entry.name,
+        progressLabel: null,
+      })),
+    );
+  });
+
   it('should_list_new_variant_when_its_entry_is_added_to_configuration', async () => {
     // Arrange
     const entries: readonly MenuVariantEntry[] = [
