@@ -26,7 +26,7 @@ function createFakeSession(seed: number | null): IGameSession {
     status: 'playing',
     outcome: null,
     subscribe: () => () => undefined,
-    applyMove: () => undefined,
+    applyMove: () => ({ kind: 'rejected', reason: 'stub' }),
     pause: () => undefined,
     resume: () => undefined,
     resolutionDone: () => undefined,

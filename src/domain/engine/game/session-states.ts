@@ -4,14 +4,28 @@ import type { GameOutcome } from '../events/domain-event';
 export type GameStatus = 'playing' | 'resolving' | 'paused' | 'finished';
 
 /**
+ * What happened with a move, as the UI needs it (CU-02): rejected with its
+ * reason (the piece goes back, CU-02 A1), or applied with its points and,
+ * when the move ended the game, the pending outcome. The game reaches
+ * `finished` with that outcome once the UI calls `resolutionDone`.
+ */
+export type MoveResult =
+  | { readonly kind: 'rejected'; readonly reason: string }
+  | {
+      readonly kind: 'applied';
+      readonly points: number;
+      readonly pendingOutcome: GameOutcome | null;
+    };
+
+/**
  * What a session state may ask the engine to do. The engine gives the states
  * this small view of itself instead of its whole public interface.
  */
 export interface SessionContext<TMove> {
-  /** Plays the move on a copy and keeps it if applied; returns how the game ended, if it did. */
-  play(move: TMove): { applied: boolean; outcome: GameOutcome | null };
-  /** Emits `MoveRejected` without touching the game. */
-  reject(move: TMove, reason: string): void;
+  /** Plays the move on a copy and keeps it if applied. */
+  play(move: TMove): MoveResult;
+  /** Emits `MoveRejected` without touching the game and returns the rejection. */
+  reject(move: TMove, reason: string): MoveResult;
   /** Replaces the current session state. */
   moveTo(state: SessionState<TMove>): void;
   emitPaused(): void;
@@ -32,7 +46,8 @@ export interface SessionContext<TMove> {
 export abstract class SessionState<TMove> {
   abstract readonly status: GameStatus;
 
-  abstract applyMove(context: SessionContext<TMove>, move: TMove): void;
+  /** Plays or rejects `move`, and says which (CU-02). */
+  abstract applyMove(context: SessionContext<TMove>, move: TMove): MoveResult;
 
   /** Ignored unless a state says otherwise. */
   pause(context: SessionContext<TMove>): void {
@@ -54,11 +69,12 @@ export abstract class SessionState<TMove> {
 export class PlayingState<TMove> extends SessionState<TMove> {
   readonly status = 'playing';
 
-  applyMove(context: SessionContext<TMove>, move: TMove): void {
-    const { applied, outcome } = context.play(move);
-    if (applied) {
-      context.moveTo(new ResolvingState(outcome));
+  applyMove(context: SessionContext<TMove>, move: TMove): MoveResult {
+    const result = context.play(move);
+    if (result.kind === 'applied') {
+      context.moveTo(new ResolvingState(result.pendingOutcome));
     }
+    return result;
   }
 
   pause(context: SessionContext<TMove>): void {
@@ -79,8 +95,8 @@ export class ResolvingState<TMove> extends SessionState<TMove> {
     super();
   }
 
-  applyMove(context: SessionContext<TMove>, move: TMove): void {
-    context.reject(move, 'a move is still being resolved');
+  applyMove(context: SessionContext<TMove>, move: TMove): MoveResult {
+    return context.reject(move, 'a move is still being resolved');
   }
 
   /** Pausing mid-animation drops the lock: on resume the animation is gone. */
@@ -102,8 +118,8 @@ export class PausedState<TMove> extends SessionState<TMove> {
     super();
   }
 
-  applyMove(context: SessionContext<TMove>, move: TMove): void {
-    context.reject(move, 'the game is paused');
+  applyMove(context: SessionContext<TMove>, move: TMove): MoveResult {
+    return context.reject(move, 'the game is paused');
   }
 
   resume(context: SessionContext<TMove>): void {
@@ -120,8 +136,8 @@ export class FinishedState<TMove> extends SessionState<TMove> {
     super();
   }
 
-  applyMove(context: SessionContext<TMove>, move: TMove): void {
-    context.reject(move, 'the game is over');
+  applyMove(context: SessionContext<TMove>, move: TMove): MoveResult {
+    return context.reject(move, 'the game is over');
   }
 }
 

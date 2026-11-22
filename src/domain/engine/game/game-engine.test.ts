@@ -284,6 +284,84 @@ describe('GameEngine', () => {
     });
   });
 
+  describe('move results', () => {
+    it('should_return_applied_with_points_when_move_succeeds', () => {
+      // Arrange
+      const { engine } = numberGame();
+
+      // Act
+      const result = engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+
+      // Assert
+      expect(result).toEqual({
+        kind: 'applied',
+        points: 4,
+        pendingOutcome: null,
+      });
+    });
+
+    it('should_return_the_pending_outcome_when_the_move_ends_the_game', () => {
+      // Arrange
+      const { engine } = numberGame({ radius: 0 });
+
+      // Act
+      const result = engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+
+      // Assert
+      expect(result).toMatchObject({
+        kind: 'applied',
+        pendingOutcome: 'victory',
+      });
+      expect(engine.status).toBe('resolving');
+    });
+
+    it('should_return_rejected_with_the_reason_when_rules_reject', () => {
+      // Arrange
+      const { engine } = numberGame();
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      engine.resolutionDone();
+
+      // Act
+      const result = engine.applyMove({ cell: HexCoord.ORIGIN, value: 3 });
+
+      // Assert
+      expect(result).toEqual({ kind: 'rejected', reason: 'cell is taken' });
+    });
+
+    type Engine = ReturnType<typeof numberGame>['engine'];
+    it.each([
+      {
+        status: 'resolving',
+        reason: 'a move is still being resolved',
+        reach: (engine: Engine) =>
+          engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 }),
+      },
+      {
+        status: 'paused',
+        reason: 'the game is paused',
+        reach: (engine: Engine) => engine.pause(),
+      },
+      {
+        status: 'finished',
+        reason: 'the game is over',
+        reach: (engine: Engine) => {
+          engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+          engine.resolutionDone();
+        },
+      },
+    ])('should_return_rejected_when_$status', ({ reason, reach }) => {
+      // Arrange
+      const { engine } = numberGame({ radius: 0 });
+      reach(engine);
+
+      // Act
+      const result = engine.applyMove({ cell: HexCoord.ORIGIN, value: 2 });
+
+      // Assert
+      expect(result).toEqual({ kind: 'rejected', reason });
+    });
+  });
+
   describe('notifying listeners', () => {
     const throwing = (event: DomainEvent) => {
       throw new Error(`bug on ${event.type}`);

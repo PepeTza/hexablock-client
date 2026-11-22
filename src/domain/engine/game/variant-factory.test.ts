@@ -21,7 +21,7 @@ function fakeFactory(gameId: string): IVariantFactory {
     status: 'playing',
     outcome: null,
     subscribe: () => () => undefined,
-    applyMove: () => undefined,
+    applyMove: () => ({ kind: 'rejected', reason: 'stub' }),
     pause: () => undefined,
     resume: () => undefined,
     resolutionDone: () => undefined,
@@ -62,5 +62,27 @@ describe('VariantFactoryRegistry', () => {
     ).toThrow(RangeError);
     expect(registry.has('hexa-quest')).toBe(false);
     expect(() => registry.get('hexa-quest')).toThrow(RangeError);
+  });
+});
+
+describe('IGameSession', () => {
+  type SlideMove = { readonly direction: string };
+  const playSlide = (session: IGameSession<SlideMove>) =>
+    session.applyMove({ direction: 'EAST' });
+
+  it('should_not_compile_when_an_erased_session_is_used_as_a_typed_one', () => {
+    // Arrange
+    const erased: IGameSession = fakeFactory('hexa-lines').createEngine({
+      seed: null,
+    });
+
+    // Act
+    // @ts-expect-error an erased session cannot silently take another variant's moves
+    const silently = () => playSlide(erased);
+    const explicitly = () => playSlide(erased as IGameSession<SlideMove>);
+
+    // Assert — compile-time check enforced by `npm run typecheck`
+    expect(silently()).toEqual({ kind: 'rejected', reason: 'stub' });
+    expect(explicitly()).toEqual({ kind: 'rejected', reason: 'stub' });
   });
 });

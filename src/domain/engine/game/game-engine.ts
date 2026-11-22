@@ -13,6 +13,7 @@ import {
   FinishedState,
   PlayingState,
   type GameStatus,
+  type MoveResult,
   type SessionContext,
   type SessionState,
 } from './session-states';
@@ -85,9 +86,7 @@ export class GameEngine<
     config.listeners?.forEach((listener) => this.listeners.add(listener));
     this.context = {
       play: (move) => this.play(move),
-      reject: (move, reason) => {
-        this.emitEngine({ type: 'MoveRejected', move, reason });
-      },
+      reject: (move, reason) => this.reject(move, reason),
       moveTo: (state) => {
         this.session = state;
       },
@@ -143,11 +142,13 @@ export class GameEngine<
     return () => this.listeners.delete(listener);
   }
 
-  /** Plays a move (CU-02). What happens depends on the session state (D-22). */
-  applyMove(move: TMove): void {
-    this.act(() => {
-      this.session.applyMove(this.context, move);
-    });
+  /**
+   * Plays a move (CU-02) and says what happened: rejected with its reason, or
+   * applied with its points and the pending outcome if it ended the game.
+   * What happens depends on the session state (D-22).
+   */
+  applyMove(move: TMove): MoveResult {
+    return this.act(() => this.session.applyMove(this.context, move));
   }
 
   /**
@@ -184,21 +185,27 @@ export class GameEngine<
    * Plays on a copy and keeps it only if the move is applied. If the rules
    * throw, nothing was kept and the error goes on to the caller (CU-02 A5).
    */
-  private play(move: TMove): {
-    applied: boolean;
-    outcome: GameOutcome | null;
-  } {
+  private play(move: TMove): MoveResult {
     const draft = this.currentBoard.clone();
     const result = this.rules.play(draft, this.currentState, move);
     if (result.kind === 'rejected') {
-      this.emitEngine({ type: 'MoveRejected', move, reason: result.reason });
-      return { applied: false, outcome: null };
+      return this.reject(move, result.reason);
     }
     this.currentBoard = draft;
     this.currentState = result.state;
     this.emitEngine({ type: 'MoveApplied', move, points: result.points });
     result.events.forEach((event) => this.emit(event));
-    return { applied: true, outcome: result.outcome };
+    return {
+      kind: 'applied',
+      points: result.points,
+      pendingOutcome: result.outcome,
+    };
+  }
+
+  /** Emits `MoveRejected`; the game stays exactly as it was. */
+  private reject(move: TMove, reason: string): MoveResult {
+    this.emitEngine({ type: 'MoveRejected', move, reason });
+    return { kind: 'rejected', reason };
   }
 
   /** Runs one action of the session, then delivers the events it queued. */
