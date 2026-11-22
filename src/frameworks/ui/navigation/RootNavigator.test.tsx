@@ -36,4 +36,39 @@ describe('RootNavigator', () => {
     // Assert
     expect(await screen.findByText('Hexa Lines is coming soon.')).toBeTruthy();
   });
+
+  it('should_navigate_from_game_result_to_home_when_main_menu_pressed', async () => {
+    // Arrange
+    await render(
+      <ServicesProvider services={createAppServices()}>
+        <RootNavigator
+          initialRouteName="GameResult"
+          initialResultParams={{
+            gameId: 'hexa-lines',
+            variantName: 'Hexa Lines',
+            levelId: null,
+            result: {
+              score: 640,
+              seed: 101,
+              reason: 'defeat',
+              isNewRecord: false,
+              stars: null,
+              unlockedLevelId: null,
+              saveFailed: false,
+            },
+          }}
+        />
+      </ServicesProvider>,
+    );
+    expect(await screen.findByText('Score: 640')).toBeTruthy();
+    expect(screen.getByText('Seed: 101')).toBeTruthy();
+
+    // Act
+    await fireEvent.press(screen.getByRole('button', { name: 'Main menu' }));
+
+    // Assert
+    expect(
+      await screen.findByRole('header', { name: 'HexaBlock Suite' }),
+    ).toBeTruthy();
+  });
 });

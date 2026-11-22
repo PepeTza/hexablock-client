@@ -1,4 +1,5 @@
 import { InMemoryProgressRepository } from '@adapters/persistence/in-memory-progress-repository';
+import { GameResultPresenter } from '@adapters/presentation/game-result/game-result-presenter';
 import { MainMenuPresenter } from '@adapters/presentation/main-menu/main-menu-presenter';
 import { MENU_VARIANTS } from '@adapters/presentation/main-menu/menu-variants';
 import { LoadProgressSummaryUseCase } from '@application/use-cases/load-progress-summary';
@@ -6,6 +7,7 @@ import { LoadProgressSummaryUseCase } from '@application/use-cases/load-progress
 /** Services exposed to UI screens through `ServicesProvider`. */
 export interface AppServices {
   readonly mainMenu: MainMenuPresenter;
+  readonly gameResult: GameResultPresenter;
 }
 
 /**
@@ -16,5 +18,6 @@ export function createAppServices(): AppServices {
   const progress = new InMemoryProgressRepository();
   const loadSummary = new LoadProgressSummaryUseCase({ progress });
   const mainMenu = new MainMenuPresenter(loadSummary, MENU_VARIANTS);
-  return { mainMenu };
+  const gameResult = new GameResultPresenter();
+  return { mainMenu, gameResult };
 }
