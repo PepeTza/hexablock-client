@@ -544,6 +544,47 @@ One entry per significant use. Copy the template.
     coord.key()` with `@ts-expect-error` satisfied both ESLint and
     `tsc --noEmit`.
 
+### 2026-11-22 — Keep piece sources inside move atomicity (issue #111)
+
+- **Tool / model:** Claude Code, Claude Opus 5.5 (`claude-opus-5-5`).
+- **Issue / PR:** #111.
+- **Prompt (paraphrase):** audit the Track A work of I0 and I1 and check that
+  it makes sense; then go through the findings from the most important one,
+  explaining the options with their pros, cons and the principles each one
+  keeps or breaks, before any decision; then plan and build #111 through the
+  harness with approval per commit.
+- **Result:** the audit found that the engine copies the board but not the
+  piece source, so a preview or a failed move would advance the real
+  generator (RN-05). The AI drafted the issue and, after the decision,
+  built `IPrototype<T>`, `Snapshot<T>` (Memento) and `SourcedGameRules`
+  with 12 tests, plus the docs (architecture, extensibility guide,
+  `add-variant` skill).
+- **Team modifications:**
+  - The owner rejected the first recommendation (the engine owns an optional
+    source with a Null Object) because games that need no source should not
+    have to carry one, and proposed using the Template Method to standardise
+    the clone.
+  - The owner added the requirement that any present or future variant must
+    be able to get unlimited undo and redo, which changed the recommendation
+    to a snapshot that cannot be advanced; the owner then asked how to close
+    the remaining hole (a variant forgetting to store the new snapshot),
+    which led to combining the snapshot with the Template Method.
+  - In gate 1 the owner approved generalising the source type to `TSource`
+    (any clonable source, so Merge can keep an `IRandomSource`) instead of
+    `IPieceSource<TPiece>` as the issue text said.
+- **Lessons / limitations:**
+  - The AI first overstated the undo benefit; once the owner asked which
+    variants have undo, the AI corrected the argument (only Merge has both a
+    source and undo, with one level) and the decision rested on keeping T20
+    generic instead.
+  - The other audit findings stay as provisional recommendations, to be
+    reviewed one by one before any issue or code.
+  - `@typescript-eslint/no-unsafe-call` rejects calling a method that does
+    not exist even under `@ts-expect-error`; the type test reads the missing
+    properties into `unknown` instead.
+  - The tests were checked by removing the line that stores the new snapshot:
+    exactly the two tests that protect that hole failed.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
