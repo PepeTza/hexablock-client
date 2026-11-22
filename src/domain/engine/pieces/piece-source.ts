@@ -1,14 +1,17 @@
+import type { IPrototype } from '../state/prototype';
+
 /**
  * Strategy: where a variant gets the pieces, stacks or tiles it offers to the
  * player (RF-04). Replacing a `FixedPieceSource` (Hexa Fit levels, tests) with
  * a `RandomPieceSource` (seeded random pools) or a variant-specific source
  * changes neither the rules contract nor `GameEngine`.
  *
- * Prototype: `clone()` returns an independent copy at the same point in the
- * sequence, so move previews (CU-03) and undo (RN-31) can fork or restore the
- * source without mutating the active game.
+ * Prototype (`IPrototype`): `clone()` returns an independent copy at the same
+ * point in the sequence, so a `Snapshot` can keep the source inside the game
+ * state and move previews (CU-03) and undo (RN-31) never advance the source
+ * of the active game.
  */
-export interface IPieceSource<TPiece> {
+export interface IPieceSource<TPiece> extends IPrototype<IPieceSource<TPiece>> {
   /** The next piece, or `null` when a finite source has no pieces left. */
   next(): TPiece | null;
 

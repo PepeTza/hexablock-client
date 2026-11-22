@@ -1,3 +1,5 @@
+import type { IPrototype } from '../state/prototype';
+
 /** An item paired with its positive relative weight for weighted draws. */
 export interface WeightedEntry<T> {
   readonly item: T;
@@ -9,11 +11,12 @@ export interface WeightedEntry<T> {
  * variants never call `Math.random()` directly: every random decision goes
  * through this interface so runs and tests are reproducible from a seed.
  *
- * Prototype: `clone()` returns an independent copy at the exact same point in
- * the sequence, so undo (Hexa Merge, RN-31) and move previews (CU-03) can
- * restore or fork the generator without exposing its internal state.
+ * Prototype (`IPrototype`): `clone()` returns an independent copy at the
+ * exact same point in the sequence, so a `Snapshot` can keep the generator
+ * inside the game state and undo (Hexa Merge, RN-31) and move previews
+ * (CU-03) can restore or fork it without exposing its internal state.
  */
-export interface IRandomSource {
+export interface IRandomSource extends IPrototype<IRandomSource> {
   /** A pseudo-random number in the half-open interval `[0, 1)`. */
   next(): number;
 
