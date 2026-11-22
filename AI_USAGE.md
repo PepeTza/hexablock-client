@@ -677,6 +677,30 @@ One entry per significant use. Copy the template.
   - The first docs commit header was 73 characters and commitlint rejected
     it; it was shortened.
 
+### 2026-11-22 — Log only allow-listed use case data (issue #116)
+
+- **Tool / model:** Antigravity, Claude Opus 5.5.
+- **Issue / PR:** #116 (follow-up of HU11 #30).
+- **Prompt (paraphrase):** review open issues, verify whether Swarm fits #116,
+  explain the logging risk on error messages, and implement the allowlist for
+  `LoggingUseCaseDecorator` through the harness.
+- **Result:** added `UseCaseLogDescription<TInput, TOutput>` and an optional
+  `describe` parameter to `LoggingUseCaseDecorator` (defaulting to name,
+  `durationMs` and error message only), updated and added unit tests
+  including the password leak check, and documented the allowlist in
+  `docs/architecture.md` §6.
+- **Team modifications:**
+  - Before approving gate 1, the owner asked for the trade-off on logging
+    error messages without `describe` and chose option A (keep the message,
+    and add the rule in `docs/architecture.md` §6 that error messages never
+    contain user data).
+  - Approved rewriting the two existing tests that expected raw `input` and
+    `output` logging.
+- **Lessons / limitations:**
+  - A generic AOP decorator sees every use case's payload; without an
+    explicit allowlist (`describe`), future use cases such as login would
+    silently leak secrets or whole engine objects.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
