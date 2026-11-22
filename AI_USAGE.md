@@ -417,6 +417,41 @@ One entry per significant use. Copy the template.
     in place), moving `HexGeometry` in #53 silently broke `admin/src/App.tsx`
     until `admin/` checks were run locally.
 
+### 2026-11-21 — Generic game use cases and logging aspect (issue #30)
+
+- **Tool / model:** Antigravity, Gemini 4 Neon.
+- **Issue / PR:** #30 (HU11).
+- **Prompt (paraphrase):** explain #30 in Clean Architecture layer terms,
+  discuss Builder vs engine patterns and run a 5-question conceptual check
+  before planning and building #30 through the harness.
+- **Result:** Domain contracts (`IVariantFactory`, `VariantFactoryRegistry`,
+  `IGameSession`, `PlayerProgress` + `mergeProgress`, `IProgressModel`,
+  `SeedConfig`), layer-2 ports (`ILogger`, `IClock`, `IProgressRepository`,
+  `ISeedConfigRepository`, `ISeedGenerator`, `ILevelRepository`,
+  `ISessionProvider`, `ISyncQueue`, `IEventBus`), `StartGameUseCase` (CU-01),
+  `ApplyMoveUseCase` (CU-02), `FinishGameUseCase` (CU-07), and
+  `LoggingUseCaseDecorator` (AOP via Decorator, RNF-04) with 20 tests using
+  fake ports (100 % line coverage in `src/application`).
+- **Team modifications:**
+  - Before approving the plan, the owner questioned why domain contracts were
+    part of a use-case task (clarifying the inward dependency rule: layer 1
+    variants must implement `IVariantFactory` and `IProgressModel` without
+    importing layer 2) and completed a 5-question defence check covering DIP,
+    OCP/Abstract Factory, Template Method/Strategy, AOP/Decorator and generic
+    constraints.
+  - Before approving Commit 1, the owner asked for a file-by-file plain
+    explanation of the new domain contracts.
+- **Lessons / limitations:**
+  - `GameEngine<TCell, TCoord, TMove, TState>` is invariant in `TCell`/`TCoord`
+    and contravariant in `TMove`, so a heterogeneous `VariantFactoryRegistry`
+    cannot store `GameEngine<unknown, ...>` without `any`; introducing the
+    structural `IGameSession<TMove = never, TState extends GameState = GameState>`
+    view solved it cleanly in strict TypeScript with zero `any` and zero edits
+    to `GameEngine`.
+  - `@typescript-eslint/require-await` caught `async` test fakes without
+    `await`; switching them to `Promise.resolve`/`Promise.reject` fixed all
+    lint errors.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

@@ -60,8 +60,9 @@ or in the domain model is listed here; a new port is added here first.
 | `ISyncQueue` | client | CU-07 | CU-07, CU-12, CU-13 |
 | `IEventBus` | client | CU-07 | CU-02, CU-06, CU-07, CU-09 (Observer) |
 | `ILogger` | client, backend | `implementation-plan.md` §4 | Logging aspect (RNF-04) |
+| `ISeedGenerator` | client | CU-01, RN-05 | `StartGameUseCase` (injectable random seeds) |
 | `IUserRepository` | backend | `domain-model.md` | CU-10, CU-11 |
-| `IPasswordHasher`, `ITokenService`, `IClock` | backend | `implementation-plan.md` §4 | CU-10, CU-11, CU-13 |
+| `IPasswordHasher`, `ITokenService`, `IClock` | client (`IClock`), backend | `implementation-plan.md` §4 | CU-10, CU-11, CU-13, logging duration (RNF-04) |
 
 ## 3. Generic engine
 
@@ -123,7 +124,13 @@ or in the domain model is listed here; a new port is added here first.
   (uniform or weighted draws backed by `IRandomSource`); variants with custom
   generation (Hexa Lines rotated spawns, Hexa Sort stacks) implement the same
   interface.
-- **`IProgressModel`**: interchangeable progress model per variant.
+- **`IVariantFactory` and `VariantFactoryRegistry`** (`engine/game/`): Abstract
+  Factory contract producing a variant's `IGameSession` (`GameEngine`) and
+  `IProgressModel`, registered by open `GameId` (`string`) so adding a fifth
+  variant touches neither the engine nor the use cases (OCP, RNF-01).
+- **`IProgressModel` and `PlayerProgress`** (`domain/progress/`): Strategy
+  evaluating finished games (high score, level stars, unlocks) plus
+  `mergeProgress` keeping the best of each (RN-36).
 - **Type constraints** (to be justified in the README): e.g.
   `TCell extends IMergeable<TCell>` for Merge; `TMove extends ICommandable` to
   support undo.
