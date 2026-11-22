@@ -1,0 +1,307 @@
+import type { DomainEvent } from '@domain/engine/events/domain-event';
+import {
+  type IGameSession,
+  type IVariantFactory,
+  VariantFactoryRegistry,
+} from '@domain/engine/game/variant-factory';
+import type { GameId, PlayerProgress } from '@domain/progress/player-progress';
+import type {
+  FinishedGameSummary,
+  IProgressModel,
+  ProgressEvaluation,
+} from '@domain/progress/progress-model';
+
+import type { IEventBus } from '../ports/event-bus';
+import type { ILogger, LogContext } from '../ports/logger';
+import type { IProgressRepository } from '../ports/progress-repository';
+import type { ISessionProvider } from '../ports/session-provider';
+import type { ISyncQueue } from '../ports/sync-queue';
+import { FinishGameUseCase } from './finish-game';
+
+function createFactoryWithProgressModel(
+  gameId: GameId,
+  progressModel: IProgressModel,
+): IVariantFactory {
+  const session: IGameSession = {
+    seed: null,
+    state: { score: 0, moveCount: 0 },
+    status: 'finished',
+    outcome: 'victory',
+    subscribe: () => () => undefined,
+    applyMove: () => undefined,
+    pause: () => undefined,
+    resume: () => undefined,
+    resolutionDone: () => undefined,
+  };
+  return {
+    gameId,
+    usesSeed: true,
+    usesLevels: false,
+    createEngine: () => session,
+    createProgressModel: () => progressModel,
+  };
+}
+
+function createHarness(options: {
+  evaluation: ProgressEvaluation;
+  activeSession?: boolean;
+  failSave?: boolean;
+}) {
+  const saved: PlayerProgress[] = [];
+  const syncedGames: GameId[] = [];
+  const submittedScores: FinishedGameSummary[] = [];
+  const publishedEvents: DomainEvent[] = [];
+  const warnings: { message: string; context?: LogContext }[] = [];
+
+  const factories = new VariantFactoryRegistry();
+  factories.register(
+    'hexa-lines',
+    createFactoryWithProgressModel('hexa-lines', {
+      evaluate: () => options.evaluation,
+    }),
+  );
+  factories.register(
+    'hexa-fit',
+    createFactoryWithProgressModel('hexa-fit', {
+      evaluate: () => options.evaluation,
+    }),
+  );
+
+  const progress: IProgressRepository = {
+    findByGame: () => Promise.resolve(null),
+    save: (entry) => {
+      if (options.failSave) {
+        return Promise.reject(new Error('disk full'));
+      }
+      saved.push(entry);
+      return Promise.resolve();
+    },
+  };
+  const sessions: ISessionProvider = {
+    hasActiveSession: () => Promise.resolve(options.activeSession ?? false),
+  };
+  const syncQueue: ISyncQueue = {
+    enqueueProgressSync: (gameId) => {
+      syncedGames.push(gameId);
+      return Promise.resolve();
+    },
+    enqueueScoreSubmission: (summary) => {
+      submittedScores.push(summary);
+      return Promise.resolve();
+    },
+  };
+  const eventBus: IEventBus = {
+    publish: (event) => {
+      publishedEvents.push(event);
+    },
+  };
+  const logger: ILogger = {
+    info: () => undefined,
+    warn: (message, context) => {
+      warnings.push({ message, context });
+    },
+    error: () => undefined,
+  };
+
+  const useCase = new FinishGameUseCase({
+    factories,
+    progress,
+    sessions,
+    syncQueue,
+    eventBus,
+    logger,
+  });
+
+  return {
+    useCase,
+    saved,
+    syncedGames,
+    submittedScores,
+    publishedEvents,
+    warnings,
+  };
+}
+
+describe('FinishGameUseCase', () => {
+  it('should_evaluate_save_progress_and_publish_event_when_guest_finishes', async () => {
+    // Arrange
+    const updated: PlayerProgress = {
+      gameId: 'hexa-lines',
+      highScore: 320,
+      levels: {},
+    };
+    const harness = createHarness({
+      evaluation: {
+        progress: updated,
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      activeSession: false,
+    });
+
+    // Act
+    const result = await harness.useCase.execute({
+      gameId: 'hexa-lines',
+      levelId: null,
+      reason: 'defeat',
+      score: 320,
+      moveCount: 15,
+      durationMs: 45_000,
+      seed: 42,
+    });
+
+    // Assert
+    expect(result).toEqual({
+      score: 320,
+      seed: 42,
+      reason: 'defeat',
+      isNewRecord: true,
+      stars: null,
+      unlockedLevelId: null,
+      saveFailed: false,
+    });
+    expect(harness.saved).toEqual([updated]);
+    expect(harness.syncedGames).toEqual([]);
+    expect(harness.submittedScores).toEqual([]);
+    expect(harness.publishedEvents).toEqual([{ type: 'GameOver' }]);
+  });
+
+  it('should_enqueue_sync_and_score_submission_when_player_has_active_session', async () => {
+    // Arrange
+    const updated: PlayerProgress = {
+      gameId: 'hexa-lines',
+      highScore: 500,
+      levels: {},
+    };
+    const harness = createHarness({
+      evaluation: {
+        progress: updated,
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      activeSession: true,
+    });
+    const summary: FinishedGameSummary = {
+      gameId: 'hexa-lines',
+      levelId: null,
+      reason: 'defeat',
+      score: 500,
+      moveCount: 22,
+      durationMs: 60_000,
+      seed: 7,
+    };
+
+    // Act
+    await harness.useCase.execute(summary);
+
+    // Assert
+    expect(harness.syncedGames).toEqual(['hexa-lines']);
+    expect(harness.submittedScores).toEqual([summary]);
+  });
+
+  it('should_skip_saving_and_score_submission_when_progress_model_reports_no_change', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: null,
+        isNewRecord: false,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: false,
+      },
+      activeSession: true,
+    });
+
+    // Act
+    const result = await harness.useCase.execute({
+      gameId: 'hexa-fit',
+      levelId: 'fit-01',
+      reason: 'quit',
+      score: 0,
+      moveCount: 2,
+      durationMs: 5_000,
+      seed: null,
+    });
+
+    // Assert
+    expect(result.saveFailed).toBe(false);
+    expect(harness.saved).toEqual([]);
+    expect(harness.syncedGames).toEqual([]);
+    expect(harness.submittedScores).toEqual([]);
+    expect(harness.publishedEvents).toEqual([{ type: 'GameOver' }]);
+  });
+
+  it('should_publish_level_completed_event_when_a_level_is_won', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: {
+          gameId: 'hexa-fit',
+          highScore: 0,
+          levels: {
+            'fit-01': { completed: true, bestScore: 250, stars: 3 },
+          },
+        },
+        isNewRecord: true,
+        stars: 3,
+        unlockedLevelId: 'fit-02',
+        shouldSubmitScore: true,
+      },
+      activeSession: false,
+    });
+
+    // Act
+    const result = await harness.useCase.execute({
+      gameId: 'hexa-fit',
+      levelId: 'fit-01',
+      reason: 'victory',
+      score: 250,
+      moveCount: 5,
+      durationMs: 12_000,
+      seed: null,
+    });
+
+    // Assert
+    expect(result.stars).toBe(3);
+    expect(result.unlockedLevelId).toBe('fit-02');
+    expect(harness.publishedEvents).toEqual([{ type: 'LevelCompleted' }]);
+  });
+
+  it('should_still_return_result_with_warning_when_saving_progress_fails', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: { gameId: 'hexa-lines', highScore: 100, levels: {} },
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      failSave: true,
+    });
+
+    // Act
+    const result = await harness.useCase.execute({
+      gameId: 'hexa-lines',
+      levelId: null,
+      reason: 'defeat',
+      score: 100,
+      moveCount: 8,
+      durationMs: 20_000,
+      seed: 12,
+    });
+
+    // Assert
+    expect(result.saveFailed).toBe(true);
+    expect(result.score).toBe(100);
+    expect(harness.warnings).toHaveLength(1);
+    expect(harness.warnings[0]?.context).toMatchObject({
+      gameId: 'hexa-lines',
+      error: 'disk full',
+    });
+  });
+});
