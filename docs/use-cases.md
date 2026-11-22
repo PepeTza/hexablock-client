@@ -373,8 +373,10 @@ once, at the real end (defeat or quit), with the final score.
 4. If the player has a session, it queues the score submission (CU-13) and
    the sync (CU-12); without network, they stay queued until there is a
    connection (RF-27).
-5. It emits the end event ("game finished" or "level completed"), to which
-   audio and UI react.
+5. It emits the end event, to which audio and UI react: `LevelCompleted`
+   (variant, level and stars) when a level is won, or `GameFinished`
+   (variant, reason, score and whether it is a record) otherwise, also on
+   quit.
 6. It returns the data for the result screen: score, whether it is a record,
    stars, seed (RF-16) and options (next level, new game, retry).
 
@@ -403,6 +405,10 @@ applicable, and the UI has what it needs for the victory or defeat screen.
   `ISessionProvider`, `IEventBus`), so it can be tested without database or
   network (DIP).
 - It does not wait for the network: it only queues tasks for CU-12 and CU-13.
+- Saving, the session check and each queued task are best-effort: if one
+  fails, a warning is logged and the result is still returned. Progress sync
+  is queued only when the local save succeeded, so old progress is never
+  sent.
 
 ---
 
