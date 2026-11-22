@@ -18,7 +18,7 @@ export class BoardShape<TCoord extends ICoord> {
 
   private constructor(coords: readonly TCoord[]) {
     this.coords = coords;
-    this.keys = new Set(coords.map(String));
+    this.keys = new Set(coords.map((coord) => coord.key()));
   }
 
   /**
@@ -47,7 +47,7 @@ export class BoardShape<TCoord extends ICoord> {
   ): BoardShape<TCoord> {
     const unique = new Map<string, TCoord>();
     for (const coord of coords) {
-      unique.set(String(coord), coord);
+      unique.set(coord.key(), coord);
     }
     if (unique.size === 0) {
       throw new RangeError('A board shape needs at least one cell');
@@ -60,6 +60,6 @@ export class BoardShape<TCoord extends ICoord> {
   }
 
   contains(coord: TCoord): boolean {
-    return this.keys.has(String(coord));
+    return this.keys.has(coord.key());
   }
 }

@@ -13,16 +13,7 @@ class TestCubeCoord implements ICoord {
     readonly z: number,
   ) {}
 
-  equals(other: ICoord): boolean {
-    return (
-      other instanceof TestCubeCoord &&
-      this.x === other.x &&
-      this.y === other.y &&
-      this.z === other.z
-    );
-  }
-
-  toString(): string {
+  key(): string {
     return `${this.x},${this.y},${this.z}`;
   }
 }

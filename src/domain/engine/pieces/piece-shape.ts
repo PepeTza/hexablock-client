@@ -42,13 +42,13 @@ export class PieceShape<TCoord extends ICoord> {
     if (list.length === 0) {
       throw new RangeError(`Piece shape ${id} needs at least one cell`);
     }
-    const keys = new Set(list.map(String));
+    const keys = new Set(list.map((cell) => cell.key()));
     if (keys.size !== list.length) {
       throw new RangeError(`Piece shape ${id} repeats a cell`);
     }
-    if (!keys.has(String(geometry.origin))) {
+    if (!keys.has(geometry.origin.key())) {
       throw new RangeError(
-        `Piece shape ${id} must include the origin ${String(geometry.origin)}, its centre of rotation`,
+        `Piece shape ${id} must include the origin ${geometry.origin.key()}, its centre of rotation`,
       );
     }
     if (!isConnected(list, keys, geometry)) {
@@ -73,7 +73,7 @@ export class PieceShape<TCoord extends ICoord> {
     if (other.size !== this.size) {
       return false;
     }
-    const otherKeys = new Set(other.cells.map(String));
+    const otherKeys = new Set(other.cells.map((cell) => cell.key()));
     const target = other.cells[0];
     if (target === undefined) {
       return false;
@@ -88,7 +88,7 @@ export class PieceShape<TCoord extends ICoord> {
         const moved = turned.map((cell) =>
           this.geometry.translate(cell, start, target),
         );
-        if (moved.every((cell) => otherKeys.has(String(cell)))) {
+        if (moved.every((cell) => otherKeys.has(cell.key()))) {
           return true;
         }
       }
@@ -107,11 +107,11 @@ function isConnected<TCoord extends ICoord>(
   if (first === undefined) {
     return false;
   }
-  const reached = new Set([String(first)]);
+  const reached = new Set([first.key()]);
   const pending = [first];
   for (let cell = pending.pop(); cell !== undefined; cell = pending.pop()) {
     for (const neighbour of geometry.neighbours(cell)) {
-      const key = String(neighbour);
+      const key = neighbour.key();
       if (keys.has(key) && !reached.has(key)) {
         reached.add(key);
         pending.push(neighbour);

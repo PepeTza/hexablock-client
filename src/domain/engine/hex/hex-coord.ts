@@ -6,7 +6,7 @@ import type { ICoord } from '../geometry/coord';
  * coordinate, derived.
  *
  * Two `HexCoord` instances with the same `q` and `r` represent the same
- * position: compare them with `equals`, or use `toString` as a key in a `Map`
+ * position: compare them with `equals`, or use `key()` as a key in a `Map`
  * or `Set`.
  *
  * Axial and cube coordinates (with `q + r + s = 0`) follow Red Blob Games,
@@ -43,7 +43,11 @@ export class HexCoord implements ICoord {
     );
   }
 
-  toString(): string {
+  key(): string {
     return `${this.q},${this.r}`;
+  }
+
+  toString(): string {
+    return this.key();
   }
 }
