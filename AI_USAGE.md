@@ -491,6 +491,33 @@ One entry per significant use. Copy the template.
     the first verification pass, so running `prettier --write` before
     verification prevented hook failures.
 
+### 2026-11-21 — Victory and defeat screens showing the seed (issue #38)
+
+- **Tool / model:** Antigravity, Gemini 4 Argon.
+- **Issue / PR:** #38 (T14).
+- **Prompt (paraphrase):** explain #38 in Clean Architecture layer terms and ask
+  two architecture/design check questions before Gate 1; obtain approval per
+  commit; push, open PR, rebase-and-merge and clean up branch after Gate 4.
+- **Result:** Added `GameResultPresenter` and `GameResultViewModel` in
+  `src/adapters/presentation/game-result/` (5 unit tests), passive
+  `GameResultView` and `GameResultScreen` container in
+  `src/frameworks/ui/screens/` (4 component tests), `GameResult` route in
+  `routes.ts` / `RootNavigator.tsx` (1 navigation test) and presenter wiring
+  in `composition-root.ts` (184/184 tests passing).
+- **Team modifications:**
+  - Before Gate 1, the owner answered the two design questions confirming that
+    `GameResultPresenter` formats optional fields (`seed`, `stars`,
+    `unlockedLevelId`, `isNewRecord`) based on data presence in
+    `FinishGameOutput` rather than branching on `gameId` (OCP), and clarified
+    `CU-07 A3` (when `saveFailed` is `true`, `FinishGameUseCase` has already
+    caught and logged the storage failure, and the result screen renders a
+    non-blocking warning banner).
+- **Lessons / limitations:**
+  - Passing optional `initialRouteName` and `initialResultParams` props to
+    `RootNavigator` (defaulting to `'Home'`) allowed testing the `GameResult`
+    screen transition back to `'Home'` inside the real native stack navigator
+    with zero mocks.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
