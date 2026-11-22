@@ -49,6 +49,12 @@ the layer 3 counterpart of `VariantFactory`, registered per `gameId` in a
 the domain must never know how cells are drawn (dependency rule). Screens
 therefore never contain a `switch` on `gameId`.
 
+The presentation factory is also the one place where the variant recovers the
+type of its moves: the factory registry hands out an `IGameSession` with that
+type erased, and the factory turns it back with one explicit, commented cast
+(`session as IGameSession<YourMove, YourState>`). Generic screens and use
+cases never cast.
+
 ### Registration (layer 4, composition root)
 
 ```ts
