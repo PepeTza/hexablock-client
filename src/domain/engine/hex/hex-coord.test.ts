@@ -12,6 +12,7 @@ describe('HexCoord', () => {
 
     // Assert
     expect(equal).toBe(true);
+    expect(first.key()).toBe(second.key());
     expect(first.toString()).toBe(second.toString());
   });
 
@@ -19,8 +20,7 @@ describe('HexCoord', () => {
     // Arrange
     const hex = new HexCoord(2, -1);
     const otherCoord: ICoord = {
-      equals: () => false,
-      toString: () => '2,-1',
+      key: () => '2,-1',
     };
 
     // Act
@@ -54,5 +54,29 @@ describe('HexCoord', () => {
     expect(Object.is(coord.q, 0)).toBe(true);
     expect(Object.is(coord.r, 0)).toBe(true);
     expect(Object.is(coord.s, 0)).toBe(true);
+  });
+
+  it('should_reject_class_without_key_when_used_as_icoord', () => {
+    // Arrange
+    class CoordWithoutKey {
+      toString(): string {
+        return '0,0';
+      }
+    }
+    const acceptCoord = (coord: ICoord): string => coord.key();
+    const invalid = new CoordWithoutKey();
+    const valid = new HexCoord(2, -1);
+
+    // Act
+    // @ts-expect-error an object with only toString() does not implement ICoord
+    const callWithInvalid = () => acceptCoord(invalid);
+    // @ts-expect-error a primitive number does not implement ICoord
+    const callWithPrimitive = () => acceptCoord(42);
+
+    // Assert — compile-time check enforced by `npm run typecheck`
+    expect(invalid.toString()).toBe('0,0');
+    expect(callWithInvalid).toThrow(TypeError);
+    expect(callWithPrimitive).toThrow(TypeError);
+    expect(acceptCoord(valid)).toBe('2,-1');
   });
 });

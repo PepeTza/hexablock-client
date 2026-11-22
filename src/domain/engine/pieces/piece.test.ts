@@ -5,7 +5,8 @@ import { PieceShape } from './piece-shape';
 
 const geometry = new HexGeometry();
 const hex = (q: number, r: number): HexCoord => new HexCoord(q, r);
-const keys = (cells: readonly HexCoord[]): string[] => cells.map(String).sort();
+const keys = (cells: readonly HexCoord[]): string[] =>
+  cells.map((cell) => cell.key()).sort();
 
 /** A straight line of three cells, west to east, centred on its middle cell. */
 const line = PieceShape.of(

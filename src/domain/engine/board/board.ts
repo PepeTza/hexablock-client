@@ -36,7 +36,7 @@ export class Board<TCell extends NonNullable<unknown>, TCoord extends ICoord> {
   /** The content of the cell, or `undefined` when it is empty. */
   cellAt(coord: TCoord): TCell | undefined {
     this.assertInside(coord);
-    return this.cells.get(String(coord));
+    return this.cells.get(coord.key());
   }
 
   isEmpty(coord: TCoord): boolean {
@@ -46,13 +46,13 @@ export class Board<TCell extends NonNullable<unknown>, TCoord extends ICoord> {
   /** Puts `cell` on `coord`, replacing what was there. */
   place(coord: TCoord, cell: TCell): void {
     this.assertInside(coord);
-    this.cells.set(String(coord), cell);
+    this.cells.set(coord.key(), cell);
   }
 
   /** Empties the cell. */
   remove(coord: TCoord): void {
     this.assertInside(coord);
-    this.cells.delete(String(coord));
+    this.cells.delete(coord.key());
   }
 
   /** The neighbours of `coord` that are cells of this board. */
@@ -75,11 +75,11 @@ export class Board<TCell extends NonNullable<unknown>, TCoord extends ICoord> {
     const covered = new Set<string>();
     const lines: TCoord[][] = [];
     for (const coord of this.shape.coords) {
-      if (covered.has(String(coord))) {
+      if (covered.has(coord.key())) {
         continue;
       }
       const line = this.line(coord, axis);
-      line.forEach((cell) => covered.add(String(cell)));
+      line.forEach((cell) => covered.add(cell.key()));
       lines.push(line);
     }
     return lines;
@@ -98,7 +98,7 @@ export class Board<TCell extends NonNullable<unknown>, TCoord extends ICoord> {
 
   private assertInside(coord: TCoord): void {
     if (!this.contains(coord)) {
-      throw new RangeError(`The cell ${String(coord)} is not on the board`);
+      throw new RangeError(`The cell ${coord.key()} is not on the board`);
     }
   }
 }
