@@ -1,5 +1,5 @@
 import type { VariantFactoryRegistry } from '@domain/engine/game/variant-factory';
-import { emptyProgress } from '@domain/progress/player-progress';
+import { emptyProgress, type GameId } from '@domain/progress/player-progress';
 import type { ProgressEvent } from '@domain/progress/progress-events';
 import type {
   FinishedGameSummary,
@@ -57,25 +57,43 @@ export class FinishGameUseCase implements IUseCase<
       emptyProgress(summary.gameId);
     const evaluation = progressModel.evaluate(current, summary);
 
-    let saveFailed = false;
-    if (evaluation.progress !== null) {
-      try {
-        await this.deps.progress.save(evaluation.progress);
-      } catch (error) {
-        saveFailed = true;
-        this.deps.logger.warn('Failed to save progress locally', {
-          gameId: summary.gameId,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
+    const { gameId } = summary;
+    const { progress } = evaluation;
+    const saved =
+      progress !== null &&
+      (await this.attempt(
+        'Failed to save progress locally',
+        gameId,
+        async () => {
+          await this.deps.progress.save(progress);
+          return true;
+        },
+        false,
+      ));
 
-    if (await this.deps.sessions.hasActiveSession()) {
-      if (evaluation.progress !== null) {
-        await this.deps.syncQueue.enqueueProgressSync(summary.gameId);
+    const hasSession = await this.attempt(
+      'Failed to check the account session',
+      gameId,
+      () => this.deps.sessions.hasActiveSession(),
+      false,
+    );
+    if (hasSession) {
+      // Only what was saved is synced; otherwise old progress would be sent.
+      if (saved) {
+        await this.attempt(
+          'Failed to queue progress sync',
+          gameId,
+          () => this.deps.syncQueue.enqueueProgressSync(gameId),
+          undefined,
+        );
       }
       if (evaluation.shouldSubmitScore) {
-        await this.deps.syncQueue.enqueueScoreSubmission(summary);
+        await this.attempt(
+          'Failed to queue score submission',
+          gameId,
+          () => this.deps.syncQueue.enqueueScoreSubmission(summary),
+          undefined,
+        );
       }
     }
 
@@ -88,8 +106,30 @@ export class FinishGameUseCase implements IUseCase<
       isNewRecord: evaluation.isNewRecord,
       stars: evaluation.stars,
       unlockedLevelId: evaluation.unlockedLevelId,
-      saveFailed,
+      saveFailed: progress !== null && !saved,
     };
+  }
+
+  /**
+   * Runs a step the result screen does not depend on (local save, session
+   * check, queueing). If it throws, logs a warning and returns `fallback`, so
+   * the player still sees the result (CU-07 A3, RF-27).
+   */
+  private async attempt<T>(
+    message: string,
+    gameId: GameId,
+    step: () => Promise<T>,
+    fallback: T,
+  ): Promise<T> {
+    try {
+      return await step();
+    } catch (error) {
+      this.deps.logger.warn(message, {
+        gameId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return fallback;
+    }
   }
 
   /** `LevelCompleted` when a level is won, `GameFinished` otherwise (CU-07 step 5). */
