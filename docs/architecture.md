@@ -203,9 +203,16 @@ implementation is removed from this table in the same PR.
 Decorators / proxies on the generic use cases, so one aspect applies to the
 four variants.
 
-- **Minimum:** logging and traceability (`LoggingUseCaseDecorator`: input,
-  output and duration of `ApplyMoveUseCase.execute()`), on every use case
-  except CU-03.
+- **Minimum:** logging and traceability (`LoggingUseCaseDecorator`: name and
+  duration of every use case except CU-03).
+  - Input and output are logged only through an allowlist
+    (`describe: { input?, output? }`) supplied in the composition root when
+    each use case is wrapped. Without it, only the name, duration and error
+    message are logged.
+  - A denylist of key names was rejected (it only protects the names someone
+    remembered).
+  - Error messages must never contain user data (passwords, tokens,
+    usernames), because the message is always logged (decision 22).
 - **Low-cost extras:** centralised exception handling with retries on sync;
   security (session check before CU-12, CU-13, CU-14); short-lived cache on
   the leaderboard (CU-14); profiling of the Hexa Sort cascade.
