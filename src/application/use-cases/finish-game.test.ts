@@ -46,6 +46,9 @@ function createHarness(options: {
   evaluation: ProgressEvaluation;
   activeSession?: boolean;
   failSave?: boolean;
+  failSession?: boolean;
+  failProgressSync?: boolean;
+  failScoreSubmission?: boolean;
 }) {
   const saved: PlayerProgress[] = [];
   const syncedGames: GameId[] = [];
@@ -78,14 +81,23 @@ function createHarness(options: {
     },
   };
   const sessions: ISessionProvider = {
-    hasActiveSession: () => Promise.resolve(options.activeSession ?? false),
+    hasActiveSession: () =>
+      options.failSession
+        ? Promise.reject(new Error('token store unavailable'))
+        : Promise.resolve(options.activeSession ?? false),
   };
   const syncQueue: ISyncQueue = {
     enqueueProgressSync: (gameId) => {
+      if (options.failProgressSync) {
+        return Promise.reject(new Error('queue full'));
+      }
       syncedGames.push(gameId);
       return Promise.resolve();
     },
     enqueueScoreSubmission: (summary) => {
+      if (options.failScoreSubmission) {
+        return Promise.reject(new Error('queue full'));
+      }
       submittedScores.push(summary);
       return Promise.resolve();
     },
@@ -119,6 +131,19 @@ function createHarness(options: {
     submittedScores,
     publishedEvents,
     warnings,
+  };
+}
+
+/** A finished Hexa Lines game lost with `score` points. */
+function linesDefeat(score: number): FinishedGameSummary {
+  return {
+    gameId: 'hexa-lines',
+    levelId: null,
+    reason: 'defeat',
+    score,
+    moveCount: 10,
+    durationMs: 30_000,
+    seed: 5,
   };
 }
 
@@ -352,5 +377,116 @@ describe('FinishGameUseCase', () => {
       gameId: 'hexa-lines',
       error: 'disk full',
     });
+  });
+  it('should_still_return_result_with_warning_when_session_provider_fails', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: { gameId: 'hexa-lines', highScore: 180, levels: {} },
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      failSession: true,
+    });
+
+    // Act
+    const result = await harness.useCase.execute(linesDefeat(180));
+
+    // Assert
+    expect(result.score).toBe(180);
+    expect(result.saveFailed).toBe(false);
+    expect(harness.syncedGames).toEqual([]);
+    expect(harness.submittedScores).toEqual([]);
+    expect(harness.warnings).toEqual([
+      {
+        message: 'Failed to check the account session',
+        context: { gameId: 'hexa-lines', error: 'token store unavailable' },
+      },
+    ]);
+    expect(harness.publishedEvents).toHaveLength(1);
+  });
+
+  it('should_still_queue_score_with_warning_when_progress_sync_queueing_fails', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: { gameId: 'hexa-lines', highScore: 210, levels: {} },
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      activeSession: true,
+      failProgressSync: true,
+    });
+    const summary = linesDefeat(210);
+
+    // Act
+    const result = await harness.useCase.execute(summary);
+
+    // Assert
+    expect(result.score).toBe(210);
+    expect(harness.submittedScores).toEqual([summary]);
+    expect(harness.warnings).toEqual([
+      {
+        message: 'Failed to queue progress sync',
+        context: { gameId: 'hexa-lines', error: 'queue full' },
+      },
+    ]);
+  });
+
+  it('should_still_return_result_with_warning_when_score_submission_queueing_fails', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: { gameId: 'hexa-lines', highScore: 240, levels: {} },
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      activeSession: true,
+      failScoreSubmission: true,
+    });
+
+    // Act
+    const result = await harness.useCase.execute(linesDefeat(240));
+
+    // Assert
+    expect(result.score).toBe(240);
+    expect(harness.syncedGames).toEqual(['hexa-lines']);
+    expect(harness.warnings).toEqual([
+      {
+        message: 'Failed to queue score submission',
+        context: { gameId: 'hexa-lines', error: 'queue full' },
+      },
+    ]);
+    expect(harness.publishedEvents).toHaveLength(1);
+  });
+
+  it('should_not_queue_progress_sync_when_saving_progress_fails', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: {
+        progress: { gameId: 'hexa-lines', highScore: 90, levels: {} },
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: null,
+        shouldSubmitScore: true,
+      },
+      activeSession: true,
+      failSave: true,
+    });
+    const summary = linesDefeat(90);
+
+    // Act
+    const result = await harness.useCase.execute(summary);
+
+    // Assert
+    expect(result.saveFailed).toBe(true);
+    expect(harness.syncedGames).toEqual([]);
+    expect(harness.submittedScores).toEqual([summary]);
   });
 });
