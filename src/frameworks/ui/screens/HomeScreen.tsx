@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import type { MainMenuViewModel } from '@adapters/presentation/main-menu/main-menu-view-model';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../navigation/routes';
@@ -13,22 +14,30 @@ type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 /**
  * Main menu container screen: loads the view model from `MainMenuPresenter`
  * and forwards user actions to React Navigation.
+ *
+ * The menu stays mounted under the other screens of the stack, so it reloads
+ * every time it becomes visible again (`useFocusEffect`), not only when it is
+ * first created: coming back from a game shows the new record. The spinner
+ * appears only on the first load; on later visits the previous menu stays on
+ * screen while it reloads.
  */
 export function HomeScreen({ navigation }: HomeScreenProps) {
   const { mainMenu } = useServices();
   const [viewModel, setViewModel] = useState<MainMenuViewModel | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    void mainMenu.load().then((loaded) => {
-      if (active) {
-        setViewModel(loaded);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [mainMenu]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void mainMenu.load().then((loaded) => {
+        if (active) {
+          setViewModel(loaded);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }, [mainMenu]),
+  );
 
   if (viewModel === null) {
     return (
