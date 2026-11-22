@@ -14,6 +14,13 @@ export interface DomainEvent {
 /** Receives every event of a game. */
 export type EventListener = (event: DomainEvent) => void;
 
+/**
+ * Told when a listener throws while receiving `event`. A listener bug (in
+ * audio, autosave...) is not a failed move, so the engine reports it here
+ * and keeps notifying the other listeners.
+ */
+export type ListenerErrorHandler = (error: unknown, event: DomainEvent) => void;
+
 /** How a finished game ended. */
 export type GameOutcome = 'victory' | 'defeat';
 

@@ -1,6 +1,10 @@
 import { Board } from '../board/board';
 import { BoardShape } from '../board/board-shape';
-import type { DomainEvent, GameOutcome } from '../events/domain-event';
+import type {
+  DomainEvent,
+  GameOutcome,
+  ListenerErrorHandler,
+} from '../events/domain-event';
 import { HexCoord } from '../hex/hex-coord';
 import { HexGeometry } from '../hex/hex-geometry';
 import type { IScoringPolicy } from '../scoring/scoring-policy';
@@ -115,7 +119,11 @@ const geometry = new HexGeometry();
 const hex = (q: number, r: number): HexCoord => new HexCoord(q, r);
 
 function numberGame(
-  options: { radius?: number; scoring?: IScoringPolicy<Placed> } = {},
+  options: {
+    radius?: number;
+    scoring?: IScoringPolicy<Placed>;
+    onListenerError?: ListenerErrorHandler;
+  } = {},
 ) {
   const events: DomainEvent[] = [];
   const engine = GameEngine.start({
@@ -127,6 +135,7 @@ function numberGame(
     rules: new NumberRules(options.scoring ?? faceValue),
     seed: 42,
     listeners: [(event) => events.push(event)],
+    onListenerError: options.onListenerError,
   });
   const types = () => events.map((event) => event.type);
   return { engine, events, types };
@@ -275,6 +284,108 @@ describe('GameEngine', () => {
     });
   });
 
+  describe('notifying listeners', () => {
+    const throwing = (event: DomainEvent) => {
+      throw new Error(`bug on ${event.type}`);
+    };
+
+    it('should_be_resolving_when_listeners_receive_move_applied', () => {
+      // Arrange
+      const { engine } = numberGame();
+      const statusSeen: string[] = [];
+      engine.subscribe((event) => {
+        if (event.type === 'MoveApplied') statusSeen.push(engine.status);
+      });
+
+      // Act
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+
+      // Assert
+      expect(statusSeen).toEqual(['resolving']);
+    });
+
+    it('should_reject_a_move_applied_from_a_listener', () => {
+      // Arrange
+      const { engine, types } = numberGame();
+      engine.subscribe((event) => {
+        if (event.type === 'MoveApplied') {
+          engine.applyMove({ cell: hex(1, 0), value: 2 });
+        }
+      });
+
+      // Act
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+
+      // Assert
+      expect(engine.state.moveCount).toBe(1);
+      expect(engine.board.isEmpty(hex(1, 0))).toBe(true);
+      expect(types()).toEqual([
+        'GameStarted',
+        'MoveApplied',
+        'NumberPlaced',
+        'MoveRejected',
+      ]);
+    });
+
+    it('should_deliver_events_to_every_listener_when_one_throws', () => {
+      // Arrange
+      const reported: string[] = [];
+      const { engine } = numberGame({
+        onListenerError: (error, event) =>
+          reported.push(`${(error as Error).message} / ${event.type}`),
+      });
+      const received: string[] = [];
+      engine.subscribe(throwing);
+      engine.subscribe((event) => received.push(event.type));
+
+      // Act
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+
+      // Assert
+      expect(received).toEqual(['MoveApplied', 'NumberPlaced']);
+      expect(reported).toEqual([
+        'bug on MoveApplied / MoveApplied',
+        'bug on NumberPlaced / NumberPlaced',
+      ]);
+    });
+
+    it('should_finish_the_game_when_a_listener_throws_on_the_winning_move', () => {
+      // Arrange
+      const { engine } = numberGame({
+        radius: 0,
+        onListenerError: () => undefined,
+      });
+      engine.subscribe(throwing);
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      const statusAfterMove = engine.status;
+
+      // Act
+      engine.resolutionDone();
+
+      // Assert
+      expect(statusAfterMove).toBe('resolving');
+      expect(engine.status).toBe('finished');
+      expect(engine.outcome).toBe('victory');
+    });
+
+    it('should_rethrow_the_first_listener_error_after_notifying_everyone_when_no_handler', () => {
+      // Arrange
+      const { engine } = numberGame();
+      const received: string[] = [];
+      engine.subscribe(throwing);
+      engine.subscribe((event) => received.push(event.type));
+
+      // Act
+      const act = () => engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+
+      // Assert
+      expect(act).toThrow('bug on MoveApplied');
+      expect(received).toEqual(['MoveApplied', 'NumberPlaced']);
+      expect(engine.state.moveCount).toBe(1);
+      expect(engine.status).toBe('resolving');
+    });
+  });
+
   describe('session states (D-22)', () => {
     it('should_reject_move_when_resolving', () => {
       // Arrange
@@ -388,5 +499,42 @@ describe('GameEngine', () => {
       expect(engine.status).toBe('finished');
       expect(types().at(-1)).toBe('MoveRejected');
     });
+
+    // The "Ignored" cells of the CU-06 transition table: nothing changes and
+    // no event is emitted.
+    type Engine = ReturnType<typeof numberGame>['engine'];
+    const toPaused = (engine: Engine) => engine.pause();
+    const toResolving = (engine: Engine) =>
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+    const toFinished = (engine: Engine) => {
+      toResolving(engine);
+      engine.resolutionDone();
+    };
+    const stayPlaying = () => undefined;
+
+    it.each([
+      { action: 'pause', status: 'paused', reach: toPaused },
+      { action: 'pause', status: 'finished', reach: toFinished },
+      { action: 'resume', status: 'resolving', reach: toResolving },
+      { action: 'resume', status: 'finished', reach: toFinished },
+      { action: 'resolutionDone', status: 'playing', reach: stayPlaying },
+      { action: 'resolutionDone', status: 'paused', reach: toPaused },
+      { action: 'resolutionDone', status: 'finished', reach: toFinished },
+    ] as const)(
+      'should_change_nothing_when_$action_is_called_while_$status',
+      ({ action, status, reach }) => {
+        // Arrange
+        const { engine, types } = numberGame({ radius: 0 });
+        reach(engine);
+        const eventsBefore = types().length;
+
+        // Act
+        engine[action]();
+
+        // Assert
+        expect(engine.status).toBe(status);
+        expect(types()).toHaveLength(eventsBefore);
+      },
+    );
   });
 });

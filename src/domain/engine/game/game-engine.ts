@@ -4,6 +4,7 @@ import type {
   EngineEvent,
   EventListener,
   GameOutcome,
+  ListenerErrorHandler,
 } from '../events/domain-event';
 import type { ICoord } from '../geometry/coord';
 import type { GameState } from './game-state';
@@ -30,6 +31,11 @@ export interface GameEngineConfig<
   readonly seed: number | null;
   /** Listeners that must also receive `GameStarted`. */
   readonly listeners?: readonly EventListener[];
+  /**
+   * Where listener errors go (the app wires it to its logger). Without it,
+   * the first listener error is rethrown once every listener got every event.
+   */
+  readonly onListenerError?: ListenerErrorHandler;
 }
 
 /**
@@ -43,8 +49,12 @@ export interface GameEngineConfig<
  *   exactly as it was.
  * - Session states (State pattern, D-22): playing, resolving, paused or
  *   finished; the current one decides what each action does.
- * - Observer: listeners receive the events of the engine and of the variant,
- *   after the game has changed.
+ * - Observer: listeners receive the events of the engine and of the variant
+ *   only once an action is complete. Events are queued in an outbox while the
+ *   session state works and delivered after it, so a listener always sees
+ *   the finished game (after a move, the session is already `resolving`) and
+ *   a move it tries to play is handled by the new session state (RN-06). A
+ *   listener that throws does not stop the others (`onListenerError`).
  *
  * `board` and `state` are for reading: changing them directly would bypass
  * the rules.
@@ -61,6 +71,9 @@ export class GameEngine<
   private session: SessionState<TMove> = new PlayingState();
   private readonly rules: IGameRules<TCell, TCoord, TMove, TState>;
   private readonly listeners = new Set<EventListener>();
+  private readonly onListenerError: ListenerErrorHandler | undefined;
+  /** Events of the current action, delivered when it is complete. */
+  private readonly outbox: DomainEvent[] = [];
   private readonly context: SessionContext<TMove>;
 
   private constructor(config: GameEngineConfig<TCell, TCoord, TMove, TState>) {
@@ -68,6 +81,7 @@ export class GameEngine<
     this.currentState = config.state;
     this.rules = config.rules;
     this.seed = config.seed;
+    this.onListenerError = config.onListenerError;
     config.listeners?.forEach((listener) => this.listeners.add(listener));
     this.context = {
       play: (move) => this.play(move),
@@ -100,7 +114,9 @@ export class GameEngine<
     config: GameEngineConfig<TCell, TCoord, TMove, TState>,
   ): GameEngine<TCell, TCoord, TMove, TState> {
     const engine = new GameEngine(config);
-    engine.emit({ type: 'GameStarted' });
+    engine.act(() => {
+      engine.emit({ type: 'GameStarted' });
+    });
     return engine;
   }
 
@@ -129,7 +145,9 @@ export class GameEngine<
 
   /** Plays a move (CU-02). What happens depends on the session state (D-22). */
   applyMove(move: TMove): void {
-    this.session.applyMove(this.context, move);
+    this.act(() => {
+      this.session.applyMove(this.context, move);
+    });
   }
 
   /**
@@ -144,16 +162,22 @@ export class GameEngine<
   }
 
   pause(): void {
-    this.session.pause(this.context);
+    this.act(() => {
+      this.session.pause(this.context);
+    });
   }
 
   resume(): void {
-    this.session.resume(this.context);
+    this.act(() => {
+      this.session.resume(this.context);
+    });
   }
 
   /** Called by the UI when it has finished showing the last move (RN-06). */
   resolutionDone(): void {
-    this.session.resolutionDone(this.context);
+    this.act(() => {
+      this.session.resolutionDone(this.context);
+    });
   }
 
   /**
@@ -177,12 +201,55 @@ export class GameEngine<
     return { applied: true, outcome: result.outcome };
   }
 
+  /** Runs one action of the session, then delivers the events it queued. */
+  private act<TResult>(action: () => TResult): TResult {
+    const result = action();
+    this.deliver();
+    return result;
+  }
+
   /** An engine event, checked against its exact shape. */
   private emitEngine(event: EngineEvent<TMove>): void {
     this.emit(event);
   }
 
+  /** Queues `event`; it reaches the listeners when the action is complete. */
   private emit(event: DomainEvent): void {
-    this.listeners.forEach((listener) => listener(event));
+    this.outbox.push(event);
   }
+
+  /**
+   * Delivers the queued events in order (first in, first out), each to every
+   * listener. If a listener starts another action, its events join the end
+   * of the same queue. A listener that throws does not stop the others: its
+   * error goes to `onListenerError`, or, without one, the first error is
+   * rethrown after everything was delivered.
+   */
+  private deliver(): void {
+    let firstError: Error | null = null;
+    for (
+      let event = this.outbox.shift();
+      event !== undefined;
+      event = this.outbox.shift()
+    ) {
+      for (const listener of [...this.listeners]) {
+        try {
+          listener(event);
+        } catch (error) {
+          if (this.onListenerError !== undefined) {
+            this.onListenerError(error, event);
+          } else {
+            firstError ??= toError(error);
+          }
+        }
+      }
+    }
+    if (firstError !== null) {
+      throw firstError;
+    }
+  }
+}
+
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
 }
