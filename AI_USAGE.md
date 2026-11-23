@@ -908,6 +908,19 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The browser needed a wrapper around fetch.
   Role checks passed against simulated API responses; deployment is separate.
 
+### 2026-11-23 — Hexa Lines playable screen
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #37 (integrates work from #33, #34 and #35).
+- **Prompt:** Connect the existing Lines engine, preview and projection into
+  a playable screen and verify the route from menu to result.
+- **Result:** Added the presenter, the native board and tray, tap and drag
+  input, and the finish-game integration.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Navigation and a seeded finishing move were
+  tested with the React Native test renderer. Drag performance needs a
+  physical Android device. Records currently use the in-memory adapter.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
