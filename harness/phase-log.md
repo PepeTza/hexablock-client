@@ -43,3 +43,4 @@ details live in the PR.
 | 2026-11-22 | Fix horizontal carousel swipe over card | #117 (follow-up) | PepeTza | 258 / 258 app, 9 / 9 panel | Found in Expo Go on device: child `Pressable` kept touch responder; added capture (`10 px`), `translateX` drag tracking, outer touch handlers and tap suppression after drag |
 | 2026-11-22 | Client CI for the Expo app and admin panel | #6 | jesusobando32 | 266 / 266 | Local checks passed with app and panel coverage; GitHub run pending |
 | 2026-11-23 | Hexa Lines three-axis clears and scoring | #31 | jesusobando32 | 270 / 270 app, 9 / 9 panel | D-08 Lines formula with uncapped streak; 12 new tests; tray and end rules follow in #32 and #33 |
+| 2026-11-23 | Level definition, builder and validator port | #60 | jesusobando32 | 276 / 276 app, 9 / 9 panel | T22; immutable common level data and field-specific errors; Fit and Sort spec schemas remain open in backend #32 |
