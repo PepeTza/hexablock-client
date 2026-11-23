@@ -49,7 +49,7 @@ part of the Definition of Done. Related use cases are in
 | ID | Story | Acceptance criteria | Pri. |
 |---|---|---|---|
 | HU20 | As a player, I want to place a stack and see the cascading transfer. | Transfer towards the stack with the most chips of that colour until stable. | M |
-| HU21 | As a player, I want 10 same-colour chips in a stack to be cleared and count as a goal. | Visible goal counter. | M |
+| HU21 | As a player, I want a stack that gathers 10 same-colour chips to be removed and count as a goal. | Visible goal counter. | M |
 | HU22 | As a player, I want to win by meeting the goals and lose when the board fills up. | Correct victory and defeat screens. | M |
 | HU23 | As a player, I want 10 progressive levels. | 10 levels in JSON. | M |
 

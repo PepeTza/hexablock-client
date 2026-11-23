@@ -202,7 +202,7 @@ C = Kenneth Fung.
 | HU35-be | feat(api): get and configure seed config | be | RN-05, D-15 | Per variant and per Sort level; audit of who and when | C | I2 | application, adapters, feature |
 | HU20 | feat(hexa-sort): place stacks with cascading transfer | cl | RN-20, RN-21, RN-22 | Deterministic on ties | C | I2 | hexa-sort, domain, feature |
 | HU30 | feat: register and log in from the app | cl | CU-10, CU-11, RN-32, decision 22 | The game stays usable as a guest; HTTP errors are mapped to application errors and the player never sees a server message (decision 22) | A | I3 | application, adapters, frameworks, feature |
-| HU21 | feat(hexa-sort): clear runs of ten chips as goals | cl | RN-23, RN-40 | Visible goal counter | C | I3 | hexa-sort, domain, feature |
+| HU21 | feat(hexa-sort): remove stacks of ten same-colour chips as goals | cl | RN-23, RN-40 | Visible goal counter | C | I3 | hexa-sort, domain, feature |
 | HU22 | feat(hexa-sort): win by goals and lose on a full board | cl | RN-24 | Correct result screens | C | I3 | hexa-sort, domain, feature |
 | T27 | feat(ui): Hexa Sort game screen | cl | RF-10 | Visible cascade; input ignored while resolving | C | I3 | hexa-sort, adapters, frameworks, feature |
 | HU18 | feat(hexa-fit): award stars by moves and time | cl | RN-18, D-08 | Stars saved | B | I3 | hexa-fit, domain, feature |
@@ -481,8 +481,8 @@ record is `architecture.md` §10) or resolved by a pull request.
 | 7 | D-07 piece catalog | Every shape of 1–5 cells (1+1+3+10+33 without flips) / a selection | **The 15 shapes of 1–4 cells plus ~6 of 5 cells**, with spawn weights in Lines. Still open: whether Lines spawns pieces in a random orientation (RN-11 only forbids the player rotating them) | 11-17 | Taken: D-07 (client #16), including random orientation in Lines |
 | 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 | Lines formula recorded in architecture.md §10 (HU12, #31). Fit scoring and server plausibility limits remain open. |
 | 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 | Open |
-| 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`. Changes the contract: PR to the backend with approval | 11-25 | Open |
-| 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of 3 stacks, parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Open |
+| 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`, defined in the backend `api-contracts.md` §6 with a radius 2 board and a tray of one stack, as the statement says (backend #42). Changes the contract: PR to the backend with approval | 11-25 | Sort: Taken. Fit: Open |
+| 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of one stack, as the statement says; generation parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Sort: Taken (#133). Merge: Open |
 | 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 | Taken: minimum stats in the menu — high score (Lines, Merge) and completed levels (Fit, Sort) from `PlayerProgress`, through `LoadProgressSummaryUseCase` (client #36) |
 | 13 | Pact file exchange | Pactflow (external account) / file copied to the backend | **Versioned pact file** in the backend's `test/pact/`, copied from the client's CI; no broker | 11-29 | Open |
 | 14 | First admin user | Seed with environment variables / CLI | **Seed script** reading `ADMIN_USERNAME` and `ADMIN_PASSWORD` (hosting secrets) | 11-29 | Open |
@@ -529,7 +529,8 @@ resolved by guessing.
 6. RF-21 (pause) and RF-15 (level selection) have no user story; T35 and T28
    cover them.
 7. The rules do not define the Sort tray size, the Merge starting tiles or the
-   orientation of Lines pieces (decisions 7 and 11).
+   orientation of Lines pieces (decisions 7 and 11). The Sort tray size is
+   **resolved**: one stack, as the statement says (decision 11, client #133).
 8. HU01 mentions "statistics" with no use case or business rule (decision 12).
    **Resolved** by decision 12 (client #36).
 9. The commands section of `AGENTS.md` is still pending; the setup fills it.
