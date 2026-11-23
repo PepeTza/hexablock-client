@@ -167,7 +167,9 @@ the API and the four existing variants.
 
 ## 5. Extensibility diagram
 
-To be drawn: the generic engine in the centre, the four variants (and Hexa
-Quest, dashed) around it, with the extension points of §2 highlighted as the
-interfaces a fifth variant implements. Image and editable source in
-[`diagrams/`](./diagrams).
+The four variants plug into the same generic engine. The dashed Hexa Quest
+box illustrates the domain and presentation extension points from §2. Both
+factories are registered under the same `gameId` in the composition root.
+See the [diagram index](./diagrams/README.md) for the editable Mermaid source.
+
+![Four variants share the generic engine. Hexa Quest shows the extension points and the two factory registrations.](./diagrams/client-extensibility.svg)

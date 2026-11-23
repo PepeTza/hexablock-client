@@ -27,9 +27,12 @@ _Coming soon: screenshots or GIFs of the four variants._
 
 ## Architecture
 
-_Coming soon._ Clean Architecture with four layers (entities, use cases,
-interface adapters, frameworks & drivers). The layer
-diagram will be embedded here; sources in [`docs/`](./docs).
+The client follows Clean Architecture with four layers. Arrows show code
+dependencies pointing toward application and domain. See
+[`docs/architecture.md`](./docs/architecture.md) and the
+[diagram sources](./docs/diagrams/README.md).
+
+![Four client layers with inward dependencies. The admin panel imports application and domain directly.](./docs/diagrams/client-layers.svg)
 
 ## Generic Engine
 
@@ -37,6 +40,8 @@ _Coming soon._ Generic types of the engine (`Board<TCell>`,
 `GameEngine<TCell, TMove, TState>`, bounded generics such as
 `TTile extends IMergeable<TTile>`), their constraints and how each variant
 instantiates them. See [`docs/EXTENSIBILITY.md`](./docs/EXTENSIBILITY.md).
+
+![Four variants share the generic engine. Hexa Quest illustrates the domain and presentation extension points.](./docs/diagrams/client-extensibility.svg)
 
 ## Design Patterns
 
