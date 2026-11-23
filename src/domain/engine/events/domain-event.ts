@@ -42,6 +42,16 @@ export interface MoveRejected<TMove> extends DomainEvent {
   readonly reason: string;
 }
 
+export interface MoveUndone<TMove> extends DomainEvent {
+  readonly type: 'MoveUndone';
+  readonly move: TMove;
+}
+
+export interface MoveRedone<TMove> extends DomainEvent {
+  readonly type: 'MoveRedone';
+  readonly move: TMove;
+}
+
 export interface GamePaused extends DomainEvent {
   readonly type: 'GamePaused';
 }
@@ -61,6 +71,8 @@ export type EngineEvent<TMove> =
   | GameStarted
   | MoveApplied<TMove>
   | MoveRejected<TMove>
+  | MoveUndone<TMove>
+  | MoveRedone<TMove>
   | GamePaused
   | GameResumed
   | GameOver;

@@ -1,4 +1,6 @@
 import type { Board } from '../board/board';
+import { ApplyMoveCommand } from '../commands/command';
+import { CommandHistory } from '../commands/command-history';
 import type {
   DomainEvent,
   EngineEvent,
@@ -30,6 +32,8 @@ export interface GameEngineConfig<
   readonly rules: IGameRules<TCell, TCoord, TMove, TState>;
   /** The seed of the game, shown at the end (RN-05); `null` when the variant uses none (Hexa Fit). */
   readonly seed: number | null;
+  /** Command history policy for undo and redo (defaults to `CommandHistory.disabled()`). */
+  readonly history?: CommandHistory<TMove>;
   /** Listeners that must also receive `GameStarted`. */
   readonly listeners?: readonly EventListener[];
   /**
@@ -50,6 +54,8 @@ export interface GameEngineConfig<
  *   exactly as it was.
  * - Session states (State pattern, D-22): playing, resolving, paused or
  *   finished; the current one decides what each action does.
+ * - Undo / redo (Command pattern, RF-07): each applied move is stored in
+ *   `CommandHistory` with snapshots of the board and state before and after it.
  * - Observer: listeners receive the events of the engine and of the variant
  *   only once an action is complete. Events are queued in an outbox while the
  *   session state works and delivered after it, so a listener always sees
@@ -71,6 +77,7 @@ export class GameEngine<
   private currentState: TState;
   private session: SessionState<TMove> = new PlayingState();
   private readonly rules: IGameRules<TCell, TCoord, TMove, TState>;
+  private readonly history: CommandHistory<TMove>;
   private readonly listeners = new Set<EventListener>();
   private readonly onListenerError: ListenerErrorHandler | undefined;
   /** Events of the current action, delivered when it is complete. */
@@ -82,11 +89,14 @@ export class GameEngine<
     this.currentState = config.state;
     this.rules = config.rules;
     this.seed = config.seed;
+    this.history = config.history ?? CommandHistory.disabled<TMove>();
     this.onListenerError = config.onListenerError;
     config.listeners?.forEach((listener) => this.listeners.add(listener));
     this.context = {
       play: (move) => this.play(move),
       reject: (move, reason) => this.reject(move, reason),
+      undo: () => this.performUndo(),
+      redo: () => this.performRedo(),
       moveTo: (state) => {
         this.session = state;
       },
@@ -136,6 +146,16 @@ export class GameEngine<
     return this.session instanceof FinishedState ? this.session.outcome : null;
   }
 
+  /** Whether `undo()` can currently revert a move (playing and permitted). */
+  get canUndo(): boolean {
+    return this.status === 'playing' && this.history.canUndo;
+  }
+
+  /** Whether `redo()` can currently reapply an undone move. */
+  get canRedo(): boolean {
+    return this.status === 'playing' && this.history.canRedo;
+  }
+
   /** Adds a listener; returns the function that removes it. */
   subscribe(listener: EventListener): () => void {
     this.listeners.add(listener);
@@ -149,6 +169,30 @@ export class GameEngine<
    */
   applyMove(move: TMove): MoveResult {
     return this.act(() => this.session.applyMove(this.context, move));
+  }
+
+  /**
+   * Reverts the last applied move when playing and undo is available (CU-04).
+   * Ignored (returns `false`, emits nothing) when unavailable or not playing.
+   */
+  undo(): boolean {
+    return this.act(() => this.session.undo(this.context));
+  }
+
+  /**
+   * Reapplies the last undone move when playing and redo is available (CU-05).
+   * Ignored (returns `false`, emits nothing) when unavailable or not playing.
+   */
+  redo(): boolean {
+    return this.act(() => this.session.redo(this.context));
+  }
+
+  /**
+   * Grants extra undo steps for the current session (e.g. from a booster
+   * Decorator), enabling undo even on variants whose baseline allowance is 0.
+   */
+  grantUndo(extra = 1): void {
+    this.history.grantUndo(extra);
   }
 
   /**
@@ -186,13 +230,26 @@ export class GameEngine<
    * throw, nothing was kept and the error goes on to the caller (CU-02 A5).
    */
   private play(move: TMove): MoveResult {
-    const draft = this.currentBoard.clone();
-    const result = this.rules.play(draft, this.currentState, move);
+    const beforeBoard = this.currentBoard;
+    const beforeState = this.currentState;
+    const draft = beforeBoard.clone();
+    const result = this.rules.play(draft, beforeState, move);
     if (result.kind === 'rejected') {
       return this.reject(move, result.reason);
     }
     this.currentBoard = draft;
     this.currentState = result.state;
+    this.history.record(
+      new ApplyMoveCommand(
+        move,
+        { board: beforeBoard, state: beforeState },
+        { board: draft, state: result.state },
+        (board, state) => {
+          this.currentBoard = board;
+          this.currentState = state;
+        },
+      ),
+    );
     this.emitEngine({ type: 'MoveApplied', move, points: result.points });
     result.events.forEach((event) => this.emit(event));
     return {
@@ -200,6 +257,24 @@ export class GameEngine<
       points: result.points,
       pendingOutcome: result.outcome,
     };
+  }
+
+  private performUndo(): boolean {
+    const command = this.history.undo();
+    if (command === null) {
+      return false;
+    }
+    this.emitEngine({ type: 'MoveUndone', move: command.move });
+    return true;
+  }
+
+  private performRedo(): boolean {
+    const command = this.history.redo();
+    if (command === null) {
+      return false;
+    }
+    this.emitEngine({ type: 'MoveRedone', move: command.move });
+    return true;
   }
 
   /** Emits `MoveRejected`; the game stays exactly as it was. */
