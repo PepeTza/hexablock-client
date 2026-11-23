@@ -805,6 +805,19 @@ One entry per significant use. Copy the template.
   Discovering all full rows before removing cells preserves crossing
   combos. The uncapped streak has a bound based on move count for RN-39.
   The tray and end-of-game rules are separate tasks (#32 and #33).
+### 2026-11-23 — Level definition, builder and validator port
+
+- **Tool / model:** Codex (GPT-6).
+- **Issue / PR:** #60 (T22).
+- **Prompt:** Implement the level definition, JSON Builder and validator port
+  for RN-13 and RN-37 in an isolated checkout, with tests first and no
+  speculative Fit or Sort schema.
+- **Result:** Added an immutable level snapshot, field-specific errors for
+  malformed common data and a validator port for variant playability checks.
+- **Team modifications:** Pending team review.
+- **Lessons / limitations:** Backend #32 owns the variant-specific JSON
+  format. The Builder preserves the spec as JSON and leaves version support
+  and playability to the variant validator.
 
 ## 3. Critical evaluation
 
