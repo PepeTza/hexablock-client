@@ -791,6 +791,21 @@ One entry per significant use. Copy the template.
   reports panel coverage; Jest enforces the shared domain and application
   thresholds.
 
+### 2026-11-23 — Hexa Lines clearing and scoring
+
+- **Tool / model:** Codex (GPT-6).
+- **Issue / PR:** #31.
+- **Prompt (paraphrase):** Implement three-axis clears and D-08 scoring
+  in an isolated branch from origin/main, write tests first, and assess
+  a streak cap. Leave the changes local for review.
+- **Result:** Added the Lines resolution step, the scoring policy, and
+  tests for each axis, crossing lines, streak reset, and score examples.
+- **Team modifications:** Pending review.
+- **Lessons / limitations:** Board geometry already enumerates rows.
+  Discovering all full rows before removing cells preserves crossing
+  combos. The uncapped streak has a bound based on move count for RN-39.
+  The tray and end-of-game rules are separate tasks (#32 and #33).
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
