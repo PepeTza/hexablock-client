@@ -898,6 +898,16 @@ One entry per significant use. Copy the template.
   exact traversal order needed for closest-to-edge merge precedence (RN-27) in
   #69 while keeping hex coordinates opaque outside `HexGeometry`.
 
+### 2026-11-23 — Admin login
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #63.
+- **Prompt:** Complete the admin-only login using the existing API contract.
+- **Result:** Added a role-aware use case, HTTP adapter and panel form.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** The browser needed a wrapper around fetch.
+  Role checks passed against simulated API responses; deployment is separate.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
