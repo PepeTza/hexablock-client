@@ -1,5 +1,6 @@
 import type { Board } from '../board/board';
 import type { GameState } from '../game/game-state';
+import type { GameStatus } from '../game/session-states';
 import type { ICoord } from '../geometry/coord';
 
 /**
@@ -12,6 +13,21 @@ import type { ICoord } from '../geometry/coord';
  */
 export interface IUndoable {
   readonly undoable: true;
+}
+
+/**
+ * Segregated view of a running game session needed by `UndoMoveUseCase`
+ * (CU-04) and `RedoMoveUseCase` (CU-05) without coupling them to a variant's
+ * cell, coordinate or move types (ISP). `GameEngine` satisfies it
+ * structurally.
+ */
+export interface IUndoableSession<TState extends GameState = GameState> {
+  readonly state: TState;
+  readonly status: GameStatus;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
+  undo(): boolean;
+  redo(): boolean;
 }
 
 /**
