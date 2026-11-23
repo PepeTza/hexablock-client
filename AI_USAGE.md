@@ -934,6 +934,18 @@ One entry per significant use. Copy the template.
   aliases only). Keeping the rule in `AGENTS.md` ensures all team members and
   agents follow `CommandService` + `Either` without casts.
 
+### 2026-11-23 — Hexa Fit undo and redo
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #81.
+- **Prompt:** Give Fit unlimited undo and redo under RN-16 and RN-17.
+- **Result:** Reused the generic command history and verified that undo restores
+  the board, tray and move count. A successful move clears the redo history.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Elapsed time belongs to the session clock, outside
+  the command history. The clock test in the Fit screen draft (#155) verifies
+  that undo does not give back time.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
