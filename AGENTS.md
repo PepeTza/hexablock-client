@@ -122,6 +122,10 @@ The full rules are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
   (`<<aspect>>`: logging, exception handling, authorization, retry, cache) are
   Decorators implementing the same interface and wrapping
   `decorate: CommandService<...>` without type casts.
+- Design for change (`CONTRIBUTING.md` §4): never assume a requirement will
+  not change. Values from the game rules or the statement (board size and
+  shape, limits, counts, formulas) are data, not scattered constants. Check
+  plans and diffs with the `change-scenarios` skill.
 - Randomness always goes through an injected, seedable random source, so
   tests are deterministic.
 - Tests: `should_<result>_when_<condition>`, Arrange / Act / Assert. You
