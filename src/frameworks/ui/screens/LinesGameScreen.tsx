@@ -13,51 +13,12 @@ import {
   View,
 } from 'react-native';
 
+import { HexCell } from '../components/HexCell';
 import type { RootStackParamList } from '../navigation/routes';
 import { useServices } from '../services/ServicesContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Variant'>;
 const ORIGIN = { x: 0, y: 0 };
-const ROTATIONS = ['0deg', '60deg', '120deg'];
-
-function Cell({
-  point,
-  size,
-  color,
-}: {
-  point: BoardPoint;
-  size: number;
-  color: string;
-}) {
-  const width = Math.sqrt(3) * size;
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        left: point.x - width / 2,
-        top: point.y - size,
-        width,
-        height: 2 * size,
-      }}
-    >
-      {ROTATIONS.map((rotate) => (
-        <View
-          key={rotate}
-          style={{
-            position: 'absolute',
-            top: size / 2,
-            width,
-            height: size,
-            backgroundColor: color,
-            transform: [{ rotate }],
-          }}
-        />
-      ))}
-    </View>
-  );
-}
-
 interface TrayPieceProps {
   readonly slot: number;
   readonly cells: readonly HexCoord[];
@@ -104,7 +65,7 @@ function TrayPiece({
   return (
     <>
       {cells.map((coord) => (
-        <Cell
+        <HexCell
           key={coord.key()}
           point={projection.centerOf(coord)}
           size={size * 0.55}
@@ -208,7 +169,7 @@ export function LinesGameScreen({ navigation }: Props) {
                 : '#cfd9e8';
           return (
             <Fragment key={coord.key()}>
-              <Cell point={center} size={size * 0.91} color={color} />
+              <HexCell point={center} size={size * 0.91} color={color} />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Cell ${coord.key()}`}
@@ -258,7 +219,7 @@ export function LinesGameScreen({ navigation }: Props) {
             ),
         )}
         {ghostCells?.map((coord) => (
-          <Cell
+          <HexCell
             key={coord.key()}
             point={ghostProjection.centerOf(coord)}
             size={size * 0.87}

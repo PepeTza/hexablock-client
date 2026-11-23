@@ -921,6 +921,20 @@ One entry per significant use. Copy the template.
   tested with the React Native test renderer. Drag performance needs a
   physical Android device. Records currently use the in-memory adapter.
 
+### 2026-11-23 — Hexa Fit playable screen
+
+- **Tool / model:** Codex (GPT-6).
+- **Issue / PR:** #87, layered on #34 and #37.
+- **Prompt:** Build and verify an offline mobile Fit slice with placement,
+  removal, relocation, rotation, undo, redo, and a clock.
+- **Result:** Integrated the relevant source and tests from #80, #81 and #83,
+  connected the Fit presenter to the shared renderer and finish-game use case,
+  and added mobile navigation and elapsed-time regression tests.
+- **Team modifications:** Requested the shared finish-game use case and
+  identified the replacement commit for #83.
+- **Lessons / limitations:** The temporary fixture uses in-memory progress.
+  Published levels, level selection and durable progress remain separate.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

@@ -41,6 +41,9 @@ async function renderMenu(loadSummary: LoadSummary) {
   const services: AppServices = {
     mainMenu: new MainMenuPresenter(loadSummary, MENU_VARIANTS),
     gameResult: new GameResultPresenter(),
+    startFit: () => {
+      throw new Error('This screen does not start sessions');
+    },
     startLines: () => {
       throw new Error('This screen does not start sessions');
     },

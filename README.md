@@ -25,6 +25,18 @@ Accounts, progress sync, leaderboards and level content are served by the
 
 _Coming soon: screenshots or GIFs of the four variants._
 
+To play the offline Hexa Fit demo, select **Hexa Fit** in the mobile menu.
+Drag a piece from the tray onto the figure, or select it and tap a cell.
+Select a placed piece to rotate or remove it. Drag it to another position
+or back to the tray. Undo and redo restore the pieces and move counter.
+The clock runs until the figure is complete.
+
+The demo uses a temporary three-cell figure with catalog pieces and sample
+star thresholds. Victory uses the shared finish-game flow and the app's
+in-memory progress store. The demo counts as one completed Fit level for
+the current app session. Published levels depend on backend PR #45, persistent
+progress on client #40, and level selection on the later #90 integration.
+
 ## Architecture
 
 The client follows Clean Architecture with four layers. Arrows show code

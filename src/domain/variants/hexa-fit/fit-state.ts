@@ -10,7 +10,12 @@ export interface IFitPiece {
   readonly piece: Piece<HexCoord>;
 }
 
-/** The board stores placed IDs; the tray holds the remaining pieces. */
+export interface IPlacedFitPiece extends IFitPiece {
+  readonly anchor: HexCoord;
+}
+
+/** The board stores placed IDs; the session tracks each piece's orientation and placement. */
 export interface FitState extends GameState {
   readonly pendingPieces: readonly IFitPiece[];
+  readonly placedPieces: readonly IPlacedFitPiece[];
 }

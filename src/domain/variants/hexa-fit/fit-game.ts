@@ -1,5 +1,6 @@
 import { Board } from '../../engine/board/board';
 import type { BoardShape } from '../../engine/board/board-shape';
+import { CommandHistory } from '../../engine/commands/command-history';
 import { GameEngine } from '../../engine/game/game-engine';
 import type { HexCoord } from '../../engine/hex/hex-coord';
 import { HexGeometry } from '../../engine/hex/hex-geometry';
@@ -17,10 +18,12 @@ export function startFitGame(
     state: {
       score: 0,
       moveCount: 0,
+      placedPieces: [],
       pendingPieces: pieces.map((piece, id) => ({ id, piece })),
     },
     // Placements do not award points; RN-18 scores a completed level.
     rules: new FitRules({ pointsFor: () => 0 }),
     seed: null,
+    history: CommandHistory.unlimited<FitMove>(),
   });
 }

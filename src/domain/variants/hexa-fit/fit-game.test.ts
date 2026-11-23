@@ -12,6 +12,77 @@ const single = Piece.of(catalog.get('p1-01'));
 const pair = Piece.of(catalog.get('p2-01'));
 
 describe('Hexa Fit core', () => {
+  it('should_count_one_move_when_relocating_a_piece_to_a_free_cell', () => {
+    // Arrange
+    const game = startFitGame(BoardShape.of([west, origin, east]), [
+      single,
+      single,
+      single,
+    ]);
+    game.applyMove({ pieceId: 0, anchor: west });
+    game.resolutionDone();
+
+    // Act
+    const result = game.applyMove({
+      kind: 'relocate',
+      pieceId: 0,
+      anchor: origin,
+    });
+
+    // Assert
+    expect(result.kind).toBe('applied');
+    expect(game.board.isEmpty(west)).toBe(true);
+    expect(game.board.cellAt(origin)).toBe(0);
+    expect(game.state.moveCount).toBe(2);
+  });
+
+  it('should_keep_the_original_footprint_when_an_invalid_relocation_overlaps_another_piece', () => {
+    // Arrange
+    const game = startFitGame(BoardShape.of([west, origin, east]), [
+      single,
+      single,
+      single,
+    ]);
+    game.applyMove({ pieceId: 0, anchor: west });
+    game.resolutionDone();
+    game.applyMove({ pieceId: 1, anchor: east });
+    game.resolutionDone();
+
+    // Act
+    const rejected = game.applyMove({
+      kind: 'relocate',
+      pieceId: 0,
+      anchor: east,
+    });
+
+    // Assert
+    expect(rejected.kind).toBe('rejected');
+    expect(game.board.cellAt(west)).toBe(0);
+    expect(game.board.cellAt(east)).toBe(1);
+    expect(game.state.moveCount).toBe(2);
+  });
+
+  it('should_restore_a_removed_piece_when_undoing_without_refunding_a_move', () => {
+    // Arrange
+    const game = startFitGame(BoardShape.of([origin, east]), [single, single]);
+    game.applyMove({ pieceId: 0, anchor: origin });
+    game.resolutionDone();
+
+    // Act
+    const removal = game.applyMove({ kind: 'remove', pieceId: 0 });
+    game.resolutionDone();
+    const emptyAfterRemoval = game.board.isEmpty(origin);
+    const movesAfterRemoval = game.state.moveCount;
+    const undo = game.undo();
+
+    // Assert
+    expect(removal.kind).toBe('applied');
+    expect(emptyAfterRemoval).toBe(true);
+    expect(movesAfterRemoval).toBe(1);
+    expect(undo).toBe(true);
+    expect(game.board.cellAt(origin)).toBe(0);
+  });
+
   it('should_place_the_rotated_catalog_piece_when_its_cells_fit_at_the_anchor', () => {
     // Arrange
     const anchor = new HexCoord(2, -1);
@@ -154,4 +225,67 @@ describe('Hexa Fit core', () => {
     expect(game.state.pendingPieces).toHaveLength(1);
     expect(game.state.moveCount).toBe(0);
   });
+});
+
+it('should_preview_and_apply_a_rotation_when_the_turned_piece_fits', () => {
+  // Arrange
+  const anchor = new HexCoord(2, -1);
+  const covered = new HexCoord(1, -1);
+  const game = startFitGame(BoardShape.of([anchor, covered]), [pair]);
+  const move = { pieceId: 0, anchor, rotationSteps: 1 };
+
+  // Act
+  const preview = game.preview(move);
+
+  // Assert
+  expect(preview.kind).toBe('applied');
+  expect(game.state.moveCount).toBe(0);
+  expect(game.board.isEmpty(anchor)).toBe(true);
+  expect(game.applyMove(move).kind).toBe('applied');
+  expect(game.board.cellAt(covered)).toBe(0);
+  expect(game.state.moveCount).toBe(1);
+});
+
+it('should_keep_piece_and_move_count_when_the_rotation_overhangs_the_figure', () => {
+  // Arrange
+  const anchor = HexCoord.ORIGIN;
+  const game = startFitGame(BoardShape.of(pair.cellsAt(anchor)), [pair]);
+
+  // Act
+  const invalid = { pieceId: 0, anchor, rotationSteps: 1 };
+  const preview = game.preview(invalid);
+  const result = game.applyMove(invalid);
+
+  // Assert
+  expect(preview.kind).toBe('rejected');
+  expect(result.kind).toBe('rejected');
+  expect(game.state.moveCount).toBe(0);
+  expect(game.state.pendingPieces[0]?.piece).toBe(pair);
+  expect(game.board.isEmpty(anchor)).toBe(true);
+});
+
+it('should_restore_board_tray_and_moves_when_undoing_and_redoing_fit', () => {
+  // Arrange
+  const game = startFitGame(BoardShape.of([west, origin, east]), [
+    single,
+    single,
+    single,
+  ]);
+  game.applyMove({ pieceId: 0, anchor: origin });
+  game.resolutionDone();
+  game.applyMove({ pieceId: 1, anchor: east });
+  game.resolutionDone();
+
+  // Act and assert
+  expect(game.undo()).toBe(true);
+  expect(game.undo()).toBe(true);
+  expect(game.board.isEmpty(origin)).toBe(true);
+  expect(game.state.pendingPieces).toHaveLength(3);
+  expect(game.state.moveCount).toBe(0);
+  expect(game.redo()).toBe(true);
+  expect(game.board.cellAt(origin)).toBe(0);
+  expect(game.state.moveCount).toBe(1);
+  game.applyMove({ pieceId: 2, anchor: west });
+  game.resolutionDone();
+  expect(game.redo()).toBe(false);
 });
