@@ -83,6 +83,11 @@ npm run build   # type-checks and builds it into admin/dist
 npm run preview # serves the built panel
 ```
 
+Set `VITE_API_URL` to the backend API base URL (including `/api/v1`) when
+serving the panel and API from different origins. The backend must allow the
+panel origin. Sign in with an administrator account. The panel keeps the
+session in memory and signs out when the page is reloaded.
+
 ## Running Tests
 
 ```bash
