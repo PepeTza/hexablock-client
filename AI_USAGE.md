@@ -836,6 +836,21 @@ One entry per significant use. Copy the template.
   against decision 10 and proposed a tray of up to 3 stacks; the statement
   had to be read first. Issue #73 still has the old title.
 
+### 2026-11-23 — Hexa Lines seeded tray
+
+- **Tool / model:** Codex (GPT-6).
+- **Issue / PR:** #32.
+- **Prompt (paraphrase):** Implement the RN-08 seeded three-piece tray on
+  top of #31 in a separate worktree, covering D-07 weights and orientations.
+  Write tests first and leave the changes local for review.
+- **Result:** Added the Lines piece source and session. Tests cover tray
+  replacement, rejected placements, seeded previews, and the #31 scoring
+  integration.
+- **Team modifications:** Pending review.
+- **Lessons / limitations:** D-07 gives no numeric spawn weights, so every
+  shape starts at weight 1 and can be configured by ID. The source
+  snapshot prevents previews from consuming future pieces.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
