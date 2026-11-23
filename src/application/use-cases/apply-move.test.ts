@@ -10,7 +10,15 @@ import type { GameState } from '@domain/engine/game/game-state';
 import { HexCoord } from '@domain/engine/hex/hex-coord';
 import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 
+import type { Either } from '../common/either';
 import { ApplyMoveUseCase } from './apply-move';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 type NumberMove = { cell: HexCoord; value: number };
 type ColourMove = { cell: HexCoord; colour: 'red' | 'blue' };
@@ -128,11 +136,13 @@ describe('ApplyMoveUseCase', () => {
     engine.resolutionDone();
 
     // Act
-    const output = useCase.execute({
-      gameId: 'variant-numbers',
-      engine,
-      move: { cell: HexCoord.ORIGIN, value: 3 },
-    });
+    const output = expectRight(
+      useCase.execute({
+        gameId: 'variant-numbers',
+        engine,
+        move: { cell: HexCoord.ORIGIN, value: 3 },
+      }),
+    );
 
     // Assert
     expect(output.result).toEqual({ kind: 'rejected', reason: 'taken' });
@@ -145,11 +155,13 @@ describe('ApplyMoveUseCase', () => {
     const useCase = new ApplyMoveUseCase<NumberMove>();
 
     // Act
-    const output = useCase.execute({
-      gameId: 'variant-numbers',
-      engine,
-      move: { cell: HexCoord.ORIGIN, value: 7 },
-    });
+    const output = expectRight(
+      useCase.execute({
+        gameId: 'variant-numbers',
+        engine,
+        move: { cell: HexCoord.ORIGIN, value: 7 },
+      }),
+    );
 
     // Assert
     expect(output.result).toEqual({
@@ -173,11 +185,13 @@ describe('ApplyMoveUseCase', () => {
     const useCase = new ApplyMoveUseCase<NumberMove>();
 
     // Act
-    const output = useCase.execute({
-      gameId: 'variant-numbers',
-      engine,
-      move: { cell: HexCoord.ORIGIN, value: 7 },
-    });
+    const output = expectRight(
+      useCase.execute({
+        gameId: 'variant-numbers',
+        engine,
+        move: { cell: HexCoord.ORIGIN, value: 7 },
+      }),
+    );
 
     // Assert
     expect(output).toEqual({
@@ -211,16 +225,20 @@ describe('ApplyMoveUseCase', () => {
     const colourUseCase = new ApplyMoveUseCase<ColourMove>();
 
     // Act
-    const numberOutput = numberUseCase.execute({
-      gameId: 'variant-numbers',
-      engine: numberEngine,
-      move: { cell: HexCoord.ORIGIN, value: 5 },
-    });
-    const colourOutput = colourUseCase.execute({
-      gameId: 'variant-colours',
-      engine: colourEngine,
-      move: { cell: HexCoord.ORIGIN, colour: 'red' },
-    });
+    const numberOutput = expectRight(
+      numberUseCase.execute({
+        gameId: 'variant-numbers',
+        engine: numberEngine,
+        move: { cell: HexCoord.ORIGIN, value: 5 },
+      }),
+    );
+    const colourOutput = expectRight(
+      colourUseCase.execute({
+        gameId: 'variant-colours',
+        engine: colourEngine,
+        move: { cell: HexCoord.ORIGIN, colour: 'red' },
+      }),
+    );
 
     // Assert
     expect(numberOutput.state.score).toBe(5);

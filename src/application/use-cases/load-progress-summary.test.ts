@@ -1,7 +1,15 @@
 import type { GameId, PlayerProgress } from '@domain/progress/player-progress';
 
+import type { Either } from '../common/either';
 import type { IProgressRepository } from '../ports/progress-repository';
 import { LoadProgressSummaryUseCase } from './load-progress-summary';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 function createUseCase(
   entries: ReadonlyMap<GameId, PlayerProgress> = new Map(),
@@ -34,9 +42,9 @@ describe('LoadProgressSummaryUseCase', () => {
     );
 
     // Act
-    const summaries = await useCase.execute({
-      gameIds: ['hexa-lines', 'hexa-fit'],
-    });
+    const summaries = expectRight(
+      await useCase.execute({ gameIds: ['hexa-lines', 'hexa-fit'] }),
+    );
 
     // Assert
     expect(summaries).toEqual([
@@ -50,9 +58,9 @@ describe('LoadProgressSummaryUseCase', () => {
     const useCase = createUseCase();
 
     // Act
-    const summaries = await useCase.execute({
-      gameIds: ['hexa-merge'],
-    });
+    const summaries = expectRight(
+      await useCase.execute({ gameIds: ['hexa-merge'] }),
+    );
 
     // Assert
     expect(summaries).toEqual([
@@ -80,13 +88,35 @@ describe('LoadProgressSummaryUseCase', () => {
     );
 
     // Act
-    const summaries = await useCase.execute({
-      gameIds: ['hexa-sort'],
-    });
+    const summaries = expectRight(
+      await useCase.execute({ gameIds: ['hexa-sort'] }),
+    );
 
     // Assert
     expect(summaries).toEqual([
       { gameId: 'hexa-sort', highScore: 0, completedLevels: 2 },
     ]);
+  });
+
+  it('should_return_either_left_when_progress_repository_rejects', async () => {
+    // Arrange
+    const failing = new LoadProgressSummaryUseCase({
+      progress: {
+        findByGame: () => Promise.reject(new Error('storage offline')),
+        save: () => Promise.resolve(),
+      },
+    });
+
+    // Act
+    const outcome = await failing.execute({ gameIds: ['hexa-lines'] });
+
+    // Assert
+    expect(outcome.isLeft()).toBe(true);
+    expect(
+      outcome.fold(
+        (err) => err.message,
+        () => '',
+      ),
+    ).toBe('storage offline');
   });
 });

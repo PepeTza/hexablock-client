@@ -100,6 +100,10 @@ Every task follows [`harness/`](./harness/README.md). In short:
   change, stop and report it.
 - Use `any`, `@ts-ignore` or `eslint-disable` to silence an error without the
   human's approval and a comment explaining why.
+- Use type assertions / casts (`as SomeType`, `<SomeType>value`) in production
+  code to presuppose a concrete subtype or silence `noUncheckedIndexedAccess`;
+  use generics, type guards or narrowing (`typeof`, `instanceof`, explicit
+  `undefined` checks).
 - Put business rules in UI components, screens or HTTP controllers.
 
 ## 4. Code rules (summary)
@@ -110,6 +114,14 @@ The full rules are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
   [glossary](https://github.com/PepeTza/hexablock-client/blob/main/docs/glossary.md).
 - Dependency rule: inner layers never import outer ones. The domain has no
   framework, UI, storage or network imports.
+- Application use cases and AOP (`src/application/`): every use case
+  implements `CommandService<TCommand, TResult, TError>` (or
+  `AsyncCommandService`), returning `Either<TError, TResult>` instead of
+  throwing domain or validation errors (Mark Seemann, *Dependency Injection
+  Principles, Practices, and Patterns*, Ch. 10). Cross-cutting aspects
+  (`<<aspect>>`: logging, exception handling, authorization, retry, cache) are
+  Decorators implementing the same interface and wrapping
+  `decorate: CommandService<...>` without type casts.
 - Randomness always goes through an injected, seedable random source, so
   tests are deterministic.
 - Tests: `should_<result>_when_<condition>`, Arrange / Act / Assert. You

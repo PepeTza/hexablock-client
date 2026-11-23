@@ -1,107 +1,187 @@
+import type { Either } from '../common/either';
 import type { IClock, ILogger, LogContext } from '../ports/logger';
-import type { IUseCase } from '../use-cases/use-case';
+import type {
+  AsyncCommandService,
+  CommandService,
+} from '../use-cases/use-case';
 
 /**
- * Allowlist describing which fields of a use case's input and resolved output
- * may be written to the log (decision 22).
+ * Allowlist describing which fields of a command and its resolved result may
+ * be written to the log (decision 22).
  *
- * Supplied in the composition root where the concrete types are known. Any
- * omitted projection causes that payload to be skipped so secrets such as
- * passwords or tokens never reach logs by default.
+ * Supplied in the composition root where concrete types are known. Any omitted
+ * projection causes that payload to be skipped so secrets such as passwords or
+ * tokens never reach logs by default.
  */
-export interface UseCaseLogDescription<TInput, TOutput> {
-  readonly input?: (input: TInput) => LogContext;
-  readonly output?: (output: Awaited<TOutput>) => LogContext;
+export interface CommandLogDescription<TCommand, TResult> {
+  readonly input?: (command: TCommand) => LogContext;
+  readonly output?: (result: TResult) => LogContext;
 }
 
+export type UseCaseLogDescription<TCommand, TResult> = CommandLogDescription<
+  TCommand,
+  TResult
+>;
+
 /**
- * Decorator (AOP without libraries, ADR-06, RNF-04, HU11): wraps any
- * `IUseCase` with a secure-by-default allowlist.
+ * Decorator (`<<aspect>>`, Mark Seemann Ch. 10, ADR-06, RNF-04, HU11): wraps
+ * any synchronous `CommandService` with a secure-by-default allowlist.
  *
- * Without `describe`, only the use case name, `durationMs` and (on failure)
- * the error message are logged. `describe` is supplied by the composition root
- * so passwords and tokens are never logged (decision 22).
- *
- * Works identically for synchronous (`ApplyMoveUseCase`) and asynchronous
- * (`StartGameUseCase`, `FinishGameUseCase`) use cases.
+ * Logs `info` on `Right` and `error` on `Left` (or unexpected exceptions)
+ * without type assertions (`as`).
  */
-export class LoggingUseCaseDecorator<TInput, TOutput> implements IUseCase<
-  TInput,
-  TOutput
-> {
+export class LoggingCommandServiceDecorator<
+  TCommand,
+  TResult = void,
+  TError extends Error = Error,
+> implements CommandService<TCommand, TResult, TError> {
   constructor(
     private readonly name: string,
-    private readonly wrapped: IUseCase<TInput, TOutput>,
+    private readonly decorate: CommandService<TCommand, TResult, TError>,
     private readonly logger: ILogger,
     private readonly clock: IClock,
-    private readonly describe?: UseCaseLogDescription<TInput, TOutput>,
+    private readonly describe?: CommandLogDescription<TCommand, TResult>,
   ) {}
 
-  execute(input: TInput): TOutput {
+  execute(command: TCommand): Either<TError, TResult> {
     const startedAt = this.clock.now();
-    let result: TOutput;
     try {
-      result = this.wrapped.execute(input);
+      const outcome = this.decorate.execute(command);
+      return recordOutcome(
+        this.name,
+        command,
+        outcome,
+        startedAt,
+        this.logger,
+        this.clock,
+        this.describe,
+      );
     } catch (error) {
-      this.logError(input, startedAt, error);
+      logError(
+        this.name,
+        command,
+        error,
+        startedAt,
+        this.logger,
+        this.clock,
+        this.describe,
+      );
       throw error;
     }
-
-    if (isPromiseLike(result)) {
-      return result.then(
-        (resolved) => {
-          // Safe cast: once resolved, the promise's value matches Awaited<TOutput>.
-          this.logSuccess(input, resolved as Awaited<TOutput>, startedAt);
-          return resolved;
-        },
-        (error: unknown) => {
-          this.logError(input, startedAt, error);
-          throw error;
-        },
-      ) as TOutput;
-    }
-
-    // Safe cast: for a synchronous use case, Awaited<TOutput> equals TOutput.
-    this.logSuccess(input, result as Awaited<TOutput>, startedAt);
-    return result;
-  }
-
-  private logSuccess(
-    input: TInput,
-    output: Awaited<TOutput>,
-    startedAt: number,
-  ): void {
-    const context: Record<string, unknown> = {
-      useCase: this.name,
-      durationMs: this.clock.now() - startedAt,
-    };
-    if (this.describe?.input) {
-      context.input = this.describe.input(input);
-    }
-    if (this.describe?.output) {
-      context.output = this.describe.output(output);
-    }
-    this.logger.info(`${this.name} executed`, context);
-  }
-
-  private logError(input: TInput, startedAt: number, error: unknown): void {
-    const context: Record<string, unknown> = {
-      useCase: this.name,
-      durationMs: this.clock.now() - startedAt,
-      error: error instanceof Error ? error.message : String(error),
-    };
-    if (this.describe?.input) {
-      context.input = this.describe.input(input);
-    }
-    this.logger.error(`${this.name} failed`, context);
   }
 }
 
-function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'then' in value &&
-    typeof value.then === 'function'
-  );
+/**
+ * Decorator (`<<aspect>>`, Mark Seemann Ch. 10, ADR-06, RNF-04, HU11): wraps
+ * any `AsyncCommandService` with a secure-by-default allowlist, avoiding runtime
+ * `Promise` type casts.
+ */
+export class AsyncLoggingCommandServiceDecorator<
+  TCommand,
+  TResult = void,
+  TError extends Error = Error,
+> implements AsyncCommandService<TCommand, TResult, TError> {
+  constructor(
+    private readonly name: string,
+    private readonly decorate: AsyncCommandService<TCommand, TResult, TError>,
+    private readonly logger: ILogger,
+    private readonly clock: IClock,
+    private readonly describe?: CommandLogDescription<TCommand, TResult>,
+  ) {}
+
+  async execute(command: TCommand): Promise<Either<TError, TResult>> {
+    const startedAt = this.clock.now();
+    try {
+      const outcome = await this.decorate.execute(command);
+      return recordOutcome(
+        this.name,
+        command,
+        outcome,
+        startedAt,
+        this.logger,
+        this.clock,
+        this.describe,
+      );
+    } catch (error) {
+      logError(
+        this.name,
+        command,
+        error,
+        startedAt,
+        this.logger,
+        this.clock,
+        this.describe,
+      );
+      throw error;
+    }
+  }
+}
+
+export { LoggingCommandServiceDecorator as LoggingUseCaseDecorator };
+
+function recordOutcome<TCommand, TResult, TError extends Error>(
+  name: string,
+  command: TCommand,
+  outcome: Either<TError, TResult>,
+  startedAt: number,
+  logger: ILogger,
+  clock: IClock,
+  describe?: CommandLogDescription<TCommand, TResult>,
+): Either<TError, TResult> {
+  if (outcome.isRight()) {
+    logSuccess(
+      name,
+      command,
+      outcome.value,
+      startedAt,
+      logger,
+      clock,
+      describe,
+    );
+  } else {
+    logError(name, command, outcome.value, startedAt, logger, clock, describe);
+  }
+  return outcome;
+}
+
+function logSuccess<TCommand, TResult>(
+  name: string,
+  command: TCommand,
+  result: TResult,
+  startedAt: number,
+  logger: ILogger,
+  clock: IClock,
+  describe?: CommandLogDescription<TCommand, TResult>,
+): void {
+  const context: Record<string, unknown> = {
+    useCase: name,
+    durationMs: clock.now() - startedAt,
+  };
+  if (describe?.input) {
+    context.input = describe.input(command);
+  }
+  if (describe?.output) {
+    context.output = describe.output(result);
+  }
+  logger.info(`${name} executed`, context);
+}
+
+function logError<TCommand, TResult>(
+  name: string,
+  command: TCommand,
+  error: unknown,
+  startedAt: number,
+  logger: ILogger,
+  clock: IClock,
+  describe?: CommandLogDescription<TCommand, TResult>,
+): void {
+  const context: Record<string, unknown> = {
+    useCase: name,
+    durationMs: clock.now() - startedAt,
+    error: error instanceof Error ? error.message : String(error),
+  };
+  if (describe?.input) {
+    context.input = describe.input(command);
+  }
+  logger.error(`${name} failed`, context);
 }

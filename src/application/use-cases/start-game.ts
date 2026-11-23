@@ -5,6 +5,7 @@ import type {
 } from '@domain/engine/game/variant-factory';
 import type { GameId } from '@domain/progress/player-progress';
 
+import { Either } from '../common/either';
 import type {
   ILevelRepository,
   ILevelSummary,
@@ -14,9 +15,9 @@ import type {
   ISeedConfigRepository,
   ISeedGenerator,
 } from '../ports/seed-config-repository';
-import type { IUseCase } from './use-case';
+import type { AsyncCommandService } from './use-case';
 
-/** Input required to start a new game session (CU-01). */
+/** Command required to start a new game session (CU-01). */
 export interface StartGameInput {
   readonly gameId: GameId;
   readonly levelId?: string;
@@ -46,17 +47,34 @@ export interface StartGameDeps {
  * status when applicable (RN-19, RN-25), resolves the seed (RN-05) and starts
  * the engine with zero conditionals per variant (OCP).
  */
-export class StartGameUseCase implements IUseCase<
+export class StartGameUseCase implements AsyncCommandService<
   StartGameInput,
-  Promise<StartGameOutput>
+  StartGameOutput
 > {
   constructor(private readonly deps: StartGameDeps) {}
 
-  async execute(input: StartGameInput): Promise<StartGameOutput> {
+  async execute(
+    input: StartGameInput,
+  ): Promise<Either<Error, StartGameOutput>> {
+    if (!this.deps.factories.has(input.gameId)) {
+      return Either.left(
+        new RangeError(`No variant factory registered for ${input.gameId}`),
+      );
+    }
     const factory = this.deps.factories.get(input.gameId);
-    const level = factory.usesLevels
-      ? await this.loadUnlockedLevel(input.gameId, input.levelId)
-      : undefined;
+
+    let level: ILevelSummary | undefined;
+    if (factory.usesLevels) {
+      const levelOutcome = await this.loadUnlockedLevel(
+        input.gameId,
+        input.levelId,
+      );
+      if (levelOutcome.isLeft()) {
+        return Either.left(levelOutcome.value);
+      }
+      level = levelOutcome.value;
+    }
+
     const seed = factory.usesSeed
       ? await this.resolveSeed(input.gameId, level?.id)
       : null;
@@ -65,24 +83,28 @@ export class StartGameUseCase implements IUseCase<
       level,
       listeners: input.listeners,
     });
-    return {
+    return Either.right({
       gameId: input.gameId,
       levelId: level?.id ?? null,
       seed,
       engine,
-    };
+    });
   }
 
   private async loadUnlockedLevel(
     gameId: GameId,
     levelId: string | undefined,
-  ): Promise<ILevelSummary> {
+  ): Promise<Either<Error, ILevelSummary>> {
     if (levelId === undefined) {
-      throw new RangeError(`Variant ${gameId} requires a levelId`);
+      return Either.left(
+        new RangeError(`Variant ${gameId} requires a levelId`),
+      );
     }
     const level = await this.deps.levels.findById(gameId, levelId);
     if (level === null) {
-      throw new RangeError(`Level ${levelId} was not found for ${gameId}`);
+      return Either.left(
+        new RangeError(`Level ${levelId} was not found for ${gameId}`),
+      );
     }
     const ordered = [...(await this.deps.levels.findByGame(gameId))].sort(
       (a, b) => a.order - b.order,
@@ -91,7 +113,9 @@ export class StartGameUseCase implements IUseCase<
     if (position === -1) {
       // Without its place in the list the unlock check cannot run, so the
       // level is treated as missing rather than as unlocked (CU-01 A2).
-      throw new RangeError(`Level ${levelId} was not found for ${gameId}`);
+      return Either.left(
+        new RangeError(`Level ${levelId} was not found for ${gameId}`),
+      );
     }
     if (position > 0) {
       const previous = ordered[position - 1];
@@ -99,11 +123,11 @@ export class StartGameUseCase implements IUseCase<
         const progress = await this.deps.progress.findByGame(gameId);
         const isUnlocked = progress?.levels[previous.id]?.completed === true;
         if (!isUnlocked) {
-          throw new RangeError(`Level ${level.id} is locked`);
+          return Either.left(new RangeError(`Level ${level.id} is locked`));
         }
       }
     }
-    return level;
+    return Either.right(level);
   }
 
   private async resolveSeed(

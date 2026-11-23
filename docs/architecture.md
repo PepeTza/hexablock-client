@@ -40,7 +40,7 @@ Four concentric layers; **dependencies only point inwards**.
 | Layer | Content | Rule |
 |---|---|---|
 | 1. Entities / Domain | `ICoord`, `HexCoord`, `Board<TCell, TCoord>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TResolution>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
-| 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase<...>`, `ApplyMoveUseCase<...>`, `FinishGameUseCase`), the aspects that wrap them, and the ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
+| 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase`, `ApplyMoveUseCase`, `FinishGameUseCase`), implementing `CommandService<TCommand, TResult, TError>` / `AsyncCommandService<TCommand, TResult, TError>` returning `Either<TError, TResult>`, plus the `<<aspect>>` decorators (`LoggingCommandServiceDecorator`, `ExceptionHandlingCommandServiceDecorator`) and ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
 | 3. Interface adapters | Presenters / view models / controllers, `IBoardProjection` (`TCoord` ↔ screen), repositories implementing the ports, entity ↔ DTO mappers, per-variant state serialisation | Translate between domain and frameworks. |
 | 4. Frameworks & drivers | UI / rendering, local database, HTTP client, audio, remote database (PostgreSQL on Supabase) and the REST backend as an external service | Replaceable without touching inner layers. |
 
@@ -209,21 +209,29 @@ implementation is removed from this table in the same PR.
 
 ## 6. AOP without libraries
 
-Decorators / proxies on the generic use cases, so one aspect applies to the
-four variants.
+Decorators (`<<aspect>>`, Mark Seemann, *Dependency Injection Principles,
+Practices, and Patterns*, Ch. 10) wrap `CommandService<TCommand, TResult, TError>`
+and `AsyncCommandService<TCommand, TResult, TError>` returning
+`Either<TError, TResult>`, so one aspect applies uniformly to the four
+variants without runtime type casting (`as`) or throwing exceptions across the
+UI boundary:
 
-- **Minimum:** logging and traceability (`LoggingUseCaseDecorator`: name and
-  duration of every use case except CU-03).
+- **Logging (`LoggingCommandServiceDecorator`, `AsyncLoggingCommandServiceDecorator`):**
+  logs name, duration and outcome (`info` on `Right`, `error` with `left.message`
+  on `Left` or unexpected failure) for every use case except CU-03.
   - Input and output are logged only through an allowlist
     (`describe: { input?, output? }`) supplied in the composition root when
-    each use case is wrapped. Without it, only the name, duration and error
-    message are logged.
+    each command service is wrapped. Without it, only the name, duration and
+    error message are logged.
   - A denylist of key names was rejected (it only protects the names someone
     remembered).
   - Error messages must never contain user data (passwords, tokens,
     usernames), because the message is always logged (decision 22).
-- **Low-cost extras:** centralised exception handling with retries on sync;
-  security (session check before CU-12, CU-13, CU-14); short-lived cache on
+- **Exception handling (`ExceptionHandlingCommandServiceDecorator`, `AsyncExceptionHandlingCommandServiceDecorator`):**
+  catches unexpected rejections/throws from infrastructure ports and turns them
+  into `Either.left(Error)`.
+- **Other planned aspects:** retries on sync; security / authorization
+  (session check before CU-12, CU-13, CU-14 per RN-35); short-lived cache on
   the leaderboard (CU-14); profiling of the Hexa Sort cascade.
 - **Backend:** NestJS interceptors, guards and exception filters.
 

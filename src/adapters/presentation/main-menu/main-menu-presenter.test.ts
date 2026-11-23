@@ -1,8 +1,9 @@
+import { Either } from '@application/common/either';
 import type {
   LoadProgressSummaryInput,
   ProgressSummary,
 } from '@application/use-cases/load-progress-summary';
-import type { IUseCase } from '@application/use-cases/use-case';
+import type { AsyncCommandService } from '@application/use-cases/use-case';
 
 import {
   MainMenuPresenter,
@@ -15,11 +16,13 @@ import { MENU_VARIANTS } from './menu-variants';
 
 function createFakeLoadSummary(
   summaries: readonly ProgressSummary[] = [],
-): IUseCase<LoadProgressSummaryInput, Promise<readonly ProgressSummary[]>> {
+): AsyncCommandService<LoadProgressSummaryInput, readonly ProgressSummary[]> {
   return {
     execute: (input) =>
       Promise.resolve(
-        summaries.filter((summary) => input.gameIds.includes(summary.gameId)),
+        Either.right(
+          summaries.filter((summary) => input.gameIds.includes(summary.gameId)),
+        ),
       ),
   };
 }
@@ -97,24 +100,38 @@ describe('MainMenuPresenter', () => {
 
   it('should_list_every_variant_without_progress_labels_when_loading_progress_fails', async () => {
     // Arrange
-    const failingLoadSummary: IUseCase<
+    const failingLoadSummary: AsyncCommandService<
       LoadProgressSummaryInput,
-      Promise<readonly ProgressSummary[]>
+      readonly ProgressSummary[]
+    > = {
+      execute: () => Promise.resolve(Either.left(new Error('storage failed'))),
+    };
+    const rejectingLoadSummary: AsyncCommandService<
+      LoadProgressSummaryInput,
+      readonly ProgressSummary[]
     > = { execute: () => Promise.reject(new Error('storage unavailable')) };
-    const presenter = new MainMenuPresenter(failingLoadSummary, MENU_VARIANTS);
+    const presenterFromLeft = new MainMenuPresenter(
+      failingLoadSummary,
+      MENU_VARIANTS,
+    );
+    const presenterFromThrow = new MainMenuPresenter(
+      rejectingLoadSummary,
+      MENU_VARIANTS,
+    );
 
     // Act
-    const viewModel = await presenter.load();
+    const viewModel = await presenterFromLeft.load();
+    const throwViewModel = await presenterFromThrow.load();
 
     // Assert
     expect(viewModel.title).toBe('HexaBlock Suite');
-    expect(viewModel.variants).toEqual(
-      MENU_VARIANTS.map((entry) => ({
-        gameId: entry.gameId,
-        name: entry.name,
-        progressLabel: null,
-      })),
-    );
+    const expectedVariants = MENU_VARIANTS.map((entry) => ({
+      gameId: entry.gameId,
+      name: entry.name,
+      progressLabel: null,
+    }));
+    expect(viewModel.variants).toEqual(expectedVariants);
+    expect(throwViewModel.variants).toEqual(expectedVariants);
   });
 
   it('should_list_new_variant_when_its_entry_is_added_to_configuration', async () => {
