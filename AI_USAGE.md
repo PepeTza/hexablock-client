@@ -730,6 +730,26 @@ One entry per significant use. Copy the template.
     `CommandHistory` avoids breaking OCP later when booster Decorators unlock
     undo mid-game in variants without baseline undo.
 
+### 2026-11-22 — Undo and redo move use cases (issue #123)
+
+- **Tool / model:** Antigravity, Gemini 4 Argon.
+- **Issue / PR:** #123 (CU-04, CU-05, follow-up of #58).
+- **Prompt (paraphrase):** implement #123 through the harness (gate 1 plan,
+  `UndoMoveUseCase`, `RedoMoveUseCase`, AAA tests and Gate 4 docs).
+- **Result:** added segregated interface `IUndoableSession<TState>` in
+  `src/domain/engine/commands/command.ts`, created `UndoMoveUseCase` and
+  `RedoMoveUseCase` in `src/application/use-cases/` plus 7 tests covering
+  undo, redo, booster-granted undo, ignored non-playing/empty states and
+  `LoggingUseCaseDecorator` allowlist logging (100 % coverage; 252 / 252 app,
+  9 / 9 panel).
+- **Team modifications:** none; implemented the approved gate 1 plan as
+  specified.
+- **Lessons / limitations:**
+  - Segregating `IUndoableSession` instead of adding `undo()`/`redo()` to
+    `IGameSession` avoided churning existing session test doubles in
+    `StartGameUseCase`, `FinishGameUseCase` and `VariantFactoryRegistry` tests
+    (ISP).
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
