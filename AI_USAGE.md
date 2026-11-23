@@ -819,6 +819,23 @@ One entry per significant use. Copy the template.
   format. The Builder preserves the spec as JSON and leaves version support
   and playability to the variant validator.
 
+### 2026-11-23 — Align Hexa Sort rules with the project statement
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #133.
+- **Prompt (paraphrase):** check the project statement against both
+  repositories, then align the client docs with the Hexa Sort format of
+  backend #42.
+- **Result:** a read-only audit of the statement against both repositories,
+  and RN-23, the glossary, the domain model, HU21 and decisions 10 and 11
+  updated to a tray of one stack and whole-stack removal.
+- **Team modifications:** The statement removes the whole stack at 10 chips
+  of one colour, while RN-23 cleared only the top run and was labelled
+  Statement. The owner chose the statement.
+- **Lessons / limitations:** The AI first checked the Sort values only
+  against decision 10 and proposed a tray of up to 3 stacks; the statement
+  had to be read first. Issue #73 still has the old title.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
