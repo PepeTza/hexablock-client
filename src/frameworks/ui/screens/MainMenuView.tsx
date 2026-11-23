@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  type GestureResponderEvent,
   PanResponder,
   Pressable,
   ScrollView,
@@ -10,7 +11,6 @@ import {
 } from 'react-native';
 
 import {
-  DEFAULT_SWIPE_THRESHOLD,
   resolveCarouselSwipe,
   stepCarouselIndex,
   toggleMenuMode,
@@ -21,6 +21,8 @@ import type {
   MainMenuViewModel,
 } from '@adapters/presentation/main-menu/main-menu-view-model';
 import type { GameId } from '@domain/progress/player-progress';
+
+const DRAG_CAPTURE_DISTANCE = 10;
 
 /** Props for the passive `MainMenuView`. */
 export interface MainMenuViewProps {
@@ -42,6 +44,9 @@ export function MainMenuView({
   const [mode, setMode] = useState<MainMenuMode>('carousel');
   const [activeIndex, setActiveIndex] = useState(0);
   const cardOpacity = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const didDragRef = useRef(false);
 
   const count = viewModel.variants.length;
   const safeIndex = count > 0 ? activeIndex % count : 0;
@@ -50,6 +55,7 @@ export function MainMenuView({
   const moveCarousel = useCallback(
     (step: CarouselStep) => {
       setActiveIndex((current) => stepCarouselIndex(current, count, step));
+      translateX.setValue(0);
       cardOpacity.setValue(0.75);
       Animated.timing(cardOpacity, {
         toValue: 1,
@@ -57,24 +63,99 @@ export function MainMenuView({
         useNativeDriver: true,
       }).start();
     },
-    [cardOpacity, count],
+    [cardOpacity, count, translateX],
   );
+
+  const handleDragStart = useCallback((x: number, y: number) => {
+    touchStartRef.current = { x, y };
+    didDragRef.current = false;
+  }, []);
+
+  const handleDragMove = useCallback(
+    (x: number, y: number) => {
+      if (touchStartRef.current === null) {
+        return;
+      }
+      const dx = x - touchStartRef.current.x;
+      const dy = y - touchStartRef.current.y;
+      if (Math.abs(dx) > DRAG_CAPTURE_DISTANCE && Math.abs(dx) > Math.abs(dy)) {
+        didDragRef.current = true;
+        translateX.setValue(dx);
+      }
+    },
+    [translateX],
+  );
+
+  const handleDragEnd = useCallback(
+    (x: number) => {
+      if (touchStartRef.current === null) {
+        return;
+      }
+      const dx = x - touchStartRef.current.x;
+      touchStartRef.current = null;
+      translateX.setValue(0);
+      const step = resolveCarouselSwipe(dx);
+      if (step !== 0) {
+        didDragRef.current = true;
+        moveCarousel(step);
+      }
+    },
+    [moveCarousel, translateX],
+  );
+
+  const handleDragCancel = useCallback(() => {
+    touchStartRef.current = null;
+    translateX.setValue(0);
+  }, [translateX]);
 
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponder: (_event, gestureState) =>
-          Math.abs(gestureState.dx) >= DEFAULT_SWIPE_THRESHOLD &&
+        onMoveShouldSetPanResponderCapture: (_event, gestureState) =>
+          Math.abs(gestureState.dx) > DRAG_CAPTURE_DISTANCE &&
           Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+        onMoveShouldSetPanResponder: (_event, gestureState) =>
+          Math.abs(gestureState.dx) > DRAG_CAPTURE_DISTANCE &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: (_event, gestureState) => {
+          if (touchStartRef.current === null) {
+            handleDragStart(gestureState.x0, gestureState.y0);
+          }
+        },
+        onPanResponderMove: (_event, gestureState) => {
+          if (touchStartRef.current !== null) {
+            handleDragMove(
+              touchStartRef.current.x + gestureState.dx,
+              touchStartRef.current.y + gestureState.dy,
+            );
+          }
+        },
         onPanResponderRelease: (_event, gestureState) => {
-          const step = resolveCarouselSwipe(gestureState.dx);
-          if (step !== 0) {
-            moveCarousel(step);
+          if (touchStartRef.current !== null) {
+            handleDragEnd(touchStartRef.current.x + gestureState.dx);
+          }
+        },
+        onPanResponderTerminate: (_event, gestureState) => {
+          if (touchStartRef.current !== null) {
+            handleDragEnd(touchStartRef.current.x + gestureState.dx);
           }
         },
       }),
-    [moveCarousel],
+    [handleDragEnd, handleDragMove, handleDragStart],
   );
+
+  const onTouchStart = (event: GestureResponderEvent) => {
+    handleDragStart(event.nativeEvent.pageX, event.nativeEvent.pageY);
+  };
+
+  const onTouchMove = (event: GestureResponderEvent) => {
+    handleDragMove(event.nativeEvent.pageX, event.nativeEvent.pageY);
+  };
+
+  const onTouchEnd = (event: GestureResponderEvent) => {
+    handleDragEnd(event.nativeEvent.pageX);
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -116,43 +197,55 @@ export function MainMenuView({
               <Text style={styles.arrowLabel}>‹</Text>
             </Pressable>
 
-            <Animated.View
+            <View
               testID="carousel-card-wrapper"
-              style={[styles.carouselCardWrapper, { opacity: cardOpacity }]}
-              {...panResponder.panHandlers}
+              style={styles.carouselCardWrapper}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              onTouchCancel={handleDragCancel}
             >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={activeVariant.name}
-                accessibilityHint={activeVariant.progressLabel ?? undefined}
-                onPress={() =>
-                  onSelectVariant(activeVariant.gameId, activeVariant.name)
-                }
-                style={({ pressed }) => [
-                  styles.carouselCard,
-                  pressed && styles.cardPressed,
-                ]}
+              <Animated.View
+                style={{ opacity: cardOpacity, transform: [{ translateX }] }}
+                {...panResponder.panHandlers}
               >
-                <Text style={styles.variantName}>{activeVariant.name}</Text>
-
-                {/* Placeholder until live engine demos arrive in issue #118. */}
-                <View
-                  style={styles.demoPlaceholder}
-                  accessibilityLabel={`${activeVariant.name} demo placeholder`}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={activeVariant.name}
+                  accessibilityHint={activeVariant.progressLabel ?? undefined}
+                  onPress={() => {
+                    if (didDragRef.current) {
+                      didDragRef.current = false;
+                      return;
+                    }
+                    onSelectVariant(activeVariant.gameId, activeVariant.name);
+                  }}
+                  style={({ pressed }) => [
+                    styles.carouselCard,
+                    pressed && styles.cardPressed,
+                  ]}
                 >
-                  <Text style={styles.demoHex}>⬡</Text>
-                  <Text style={styles.demoPlaceholderText}>
-                    Demo coming soon
-                  </Text>
-                </View>
+                  <Text style={styles.variantName}>{activeVariant.name}</Text>
 
-                {activeVariant.progressLabel !== null && (
-                  <Text style={styles.progressLabel}>
-                    {activeVariant.progressLabel}
-                  </Text>
-                )}
-              </Pressable>
-            </Animated.View>
+                  {/* Placeholder until live engine demos arrive in issue #118. */}
+                  <View
+                    style={styles.demoPlaceholder}
+                    accessibilityLabel={`${activeVariant.name} demo placeholder`}
+                  >
+                    <Text style={styles.demoHex}>⬡</Text>
+                    <Text style={styles.demoPlaceholderText}>
+                      Demo coming soon
+                    </Text>
+                  </View>
+
+                  {activeVariant.progressLabel !== null && (
+                    <Text style={styles.progressLabel}>
+                      {activeVariant.progressLabel}
+                    </Text>
+                  )}
+                </Pressable>
+              </Animated.View>
+            </View>
 
             <Pressable
               accessibilityRole="button"
