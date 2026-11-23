@@ -776,6 +776,21 @@ One entry per significant use. Copy the template.
     `panHandlers` so React Native Testing Library keeps touch events enabled,
     and drag-suppression on `onPress`; `258 / 258` app, `9 / 9` panel).
 
+### 2026-11-22 — Client CI
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #6.
+- **Prompt:** Set up client CI now that the Expo app and admin panel exist,
+  keeping the in-progress Skia changes in a separate checkout.
+- **Result:** Added separate GitHub Actions jobs for the Expo app and Vite
+  panel using the backend workflow as a reference. Isolated Jest from panel
+  tests after reproducing cross-discovery on Windows.
+- **Team modifications:** Jesus approved adding Vitest's V8 coverage provider
+  for the panel.
+- **Lessons / limitations:** The workflow still needs a GitHub run. Vitest
+  reports panel coverage; Jest enforces the shared domain and application
+  thresholds.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
