@@ -875,6 +875,29 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The client class diagram is tracked separately
   within #41. Both SVGs were rendered and checked locally.
 
+### 2026-11-23 — Hexa Merge six-direction tile sliding (issue #59)
+
+- **Tool / model:** Antigravity (Gemini 4 Argon).
+- **Issue / PR:** #59 (HU24).
+- **Prompt (paraphrase):** explain what HU24 is based on and what each Clean
+  Architecture layer needs, then produce and execute the gate 1 plan for
+  Hexa Merge six-direction sliding inside `src/domain/variants/hexa-merge/`
+  without touching the generic engine.
+- **Result:** created the `Tile` value object (power-of-two invariant),
+  `SlideMove` and geometry-agnostic `slideTiles` ray compaction (using only
+  `IBoardGeometry.neighbour` and `ICoord.key()`), `MergeRules` (`BaseGameRules`
+  subclass), `startMergeGame` on the radius-2 hex board, and unit tests
+  covering all six directions plus multi-tile packing and atomic rejection
+  (`334 / 334` app, `9 / 9` panel).
+- **Team modifications:** replaced 32-bit bitwise power-of-two checking in
+  `Tile` with safe integer division so powers of two at or above 2^31 are
+  handled without truncation; tested collision ordering with distinct tile
+  values so future merge rules in #69 remain compatible.
+- **Lessons / limitations:** tracing rays from cells without a predecessor in
+  the slide direction and sliding backwards from the target edge prepares the
+  exact traversal order needed for closest-to-edge merge precedence (RN-27) in
+  #69 while keeping hex coordinates opaque outside `HexGeometry`.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

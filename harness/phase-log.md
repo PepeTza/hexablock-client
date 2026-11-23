@@ -46,3 +46,4 @@ details live in the PR.
 | 2026-11-23 | Level definition, builder and validator port | #60 | jesusobando32 | 276 / 276 app, 9 / 9 panel | T22; immutable common level data and field-specific errors; Fit and Sort spec schemas remain open in backend #32 |
 | 2026-11-23 | Align Hexa Sort rules with the project statement | #133 | KeneFu | — | Docs only; RN-23 removes the whole stack; tray of one stack (decision 11); decision 10 taken for Sort |
 | 2026-11-23 | Client layers and extensibility diagrams | #41 | jesusobando32 | — | Two SVGs and Mermaid sources; class diagram belongs to Track A |
+| 2026-11-23 | Hexa Merge six-direction tile sliding | #59 | PepeTza | 334 / 334 app, 9 / 9 panel | HU24; Tile value object, geometry-agnostic slideTiles ray compaction, MergeRules and startMergeGame on radius-2 hex board; 6 directional tests |
