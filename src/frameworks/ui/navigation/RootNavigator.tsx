@@ -1,6 +1,7 @@
 import type { GameResultInput } from '@adapters/presentation/game-result/game-result-view-model';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { lazy, Suspense } from 'react';
 
 import { GameResultScreen } from '../screens/GameResultScreen';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -9,6 +10,15 @@ import { VariantPlaceholderScreen } from '../screens/VariantPlaceholderScreen';
 import type { RootStackParamList } from './routes';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const SkiaSpikeScreen = lazy(() => import('../spike/SkiaSpikeScreen'));
+
+function SkiaSpikeRoute() {
+  return (
+    <Suspense fallback={null}>
+      <SkiaSpikeScreen />
+    </Suspense>
+  );
+}
 
 /** Optional initial navigation settings used in tests and deep-entry flows. */
 export interface RootNavigatorProps {
@@ -39,6 +49,13 @@ export function RootNavigator({
           component={SettingsScreen}
           options={{ title: 'Settings' }}
         />
+        {__DEV__ && (
+          <Stack.Screen
+            name="SkiaSpike"
+            component={SkiaSpikeRoute}
+            options={{ title: 'Skia spike' }}
+          />
+        )}
         <Stack.Screen
           name="GameResult"
           component={GameResultScreen}

@@ -108,7 +108,7 @@ their code. Each one is also cited in a comment in the file that uses it.
 
 | Source | What we took | Where |
 |---|---|---|
-| Red Blob Games, ["Hexagonal Grids"](https://www.redblobgames.com/grids/hexagons/) | Axial and cube coordinates; neighbours, rings and 60° rotation | `src/domain/engine/hex/hex-coord.ts`, `hex-geometry.ts` |
+| Red Blob Games, ["Hexagonal Grids"](https://www.redblobgames.com/grids/hexagons/) | Axial and cube coordinates; neighbours, rings, 60° rotation and pointy-top pixel projection | `src/domain/engine/hex/hex-coord.ts`, `hex-geometry.ts`, `src/frameworks/ui/spike/hex-projection.ts` |
 | OEIS, [A006534](https://oeis.org/A006534) (one-sided polyhexes) | The number of piece shapes of 1 to 5 cells (1, 1, 3, 10, 33), used to check the catalog is complete | `src/domain/engine/hex/hex-piece-catalog.test.ts`, `docs/piece-catalog.md` |
 | Tommy Ettinger, [`mulberry32`](https://gist.github.com/tommyettinger/46a874533244883189141785d1235295) (2017, public domain; see also [bryc's PRNG notes](https://github.com/bryc/code/blob/master/jshash/PRNGs.md#mulberry32)) | 32-bit seeded pseudo-random number generator algorithm | `src/domain/engine/random/seeded-random.ts` |
 | WHATWG, [DOM Standard, "inner invoke"](https://dom.spec.whatwg.org/#concept-event-listener-inner-invoke) | A listener that throws has its error reported while the other listeners still run | `src/domain/engine/game/game-engine.ts` |

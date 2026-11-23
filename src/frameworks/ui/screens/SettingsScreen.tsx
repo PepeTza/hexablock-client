@@ -1,13 +1,24 @@
-import { StyleSheet, Text, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Button, StyleSheet, Text, View } from 'react-native';
+
+import type { RootStackParamList } from '../navigation/routes';
 
 /**
  * Placeholder settings screen. Replaced by HU05 and HU06 with audio toggles
  * and language selection.
  */
-export function SettingsScreen() {
+export function SettingsScreen({
+  navigation,
+}: NativeStackScreenProps<RootStackParamList, 'Settings'>) {
   return (
     <View style={styles.container}>
       <Text style={styles.message}>Settings are coming soon.</Text>
+      {__DEV__ && (
+        <Button
+          title="Open Skia spike"
+          onPress={() => navigation.navigate('SkiaSpike')}
+        />
+      )}
     </View>
   );
 }
