@@ -335,11 +335,20 @@ conservative per-move bound of `5 + 1125 * (m + 1)`. This bound
 assumes the board has no complete lines before placement and does not set
 the server's validation policy.
 
+### D-08 — Hexa Fit scoring
+
+Completion earns `max(100, 1000 − 20 × extraMoves − 2 × seconds)`.
+Extra moves are counted placements beyond the number of required pieces
+(RN-17). Seconds are whole elapsed seconds, rounded down from milliseconds.
+The level awards one star on completion, two at its first threshold and
+three at its second threshold. Both thresholds are inclusive (RN-18).
+A repeat may improve the score or stars already saved for that level.
+
 ### Pending design items
 
 | ID | Item | Scope |
 |---|---|---|
-| D-08 | Scoring and stars | Hexa Fit score from moves and time, final values of RN-29 and RN-40, star thresholds per level (RN-18) |
+| D-08 | Scoring and stars | Final values of RN-29 and RN-40. Fit thresholds are defined per level (RN-18). |
 | D-09 | Level design tools | Candidate generator as a design aid (manual selection and adjustment) and validator with solution search (RN-13) |
 
 ## 11. Testing strategy
