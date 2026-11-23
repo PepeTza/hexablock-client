@@ -10,6 +10,7 @@ import type { FitState, PieceId } from './fit-state';
 export interface FitMove {
   readonly pieceId: PieceId;
   readonly anchor: HexCoord;
+  readonly rotationSteps?: number;
 }
 
 /** Template Method: place a pending piece and check exact coverage (RN-02, RN-15). */
@@ -25,6 +26,12 @@ export class FitRules extends BaseGameRules<
     state: FitState,
     move: FitMove,
   ): string | null {
+    if (
+      move.rotationSteps !== undefined &&
+      !Number.isInteger(move.rotationSteps)
+    ) {
+      return 'Rotation must be a whole number of steps';
+    }
     const cells = this.placementCells(state, move);
     if (cells === undefined) {
       return 'The piece is not pending';
@@ -83,8 +90,7 @@ export class FitRules extends BaseGameRules<
     state: FitState,
     move: FitMove,
   ): HexCoord[] | undefined {
-    return state.pendingPieces
-      .find(({ id }) => id === move.pieceId)
-      ?.piece.cellsAt(move.anchor);
+    const entry = state.pendingPieces.find(({ id }) => id === move.pieceId);
+    return entry?.piece.rotate(move.rotationSteps ?? 0).cellsAt(move.anchor);
   }
 }

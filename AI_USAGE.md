@@ -946,6 +946,17 @@ One entry per significant use. Copy the template.
   the command history. The clock test in the Fit screen draft (#155) verifies
   that undo does not give back time.
 
+### 2026-11-23 — Hexa Fit placement rotation preview
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #80.
+- **Prompt:** Use the catalog piece's 60-degree rotation for preview and drop.
+- **Result:** Preview and placement use the rotated cells for validation. A
+  failed placement keeps the piece in the tray and the move count unchanged.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** The two tests fail on the previous rules in
+  opposite directions. The Fit screen integration in #155 handles gestures.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

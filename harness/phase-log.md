@@ -50,3 +50,4 @@ details live in the PR.
 | 2026-11-23 | Admin-only panel login | #63 | jesusobando32 | 337 / 337 app, 17 / 17 panel | Role checks and sign-out verified with a simulated API in the browser |
 | 2026-11-23 | CommandService with Either and zero production type casts | #146 | PepeTza | 345 / 345 app, 17 / 17 panel | Seemann Ch. 10 CommandService + Either<TError, TResult>, Logging and ExceptionHandling aspect decorators, all 7 use cases and admin App migrated, 0 production `as` casts, AGENTS.md and architecture.md updated |
 | 2026-11-23 | Hexa Fit unlimited undo and redo | #81 | jesusobando32 | 346 / 346 app, 17 / 17 panel | RN-16 and RN-17 history; undo leaves elapsed time intact in the Fit screen integration |
+| 2026-11-23 | Hexa Fit rotation preview | #80 | jesusobando32 | 348 / 348 app, 17 / 17 panel | RN-14; positive and negative rotation controls; invalid moves leave board and tray intact |
