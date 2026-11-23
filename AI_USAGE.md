@@ -957,6 +957,23 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The two tests fail on the previous rules in
   opposite directions. The Fit screen integration in #155 handles gestures.
 
+### 2026-11-23 — Hexa Lines playable screen
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #37 / draft PR #151 (integrates work from #33, #34 and #35).
+- **Prompt:** Connect the existing Lines engine, preview and projection into
+  a playable screen and verify the route from menu to result. Port the draft
+  to #146's asynchronous command contract.
+- **Result:** Added the presenter, the native board and tray, tap and drag
+  input, and the finish-game integration. The compatibility pass unwraps
+  successful results before navigation, handles controlled failures inline,
+  and retains the result with a warning if the record cannot be saved.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Navigation and a seeded finishing move were
+  tested with the React Native test renderer, including both Either branches
+  and the save warning. Device drag remains a separate check. Records use the
+  in-memory adapter pending #40.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
