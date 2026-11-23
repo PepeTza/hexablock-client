@@ -7,12 +7,13 @@ import type {
   ProgressEvaluation,
 } from '@domain/progress/progress-model';
 
+import { Either } from '../common/either';
 import type { IEventBus } from '../ports/event-bus';
 import type { ILogger } from '../ports/logger';
 import type { IProgressRepository } from '../ports/progress-repository';
 import type { ISessionProvider } from '../ports/session-provider';
 import type { ISyncQueue } from '../ports/sync-queue';
-import type { IUseCase } from './use-case';
+import type { AsyncCommandService } from './use-case';
 
 /** Result data returned to the victory or defeat screen (CU-07, RF-16). */
 export interface FinishGameOutput {
@@ -42,13 +43,15 @@ export interface FinishGameDeps {
  * submission when a session is active (RF-27), publishes the completion event
  * and returns the result screen data without conditionals per variant.
  */
-export class FinishGameUseCase implements IUseCase<
+export class FinishGameUseCase implements AsyncCommandService<
   FinishedGameSummary,
-  Promise<FinishGameOutput>
+  FinishGameOutput
 > {
   constructor(private readonly deps: FinishGameDeps) {}
 
-  async execute(summary: FinishedGameSummary): Promise<FinishGameOutput> {
+  async execute(
+    summary: FinishedGameSummary,
+  ): Promise<Either<Error, FinishGameOutput>> {
     const progressModel = this.deps.factories
       .get(summary.gameId)
       .createProgressModel();
@@ -99,7 +102,7 @@ export class FinishGameUseCase implements IUseCase<
 
     this.deps.eventBus.publish(this.endEvent(summary, evaluation));
 
-    return {
+    return Either.right({
       score: summary.score,
       seed: summary.seed,
       reason: summary.reason,
@@ -107,7 +110,7 @@ export class FinishGameUseCase implements IUseCase<
       stars: evaluation.stars,
       unlockedLevelId: evaluation.unlockedLevelId,
       saveFailed: progress !== null && !saved,
-    };
+    });
   }
 
   /**

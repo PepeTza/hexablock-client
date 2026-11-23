@@ -47,10 +47,11 @@ export class SeededRandom implements IRandomSource {
   }
 
   pick<T>(items: readonly T[]): T {
-    if (items.length === 0) {
+    const [first] = items;
+    if (first === undefined) {
       throw new RangeError('Cannot pick from an empty list');
     }
-    return items[this.nextInt(0, items.length - 1)] as T;
+    return items[this.nextInt(0, items.length - 1)] ?? first;
   }
 
   pickWeighted<T>(entries: readonly WeightedEntry<T>[]): T {

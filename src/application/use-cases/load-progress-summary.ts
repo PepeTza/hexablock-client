@@ -1,7 +1,8 @@
 import type { GameId } from '@domain/progress/player-progress';
 
+import { Either } from '../common/either';
 import type { IProgressRepository } from '../ports/progress-repository';
-import type { IUseCase } from './use-case';
+import type { AsyncCommandService } from './use-case';
 
 /** Variants to summarise for the main menu (CU-08 summary, HU01). */
 export interface LoadProgressSummaryInput {
@@ -26,18 +27,25 @@ export interface LoadProgressSummaryDeps {
  * and completed level count with zero conditionals per variant. Unlock rules
  * belong to the full CU-08 level list (`LoadLevelsUseCase`, T28).
  */
-export class LoadProgressSummaryUseCase implements IUseCase<
+export class LoadProgressSummaryUseCase implements AsyncCommandService<
   LoadProgressSummaryInput,
-  Promise<readonly ProgressSummary[]>
+  readonly ProgressSummary[]
 > {
   constructor(private readonly deps: LoadProgressSummaryDeps) {}
 
-  execute(
+  async execute(
     input: LoadProgressSummaryInput,
-  ): Promise<readonly ProgressSummary[]> {
-    return Promise.all(
-      input.gameIds.map((gameId) => this.summariseVariant(gameId)),
-    );
+  ): Promise<Either<Error, readonly ProgressSummary[]>> {
+    try {
+      const summaries = await Promise.all(
+        input.gameIds.map((gameId) => this.summariseVariant(gameId)),
+      );
+      return Either.right(summaries);
+    } catch (error) {
+      return Either.left(
+        error instanceof Error ? error : new Error(String(error)),
+      );
+    }
   }
 
   private async summariseVariant(gameId: GameId): Promise<ProgressSummary> {

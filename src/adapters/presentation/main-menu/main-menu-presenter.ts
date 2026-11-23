@@ -2,7 +2,7 @@ import type {
   LoadProgressSummaryInput,
   ProgressSummary,
 } from '@application/use-cases/load-progress-summary';
-import type { IUseCase } from '@application/use-cases/use-case';
+import type { AsyncCommandService } from '@application/use-cases/use-case';
 
 import {
   type CarouselStep,
@@ -74,9 +74,9 @@ const PROGRESS_LABELS: Record<
  */
 export class MainMenuPresenter {
   constructor(
-    private readonly loadSummary: IUseCase<
+    private readonly loadSummary: AsyncCommandService<
       LoadProgressSummaryInput,
-      Promise<readonly ProgressSummary[]>
+      readonly ProgressSummary[]
     >,
     private readonly entries: readonly MenuVariantEntry[],
   ) {}
@@ -110,9 +110,13 @@ export class MainMenuPresenter {
   /** The progress summaries, or `null` when they could not be loaded. */
   private async loadSummaries(): Promise<readonly ProgressSummary[] | null> {
     try {
-      return await this.loadSummary.execute({
+      const outcome = await this.loadSummary.execute({
         gameIds: this.entries.map((entry) => entry.gameId),
       });
+      return outcome.fold(
+        () => null,
+        (summaries) => summaries,
+      );
     } catch {
       // Not logged yet: the app has no logger adapter until a variant is
       // playable. The menu itself does not need the progress (HU01).

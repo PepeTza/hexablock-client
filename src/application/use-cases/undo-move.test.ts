@@ -11,9 +11,17 @@ import type { GameState } from '@domain/engine/game/game-state';
 import { HexCoord } from '@domain/engine/hex/hex-coord';
 import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 
-import { LoggingUseCaseDecorator } from '../aspects/logging-use-case-decorator';
+import { LoggingCommandServiceDecorator } from '../aspects/logging-use-case-decorator';
+import type { Either } from '../common/either';
 import type { IClock, ILogger, LogContext } from '../ports/logger';
 import { UndoMoveUseCase } from './undo-move';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 type NumberMove = { cell: HexCoord; value: number };
 
@@ -83,7 +91,7 @@ describe('UndoMoveUseCase', () => {
     const useCase = new UndoMoveUseCase();
 
     // Act
-    const output = useCase.execute({ gameId: 'hexa-fit', engine });
+    const output = expectRight(useCase.execute({ gameId: 'hexa-fit', engine }));
 
     // Assert
     expect(output).toEqual({
@@ -101,7 +109,9 @@ describe('UndoMoveUseCase', () => {
     mergeLike.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
     mergeLike.resolutionDone();
     const useCase = new UndoMoveUseCase();
-    const first = useCase.execute({ gameId: 'hexa-merge', engine: mergeLike });
+    const first = expectRight(
+      useCase.execute({ gameId: 'hexa-merge', engine: mergeLike }),
+    );
 
     const paused = startEngine(CommandHistory.unlimited());
     paused.applyMove({ cell: HexCoord.ORIGIN, value: 7 });
@@ -109,14 +119,18 @@ describe('UndoMoveUseCase', () => {
     paused.pause();
 
     // Act
-    const secondMerge = useCase.execute({
-      gameId: 'hexa-merge',
-      engine: mergeLike,
-    });
-    const whilePaused = useCase.execute({
-      gameId: 'hexa-fit',
-      engine: paused,
-    });
+    const secondMerge = expectRight(
+      useCase.execute({
+        gameId: 'hexa-merge',
+        engine: mergeLike,
+      }),
+    );
+    const whilePaused = expectRight(
+      useCase.execute({
+        gameId: 'hexa-fit',
+        engine: paused,
+      }),
+    );
 
     // Assert
     expect(first).toEqual({
@@ -148,11 +162,15 @@ describe('UndoMoveUseCase', () => {
     engine.applyMove({ cell: HexCoord.ORIGIN, value: 6 });
     engine.resolutionDone();
     const useCase = new UndoMoveUseCase();
-    const beforeGrant = useCase.execute({ gameId: 'hexa-lines', engine });
+    const beforeGrant = expectRight(
+      useCase.execute({ gameId: 'hexa-lines', engine }),
+    );
 
     // Act
     engine.grantUndo(1);
-    const afterGrant = useCase.execute({ gameId: 'hexa-lines', engine });
+    const afterGrant = expectRight(
+      useCase.execute({ gameId: 'hexa-lines', engine }),
+    );
 
     // Assert
     expect(beforeGrant.undone).toBe(false);
@@ -187,7 +205,7 @@ describe('UndoMoveUseCase', () => {
     const engine = startEngine(CommandHistory.unlimited());
     engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
     engine.resolutionDone();
-    const decorated = new LoggingUseCaseDecorator(
+    const decorated = new LoggingCommandServiceDecorator(
       'UndoMoveUseCase',
       new UndoMoveUseCase(),
       logger,
@@ -204,7 +222,9 @@ describe('UndoMoveUseCase', () => {
     );
 
     // Act
-    const output = decorated.execute({ gameId: 'hexa-fit', engine });
+    const output = expectRight(
+      decorated.execute({ gameId: 'hexa-fit', engine }),
+    );
 
     // Assert
     expect(output.undone).toBe(true);

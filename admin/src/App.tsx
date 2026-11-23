@@ -3,7 +3,7 @@ import type {
   Credentials,
   LoginResult,
 } from '@application/ports/auth-service';
-import type { IUseCase } from '@application/use-cases/use-case';
+import type { AsyncCommandService } from '@application/use-cases/use-case';
 import { BoardShape } from '@domain/engine/board/board-shape';
 import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 import { type FormEvent, useState } from 'react';
@@ -18,7 +18,7 @@ const LOGIN_ERRORS = {
 };
 
 interface AppProps {
-  readonly login: IUseCase<Credentials, Promise<LoginResult>>;
+  readonly login: AsyncCommandService<Credentials, LoginResult>;
 }
 
 export function App({ login }: AppProps) {
@@ -37,11 +37,16 @@ export function App({ login }: AppProps) {
     setError(null);
     setSubmitting(true);
     try {
-      const result = await login.execute({
+      const outcome = await login.execute({
         username: typeof username === 'string' ? username : '',
         password: typeof password === 'string' ? password : '',
       });
       form.reset();
+      if (outcome.isLeft()) {
+        setError(LOGIN_ERRORS.unavailable);
+        return;
+      }
+      const result = outcome.value;
       if (
         result.status === 'authenticated' &&
         result.session.role === 'admin'

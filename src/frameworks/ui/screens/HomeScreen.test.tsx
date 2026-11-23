@@ -4,11 +4,12 @@ import { Text } from 'react-native';
 import { GameResultPresenter } from '@adapters/presentation/game-result/game-result-presenter';
 import { MainMenuPresenter } from '@adapters/presentation/main-menu/main-menu-presenter';
 import { MENU_VARIANTS } from '@adapters/presentation/main-menu/menu-variants';
+import { Either } from '@application/common/either';
 import type {
   LoadProgressSummaryInput,
   ProgressSummary,
 } from '@application/use-cases/load-progress-summary';
-import type { IUseCase } from '@application/use-cases/use-case';
+import type { AsyncCommandService } from '@application/use-cases/use-case';
 import {
   NavigationContainer,
   createNavigationContainerRef,
@@ -20,9 +21,9 @@ import type { RootStackParamList } from '../navigation/routes';
 import { ServicesProvider } from '../services/ServicesContext';
 import { HomeScreen } from './HomeScreen';
 
-type LoadSummary = IUseCase<
+type LoadSummary = AsyncCommandService<
   LoadProgressSummaryInput,
-  Promise<readonly ProgressSummary[]>
+  readonly ProgressSummary[]
 >;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -61,10 +62,12 @@ describe('HomeScreen', () => {
     let record = 0;
     const loadSummary: LoadSummary = {
       execute: () =>
-        Promise.resolve([
-          { gameId: 'hexa-lines', highScore: record, completedLevels: 0 },
-          { gameId: 'hexa-merge', highScore: 512, completedLevels: 0 },
-        ]),
+        Promise.resolve(
+          Either.right([
+            { gameId: 'hexa-lines', highScore: record, completedLevels: 0 },
+            { gameId: 'hexa-merge', highScore: 512, completedLevels: 0 },
+          ]),
+        ),
     };
     const navigation = await renderMenu(loadSummary);
     expect(await screen.findByText('Best: 0')).toBeTruthy();
@@ -86,7 +89,8 @@ describe('HomeScreen', () => {
   it('should_show_the_menu_when_loading_progress_fails', async () => {
     // Arrange
     const loadSummary: LoadSummary = {
-      execute: () => Promise.reject(new Error('storage unavailable')),
+      execute: () =>
+        Promise.resolve(Either.left(new Error('storage unavailable'))),
     };
 
     // Act

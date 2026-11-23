@@ -21,10 +21,10 @@ export class FixedPieceSource<TPiece> implements IPieceSource<TPiece> {
   }
 
   next(): TPiece | null {
-    if (!this.hasNext()) {
+    const item = this.items[this.index];
+    if (item === undefined) {
       return null;
     }
-    const item = this.items[this.index] as TPiece;
     this.index += 1;
     return item;
   }
@@ -32,9 +32,12 @@ export class FixedPieceSource<TPiece> implements IPieceSource<TPiece> {
   draw(count: number): TPiece[] {
     assertDrawCount(count);
     const drawn: TPiece[] = [];
-    for (let i = 0; i < count && this.hasNext(); i++) {
-      drawn.push(this.items[this.index] as TPiece);
-      this.index += 1;
+    for (let i = 0; i < count; i++) {
+      const item = this.next();
+      if (item === null) {
+        break;
+      }
+      drawn.push(item);
     }
     return drawn;
   }

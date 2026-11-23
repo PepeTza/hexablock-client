@@ -11,12 +11,20 @@ import type {
   ProgressEvaluation,
 } from '@domain/progress/progress-model';
 
+import type { Either } from '../common/either';
 import type { IEventBus } from '../ports/event-bus';
 import type { ILogger, LogContext } from '../ports/logger';
 import type { IProgressRepository } from '../ports/progress-repository';
 import type { ISessionProvider } from '../ports/session-provider';
 import type { ISyncQueue } from '../ports/sync-queue';
 import { FinishGameUseCase } from './finish-game';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 function createFactoryWithProgressModel(
   gameId: GameId,
@@ -167,15 +175,17 @@ describe('FinishGameUseCase', () => {
     });
 
     // Act
-    const result = await harness.useCase.execute({
-      gameId: 'hexa-lines',
-      levelId: null,
-      reason: 'defeat',
-      score: 320,
-      moveCount: 15,
-      durationMs: 45_000,
-      seed: 42,
-    });
+    const result = expectRight(
+      await harness.useCase.execute({
+        gameId: 'hexa-lines',
+        levelId: null,
+        reason: 'defeat',
+        score: 320,
+        moveCount: 15,
+        durationMs: 45_000,
+        seed: 42,
+      }),
+    );
 
     // Assert
     expect(result).toEqual({
@@ -250,15 +260,17 @@ describe('FinishGameUseCase', () => {
     });
 
     // Act
-    const result = await harness.useCase.execute({
-      gameId: 'hexa-fit',
-      levelId: 'fit-01',
-      reason: 'quit',
-      score: 0,
-      moveCount: 2,
-      durationMs: 5_000,
-      seed: null,
-    });
+    const result = expectRight(
+      await harness.useCase.execute({
+        gameId: 'hexa-fit',
+        levelId: 'fit-01',
+        reason: 'quit',
+        score: 0,
+        moveCount: 2,
+        durationMs: 5_000,
+        seed: null,
+      }),
+    );
 
     // Assert
     expect(result.saveFailed).toBe(false);
@@ -322,15 +334,17 @@ describe('FinishGameUseCase', () => {
     });
 
     // Act
-    const result = await harness.useCase.execute({
-      gameId: 'hexa-fit',
-      levelId: 'fit-01',
-      reason: 'victory',
-      score: 250,
-      moveCount: 5,
-      durationMs: 12_000,
-      seed: null,
-    });
+    const result = expectRight(
+      await harness.useCase.execute({
+        gameId: 'hexa-fit',
+        levelId: 'fit-01',
+        reason: 'victory',
+        score: 250,
+        moveCount: 5,
+        durationMs: 12_000,
+        seed: null,
+      }),
+    );
 
     // Assert
     expect(result.stars).toBe(3);
@@ -359,15 +373,17 @@ describe('FinishGameUseCase', () => {
     });
 
     // Act
-    const result = await harness.useCase.execute({
-      gameId: 'hexa-lines',
-      levelId: null,
-      reason: 'defeat',
-      score: 100,
-      moveCount: 8,
-      durationMs: 20_000,
-      seed: 12,
-    });
+    const result = expectRight(
+      await harness.useCase.execute({
+        gameId: 'hexa-lines',
+        levelId: null,
+        reason: 'defeat',
+        score: 100,
+        moveCount: 8,
+        durationMs: 20_000,
+        seed: 12,
+      }),
+    );
 
     // Assert
     expect(result.saveFailed).toBe(true);
@@ -392,7 +408,7 @@ describe('FinishGameUseCase', () => {
     });
 
     // Act
-    const result = await harness.useCase.execute(linesDefeat(180));
+    const result = expectRight(await harness.useCase.execute(linesDefeat(180)));
 
     // Assert
     expect(result.score).toBe(180);
@@ -424,7 +440,7 @@ describe('FinishGameUseCase', () => {
     const summary = linesDefeat(210);
 
     // Act
-    const result = await harness.useCase.execute(summary);
+    const result = expectRight(await harness.useCase.execute(summary));
 
     // Assert
     expect(result.score).toBe(210);
@@ -452,7 +468,7 @@ describe('FinishGameUseCase', () => {
     });
 
     // Act
-    const result = await harness.useCase.execute(linesDefeat(240));
+    const result = expectRight(await harness.useCase.execute(linesDefeat(240)));
 
     // Assert
     expect(result.score).toBe(240);
@@ -482,7 +498,7 @@ describe('FinishGameUseCase', () => {
     const summary = linesDefeat(90);
 
     // Act
-    const result = await harness.useCase.execute(summary);
+    const result = expectRight(await harness.useCase.execute(summary));
 
     // Assert
     expect(result.saveFailed).toBe(true);

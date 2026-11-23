@@ -1,9 +1,13 @@
 import type { IGameSession } from '@domain/engine/game/variant-factory';
 
+import { Either } from '../common/either';
 import type { IClock, ILogger, LogContext } from '../ports/logger';
 import { type ApplyMoveInput, ApplyMoveUseCase } from '../use-cases/apply-move';
-import type { IUseCase } from '../use-cases/use-case';
-import { LoggingUseCaseDecorator } from './logging-use-case-decorator';
+import type { AsyncCommandService } from '../use-cases/use-case';
+import {
+  AsyncLoggingCommandServiceDecorator,
+  LoggingCommandServiceDecorator,
+} from './logging-use-case-decorator';
 
 interface LogRecord {
   level: 'info' | 'warn' | 'error';
@@ -57,12 +61,12 @@ function createStubSession(pointsPerMove: number): IGameSession<string> {
   };
 }
 
-describe('LoggingUseCaseDecorator', () => {
+describe('LoggingCommandServiceDecorator', () => {
   it('should_log_only_name_and_duration_when_no_describe_is_given', () => {
     // Arrange
     const { logger, entries } = createFakeLogger();
     const clock = createStepClock([100, 112]);
-    const decorated = new LoggingUseCaseDecorator(
+    const decorated = new LoggingCommandServiceDecorator(
       'ApplyMoveUseCase',
       new ApplyMoveUseCase<string>(),
       logger,
@@ -75,10 +79,13 @@ describe('LoggingUseCaseDecorator', () => {
     };
 
     // Act
-    const output = decorated.execute(input);
+    const outcome = decorated.execute(input);
 
     // Assert
-    expect(output.state).toEqual({ score: 10, moveCount: 1 });
+    expect(outcome.isRight()).toBe(true);
+    if (outcome.isRight()) {
+      expect(outcome.value.state).toEqual({ score: 10, moveCount: 1 });
+    }
     expect(entries).toHaveLength(1);
     expect(entries[0]).toEqual({
       level: 'info',
@@ -95,24 +102,25 @@ describe('LoggingUseCaseDecorator', () => {
     const { logger, entries } = createFakeLogger();
     const clock = createStepClock([10, 25, 30, 48]);
     type LoginInput = { username: string; password: string };
-    const loginOk = new LoggingUseCaseDecorator<
+    const loginOk = new AsyncLoggingCommandServiceDecorator<
       LoginInput,
-      Promise<{ token: string }>
+      { token: string }
     >(
       'LoginUseCase',
       {
-        execute: () => Promise.resolve({ token: 'tok-123' }),
+        execute: () => Promise.resolve(Either.right({ token: 'tok-123' })),
       },
       logger,
       clock,
     );
-    const loginFail = new LoggingUseCaseDecorator<
+    const loginFail = new AsyncLoggingCommandServiceDecorator<
       LoginInput,
-      Promise<{ token: string }>
+      { token: string }
     >(
       'LoginUseCase',
       {
-        execute: () => Promise.reject(new Error('Invalid credentials')),
+        execute: () =>
+          Promise.resolve(Either.left(new Error('Invalid credentials'))),
       },
       logger,
       clock,
@@ -120,13 +128,12 @@ describe('LoggingUseCaseDecorator', () => {
     const credentials: LoginInput = { username: 'ana', password: 'hunter2' };
 
     // Act
-    const output = await loginOk.execute(credentials);
-    await expect(loginFail.execute(credentials)).rejects.toThrow(
-      'Invalid credentials',
-    );
+    const okOutcome = await loginOk.execute(credentials);
+    const failOutcome = await loginFail.execute(credentials);
 
     // Assert
-    expect(output).toEqual({ token: 'tok-123' });
+    expect(okOutcome.isRight()).toBe(true);
+    expect(failOutcome.isLeft()).toBe(true);
     expect(entries).toHaveLength(2);
     const logged = JSON.stringify(entries);
     expect(logged).not.toContain('hunter2');
@@ -134,11 +141,11 @@ describe('LoggingUseCaseDecorator', () => {
     expect(logged).not.toContain('tok-123');
   });
 
-  it('should_log_only_described_fields_when_describe_is_given_for_a_sync_use_case', () => {
+  it('should_log_only_described_fields_when_describe_is_given_for_a_sync_command_service', () => {
     // Arrange
     const { logger, entries } = createFakeLogger();
     const clock = createStepClock([100, 112]);
-    const decorated = new LoggingUseCaseDecorator(
+    const decorated = new LoggingCommandServiceDecorator(
       'ApplyMoveUseCase',
       new ApplyMoveUseCase<string>(),
       logger,
@@ -155,10 +162,13 @@ describe('LoggingUseCaseDecorator', () => {
     };
 
     // Act
-    const output = decorated.execute(input);
+    const outcome = decorated.execute(input);
 
     // Assert
-    expect(output.state).toEqual({ score: 10, moveCount: 1 });
+    expect(outcome.isRight()).toBe(true);
+    if (outcome.isRight()) {
+      expect(outcome.value.state).toEqual({ score: 10, moveCount: 1 });
+    }
     expect(entries).toHaveLength(1);
     expect(entries[0]?.context).toEqual({
       useCase: 'ApplyMoveUseCase',
@@ -168,19 +178,19 @@ describe('LoggingUseCaseDecorator', () => {
     });
   });
 
-  it('should_log_described_output_of_resolved_value_when_use_case_is_async', async () => {
+  it('should_log_described_output_when_async_command_service_returns_right', async () => {
     // Arrange
     const { logger, entries } = createFakeLogger();
     const clock = createStepClock([500, 540]);
-    const asyncUseCase: IUseCase<
+    const asyncService: AsyncCommandService<
       { gameId: string },
-      Promise<{ ok: boolean }>
+      { ok: boolean }
     > = {
-      execute: () => Promise.resolve({ ok: true }),
+      execute: () => Promise.resolve(Either.right({ ok: true })),
     };
-    const decorated = new LoggingUseCaseDecorator(
+    const decorated = new AsyncLoggingCommandServiceDecorator(
       'StartGameUseCase',
-      asyncUseCase,
+      asyncService,
       logger,
       clock,
       {
@@ -189,10 +199,13 @@ describe('LoggingUseCaseDecorator', () => {
     );
 
     // Act
-    const output = await decorated.execute({ gameId: 'hexa-fit' });
+    const outcome = await decorated.execute({ gameId: 'hexa-fit' });
 
     // Assert
-    expect(output).toEqual({ ok: true });
+    expect(outcome.isRight()).toBe(true);
+    if (outcome.isRight()) {
+      expect(outcome.value).toEqual({ ok: true });
+    }
     expect(entries).toHaveLength(1);
     expect(entries[0]).toEqual({
       level: 'info',
@@ -205,64 +218,67 @@ describe('LoggingUseCaseDecorator', () => {
     });
   });
 
-  it('should_log_only_message_and_duration_when_use_case_fails_without_describe', async () => {
+  it('should_log_only_message_and_duration_when_service_returns_left_without_describe', async () => {
     // Arrange
     const { logger, entries } = createFakeLogger();
     const clock = createStepClock([10, 14, 20, 29]);
-    const syncFailing = new LoggingUseCaseDecorator<string, void>(
+    const syncFailing = new LoggingCommandServiceDecorator<string>(
       'SyncUseCase',
       {
-        execute: () => {
-          throw new Error('sync boom');
-        },
+        execute: () => Either.left(new Error('sync boom')),
       },
       logger,
       clock,
     );
-    const asyncFailing = new LoggingUseCaseDecorator<string, Promise<void>>(
+    const asyncFailing = new AsyncLoggingCommandServiceDecorator<string>(
       'AsyncUseCase',
       {
-        execute: () => Promise.reject(new Error('async boom')),
+        execute: () => Promise.resolve(Either.left(new Error('async boom'))),
       },
       logger,
       clock,
     );
 
-    // Act & Assert
-    expect(() => syncFailing.execute('in-1')).toThrow('sync boom');
-    await expect(asyncFailing.execute('in-2')).rejects.toThrow('async boom');
-    expect(entries).toHaveLength(2);
-    expect(entries[0]).toEqual({
-      level: 'error',
-      message: 'SyncUseCase failed',
-      context: {
-        useCase: 'SyncUseCase',
-        durationMs: 4,
-        error: 'sync boom',
+    // Act
+    const syncOutcome = syncFailing.execute('in-1');
+    const asyncOutcome = await asyncFailing.execute('in-2');
+
+    // Assert
+    expect(syncOutcome.isLeft()).toBe(true);
+    expect(asyncOutcome.isLeft()).toBe(true);
+    expect(entries).toEqual([
+      {
+        level: 'error',
+        message: 'SyncUseCase failed',
+        context: {
+          useCase: 'SyncUseCase',
+          durationMs: 4,
+          error: 'sync boom',
+        },
       },
-    });
-    expect(entries[1]).toEqual({
-      level: 'error',
-      message: 'AsyncUseCase failed',
-      context: {
-        useCase: 'AsyncUseCase',
-        durationMs: 9,
-        error: 'async boom',
+      {
+        level: 'error',
+        message: 'AsyncUseCase failed',
+        context: {
+          useCase: 'AsyncUseCase',
+          durationMs: 9,
+          error: 'async boom',
+        },
       },
-    });
+    ]);
   });
 
-  it('should_log_described_input_when_use_case_fails_with_describe', async () => {
+  it('should_log_described_input_when_service_returns_left_or_throws_unexpectedly', async () => {
     // Arrange
     const { logger, entries } = createFakeLogger();
-    const clock = createStepClock([10, 16]);
-    const failing = new LoggingUseCaseDecorator<
+    const clock = createStepClock([10, 16, 20, 25, 30, 38]);
+    const leftReturning = new AsyncLoggingCommandServiceDecorator<
       { gameId: string; secret: string },
-      Promise<{ ok: boolean }>
+      { ok: boolean }
     >(
       'StartGameUseCase',
       {
-        execute: () => Promise.reject(new Error('level missing')),
+        execute: () => Promise.resolve(Either.left(new Error('level missing'))),
       },
       logger,
       clock,
@@ -271,12 +287,35 @@ describe('LoggingUseCaseDecorator', () => {
         output: (o) => ({ ok: o.ok }),
       },
     );
+    const syncThrowing = new LoggingCommandServiceDecorator<string>(
+      'SyncThrow',
+      {
+        execute: () => {
+          throw new Error('raw sync failure');
+        },
+      },
+      logger,
+      clock,
+    );
+    const asyncThrowing = new AsyncLoggingCommandServiceDecorator<string>(
+      'AsyncThrow',
+      {
+        execute: () => Promise.reject(new Error('unexpected reject')),
+      },
+      logger,
+      clock,
+    );
 
     // Act & Assert
-    await expect(
-      failing.execute({ gameId: 'hexa-sort', secret: 'do-not-log' }),
-    ).rejects.toThrow('level missing');
-    expect(entries).toHaveLength(1);
+    const outcome = await leftReturning.execute({
+      gameId: 'hexa-sort',
+      secret: 'do-not-log',
+    });
+    expect(outcome.isLeft()).toBe(true);
+    expect(() => syncThrowing.execute('in-1')).toThrow('raw sync failure');
+    await expect(asyncThrowing.execute('in-2')).rejects.toThrow(
+      'unexpected reject',
+    );
     expect(entries[0]).toEqual({
       level: 'error',
       message: 'StartGameUseCase failed',
@@ -287,13 +326,15 @@ describe('LoggingUseCaseDecorator', () => {
         input: { gameId: 'hexa-sort' },
       },
     });
+    expect(entries[1]?.context).toMatchObject({ error: 'raw sync failure' });
+    expect(entries[2]?.context).toMatchObject({ error: 'unexpected reject' });
   });
 
   it('should_log_apply_move_for_different_variants_when_wrapped_with_same_decorator', () => {
     // Arrange
     const { logger, entries } = createFakeLogger();
     const clock = createStepClock([10, 13, 20, 25]);
-    const decorated = new LoggingUseCaseDecorator(
+    const decorated = new LoggingCommandServiceDecorator(
       'ApplyMoveUseCase',
       new ApplyMoveUseCase<string>(),
       logger,

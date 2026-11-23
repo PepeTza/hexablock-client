@@ -11,15 +11,20 @@ export const MAX_PIECE_CELLS = 5;
  * relative to the centre of the piece (`[0, 0]`).
  */
 export function parseHexCell(raw: unknown, path: string): HexCoord {
+  if (!Array.isArray(raw) || raw.length !== 2) {
+    throw new TypeError(`${path} must be a [q, r] pair of integers`);
+  }
+  const q: unknown = raw[0];
+  const r: unknown = raw[1];
   if (
-    !Array.isArray(raw) ||
-    raw.length !== 2 ||
-    !Number.isInteger(raw[0]) ||
-    !Number.isInteger(raw[1])
+    typeof q !== 'number' ||
+    typeof r !== 'number' ||
+    !Number.isInteger(q) ||
+    !Number.isInteger(r)
   ) {
     throw new TypeError(`${path} must be a [q, r] pair of integers`);
   }
-  return new HexCoord(raw[0] as number, raw[1] as number);
+  return new HexCoord(q, r);
 }
 
 /**

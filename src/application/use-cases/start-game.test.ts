@@ -8,6 +8,7 @@ import {
 import type { GameId, PlayerProgress } from '@domain/progress/player-progress';
 import type { IProgressModel } from '@domain/progress/progress-model';
 
+import type { Either } from '../common/either';
 import type {
   ILevelRepository,
   ILevelSummary,
@@ -18,6 +19,13 @@ import type {
   ISeedGenerator,
 } from '../ports/seed-config-repository';
 import { StartGameUseCase } from './start-game';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 function createFakeSession(seed: number | null): IGameSession {
   return {
@@ -146,7 +154,7 @@ describe('StartGameUseCase', () => {
     });
 
     // Act
-    const result = await useCase.execute({ gameId: 'hexa-lines' });
+    const result = expectRight(await useCase.execute({ gameId: 'hexa-lines' }));
 
     // Assert
     expect(result.seed).toBe(1234);
@@ -164,12 +172,12 @@ describe('StartGameUseCase', () => {
     const withoutConfig = createHarness({ generatedSeed: 888 });
 
     // Act
-    const fromRandom = await withRandomConfig.useCase.execute({
-      gameId: 'hexa-lines',
-    });
-    const fromFallback = await withoutConfig.useCase.execute({
-      gameId: 'hexa-lines',
-    });
+    const fromRandom = expectRight(
+      await withRandomConfig.useCase.execute({ gameId: 'hexa-lines' }),
+    );
+    const fromFallback = expectRight(
+      await withoutConfig.useCase.execute({ gameId: 'hexa-lines' }),
+    );
 
     // Assert
     expect(fromRandom.seed).toBe(777);
@@ -186,10 +194,9 @@ describe('StartGameUseCase', () => {
     const { useCase, received } = createHarness({ levels: [level1] });
 
     // Act
-    const result = await useCase.execute({
-      gameId: 'hexa-fit',
-      levelId: 'fit-01',
-    });
+    const result = expectRight(
+      await useCase.execute({ gameId: 'hexa-fit', levelId: 'fit-01' }),
+    );
 
     // Assert
     expect(result.seed).toBeNull();
@@ -224,17 +231,33 @@ describe('StartGameUseCase', () => {
     });
 
     // Act
-    const result = await useCase.execute({
-      gameId: 'hexa-sort',
-      levelId: 'sort-02',
-    });
+    const result = expectRight(
+      await useCase.execute({ gameId: 'hexa-sort', levelId: 'sort-02' }),
+    );
 
     // Assert
     expect(result.levelId).toBe('sort-02');
     expect(result.seed).toBe(55);
   });
 
-  it('should_reject_when_level_is_missing_or_locked', async () => {
+  it('should_return_either_left_when_variant_factory_is_missing', async () => {
+    // Arrange
+    const { useCase } = createHarness();
+
+    // Act
+    const outcome = await useCase.execute({ gameId: 'unknown-variant' });
+
+    // Assert
+    expect(outcome.isLeft()).toBe(true);
+    expect(
+      outcome.fold(
+        (err) => err.message,
+        () => '',
+      ),
+    ).toBe('No variant factory registered for unknown-variant');
+  });
+
+  it('should_return_either_left_when_level_is_missing_or_locked', async () => {
     // Arrange
     const levels: ILevelSummary[] = [
       { id: 'fit-01', gameId: 'hexa-fit', order: 1 },
@@ -242,19 +265,27 @@ describe('StartGameUseCase', () => {
     ];
     const { useCase } = createHarness({ levels });
 
-    // Act & Assert
-    await expect(useCase.execute({ gameId: 'hexa-fit' })).rejects.toThrow(
-      RangeError,
-    );
-    await expect(
-      useCase.execute({ gameId: 'hexa-fit', levelId: 'fit-99' }),
-    ).rejects.toThrow(RangeError);
-    await expect(
-      useCase.execute({ gameId: 'hexa-fit', levelId: 'fit-02' }),
-    ).rejects.toThrow(RangeError);
+    // Act
+    const missingId = await useCase.execute({ gameId: 'hexa-fit' });
+    const unknownLevel = await useCase.execute({
+      gameId: 'hexa-fit',
+      levelId: 'fit-99',
+    });
+    const lockedLevel = await useCase.execute({
+      gameId: 'hexa-fit',
+      levelId: 'fit-02',
+    });
+
+    // Assert
+    for (const outcome of [missingId, unknownLevel, lockedLevel]) {
+      expect(outcome.isLeft()).toBe(true);
+      if (outcome.isLeft()) {
+        expect(outcome.value).toBeInstanceOf(RangeError);
+      }
+    }
   });
 
-  it('should_reject_as_not_found_when_level_list_does_not_include_it', async () => {
+  it('should_return_either_left_as_not_found_when_level_list_does_not_include_it', async () => {
     // Arrange
     const first: ILevelSummary = { id: 'fit-01', gameId: 'hexa-fit', order: 1 };
     const orphan: ILevelSummary = {
@@ -268,12 +299,19 @@ describe('StartGameUseCase', () => {
     });
 
     // Act
-    const start = useCase.execute({ gameId: 'hexa-fit', levelId: 'fit-07' });
+    const outcome = await useCase.execute({
+      gameId: 'hexa-fit',
+      levelId: 'fit-07',
+    });
 
     // Assert
-    await expect(start).rejects.toThrow(
-      'Level fit-07 was not found for hexa-fit',
-    );
+    expect(outcome.isLeft()).toBe(true);
+    expect(
+      outcome.fold(
+        (err) => err.message,
+        () => '',
+      ),
+    ).toBe('Level fit-07 was not found for hexa-fit');
     expect(received).toEqual([]);
   });
 });

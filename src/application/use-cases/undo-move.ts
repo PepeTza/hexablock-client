@@ -3,9 +3,10 @@ import type { GameState } from '@domain/engine/game/game-state';
 import type { GameStatus } from '@domain/engine/game/session-states';
 import type { GameId } from '@domain/progress/player-progress';
 
-import type { IUseCase } from './use-case';
+import { Either } from '../common/either';
+import type { CommandService } from './use-case';
 
-/** Input handed by the UI when the player requests an undo (CU-04). */
+/** Command handed by the UI when the player requests an undo (CU-04). */
 export interface UndoMoveInput<TState extends GameState = GameState> {
   readonly gameId: GameId;
   readonly engine: IUndoableSession<TState>;
@@ -27,20 +28,18 @@ export interface UndoMoveOutput<TState extends GameState = GameState> {
 /**
  * Generic use case CU-04 (Undo move): delegates an undo request to the
  * active session without variant conditionals (OCP, RF-07).
- *
- * Wrapped with `LoggingUseCaseDecorator` at app start-up (RNF-04, #116).
  */
 export class UndoMoveUseCase<
   TState extends GameState = GameState,
-> implements IUseCase<UndoMoveInput<TState>, UndoMoveOutput<TState>> {
-  execute(input: UndoMoveInput<TState>): UndoMoveOutput<TState> {
+> implements CommandService<UndoMoveInput<TState>, UndoMoveOutput<TState>> {
+  execute(input: UndoMoveInput<TState>): Either<Error, UndoMoveOutput<TState>> {
     const undone = input.engine.undo();
-    return {
+    return Either.right({
       undone,
       state: input.engine.state,
       status: input.engine.status,
       canUndo: input.engine.canUndo,
       canRedo: input.engine.canRedo,
-    };
+    });
   }
 }

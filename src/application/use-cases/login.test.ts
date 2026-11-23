@@ -1,5 +1,13 @@
+import type { Either } from '../common/either';
 import type { IAuthService } from '../ports/auth-service';
 import { LoginUseCase } from './login';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 const credentials = { username: 'test_admin', password: 'synthetic-password' };
 
@@ -16,7 +24,9 @@ describe('LoginUseCase', () => {
     };
 
     // Act
-    const result = await new LoginUseCase(auth, 'admin').execute(credentials);
+    const result = expectRight(
+      await new LoginUseCase(auth, 'admin').execute(credentials),
+    );
 
     // Assert
     expect(result).toEqual({ status: 'authenticated', session });
@@ -37,7 +47,9 @@ describe('LoginUseCase', () => {
     };
 
     // Act
-    const result = await new LoginUseCase(auth, 'admin').execute(credentials);
+    const result = expectRight(
+      await new LoginUseCase(auth, 'admin').execute(credentials),
+    );
 
     // Assert
     expect(result).toEqual({ status: 'forbidden' });
@@ -50,7 +62,9 @@ describe('LoginUseCase', () => {
     };
 
     // Act
-    const result = await new LoginUseCase(auth, 'admin').execute(credentials);
+    const result = expectRight(
+      await new LoginUseCase(auth, 'admin').execute(credentials),
+    );
 
     // Assert
     expect(result).toEqual({ status: 'invalid-credentials' });

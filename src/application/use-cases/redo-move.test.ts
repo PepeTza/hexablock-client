@@ -11,9 +11,17 @@ import type { GameState } from '@domain/engine/game/game-state';
 import { HexCoord } from '@domain/engine/hex/hex-coord';
 import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 
-import { LoggingUseCaseDecorator } from '../aspects/logging-use-case-decorator';
+import { LoggingCommandServiceDecorator } from '../aspects/logging-use-case-decorator';
+import type { Either } from '../common/either';
 import type { IClock, ILogger, LogContext } from '../ports/logger';
 import { RedoMoveUseCase } from './redo-move';
+
+function expectRight<T>(outcome: Either<Error, T>): T {
+  if (outcome.isLeft()) {
+    throw outcome.value;
+  }
+  return outcome.value;
+}
 
 type NumberMove = { cell: HexCoord; value: number };
 
@@ -84,7 +92,7 @@ describe('RedoMoveUseCase', () => {
     const useCase = new RedoMoveUseCase();
 
     // Act
-    const output = useCase.execute({ gameId: 'hexa-fit', engine });
+    const output = expectRight(useCase.execute({ gameId: 'hexa-fit', engine }));
 
     // Assert
     expect(output).toEqual({
@@ -115,18 +123,24 @@ describe('RedoMoveUseCase', () => {
     pausedEngine.pause();
 
     // Act
-    const onEmpty = useCase.execute({
-      gameId: 'hexa-fit',
-      engine: emptyEngine,
-    });
-    const afterNewMove = useCase.execute({
-      gameId: 'hexa-fit',
-      engine: clearedEngine,
-    });
-    const whilePaused = useCase.execute({
-      gameId: 'hexa-fit',
-      engine: pausedEngine,
-    });
+    const onEmpty = expectRight(
+      useCase.execute({
+        gameId: 'hexa-fit',
+        engine: emptyEngine,
+      }),
+    );
+    const afterNewMove = expectRight(
+      useCase.execute({
+        gameId: 'hexa-fit',
+        engine: clearedEngine,
+      }),
+    );
+    const whilePaused = expectRight(
+      useCase.execute({
+        gameId: 'hexa-fit',
+        engine: pausedEngine,
+      }),
+    );
 
     // Assert
     expect(onEmpty).toEqual({
@@ -175,7 +189,7 @@ describe('RedoMoveUseCase', () => {
     engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
     engine.resolutionDone();
     engine.undo();
-    const decorated = new LoggingUseCaseDecorator(
+    const decorated = new LoggingCommandServiceDecorator(
       'RedoMoveUseCase',
       new RedoMoveUseCase(),
       logger,
@@ -192,7 +206,9 @@ describe('RedoMoveUseCase', () => {
     );
 
     // Act
-    const output = decorated.execute({ gameId: 'hexa-fit', engine });
+    const output = expectRight(
+      decorated.execute({ gameId: 'hexa-fit', engine }),
+    );
 
     // Assert
     expect(output.redone).toBe(true);
