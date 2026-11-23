@@ -26,6 +26,10 @@ export interface SessionContext<TMove> {
   play(move: TMove): MoveResult;
   /** Emits `MoveRejected` without touching the game and returns the rejection. */
   reject(move: TMove, reason: string): MoveResult;
+  /** Undoes the last applied move if permitted and available (CU-04). */
+  undo(): boolean;
+  /** Redoes the last undone move if permitted and available (CU-05). */
+  redo(): boolean;
   /** Replaces the current session state. */
   moveTo(state: SessionState<TMove>): void;
   emitPaused(): void;
@@ -50,6 +54,18 @@ export abstract class SessionState<TMove> {
   abstract applyMove(context: SessionContext<TMove>, move: TMove): MoveResult;
 
   /** Ignored unless a state says otherwise. */
+  undo(context: SessionContext<TMove>): boolean {
+    void context;
+    return false;
+  }
+
+  /** Ignored unless a state says otherwise. */
+  redo(context: SessionContext<TMove>): boolean {
+    void context;
+    return false;
+  }
+
+  /** Ignored unless a state says otherwise. */
   pause(context: SessionContext<TMove>): void {
     void context;
   }
@@ -65,7 +81,7 @@ export abstract class SessionState<TMove> {
   }
 }
 
-/** In progress: accepts moves and pause. */
+/** In progress: accepts moves, undo/redo (staying playing) and pause. */
 export class PlayingState<TMove> extends SessionState<TMove> {
   readonly status = 'playing';
 
@@ -75,6 +91,14 @@ export class PlayingState<TMove> extends SessionState<TMove> {
       context.moveTo(new ResolvingState(result.pendingOutcome));
     }
     return result;
+  }
+
+  undo(context: SessionContext<TMove>): boolean {
+    return context.undo();
+  }
+
+  redo(context: SessionContext<TMove>): boolean {
+    return context.redo();
   }
 
   pause(context: SessionContext<TMove>): void {

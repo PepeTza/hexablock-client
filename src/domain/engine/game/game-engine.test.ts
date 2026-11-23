@@ -1,5 +1,6 @@
 import { Board } from '../board/board';
 import { BoardShape } from '../board/board-shape';
+import { CommandHistory } from '../commands/command-history';
 import type {
   DomainEvent,
   GameOutcome,
@@ -7,10 +8,14 @@ import type {
 } from '../events/domain-event';
 import { HexCoord } from '../hex/hex-coord';
 import { HexGeometry } from '../hex/hex-geometry';
+import { RandomPieceSource } from '../pieces/random-piece-source';
+import { SeededRandom } from '../random/seeded-random';
 import type { IScoringPolicy } from '../scoring/scoring-policy';
+import { Snapshot } from '../state/snapshot';
 import { BaseGameRules, type Resolved } from './base-game-rules';
 import { GameEngine } from './game-engine';
 import type { GameState } from './game-state';
+import { SourcedGameRules, type SourcedState } from './sourced-game-rules';
 
 // Test variant 1: put a number on an empty cell. The game is won when the
 // board is full. A negative number makes `resolve` throw, after the board
@@ -123,6 +128,7 @@ function numberGame(
     radius?: number;
     scoring?: IScoringPolicy<Placed>;
     onListenerError?: ListenerErrorHandler;
+    history?: CommandHistory<PlaceNumber>;
   } = {},
 ) {
   const events: DomainEvent[] = [];
@@ -134,6 +140,7 @@ function numberGame(
     state: { score: 0, moveCount: 0, placed: 0 },
     rules: new NumberRules(options.scoring ?? faceValue),
     seed: 42,
+    history: options.history,
     listeners: [(event) => events.push(event)],
     onListenerError: options.onListenerError,
   });
@@ -614,5 +621,289 @@ describe('GameEngine', () => {
         expect(types()).toHaveLength(eventsBefore);
       },
     );
+  });
+
+  describe('undo and redo (T20)', () => {
+    type RandomDealState = SourcedState<RandomPieceSource<string>> & {
+      readonly dealt: readonly string[];
+    };
+
+    class RandomDealRules extends SourcedGameRules<
+      string,
+      HexCoord,
+      HexCoord,
+      RandomDealState,
+      null,
+      RandomPieceSource<string>
+    > {
+      constructor() {
+        super({ pointsFor: () => 1 });
+      }
+
+      protected validate(
+        board: Board<string, HexCoord>,
+        _: RandomDealState,
+        move: HexCoord,
+      ): string | null {
+        return board.isEmpty(move) ? null : 'cell is taken';
+      }
+
+      protected apply(
+        board: Board<string, HexCoord>,
+        _: RandomDealState,
+        move: HexCoord,
+      ): void {
+        board.place(move, 'tile');
+      }
+
+      protected resolveWith(
+        _: Board<string, HexCoord>,
+        state: RandomDealState,
+        __: HexCoord,
+        source: RandomPieceSource<string>,
+      ): Resolved<RandomDealState, null> {
+        const [nextTile] = source.draw(1);
+        return {
+          state: {
+            ...state,
+            dealt:
+              nextTile === undefined ? state.dealt : [...state.dealt, nextTile],
+          },
+          resolution: null,
+        };
+      }
+
+      protected evaluateEnd(): GameOutcome | null {
+        return null;
+      }
+    }
+
+    it('should_restore_board_and_state_and_emit_move_undone_when_undo_is_called', () => {
+      // Arrange
+      const { engine, events, types } = numberGame({
+        history: CommandHistory.unlimited(),
+      });
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      engine.resolutionDone();
+      engine.applyMove({ cell: hex(1, 0), value: 6 });
+      engine.resolutionDone();
+
+      // Act
+      const undone = engine.undo();
+
+      // Assert
+      expect(undone).toBe(true);
+      expect(engine.status).toBe('playing');
+      expect(engine.board.cellAt(HexCoord.ORIGIN)).toBe(4);
+      expect(engine.board.isEmpty(hex(1, 0))).toBe(true);
+      expect(engine.state).toEqual({ score: 4, moveCount: 1, placed: 1 });
+      expect(engine.canUndo).toBe(true);
+      expect(engine.canRedo).toBe(true);
+      expect(types().at(-1)).toBe('MoveUndone');
+      expect(events.at(-1)).toEqual({
+        type: 'MoveUndone',
+        move: { cell: hex(1, 0), value: 6 },
+      });
+    });
+
+    it('should_reapply_move_without_revalidating_and_emit_move_redone_when_redo_is_called', () => {
+      // Arrange
+      const { engine, events, types } = numberGame({
+        history: CommandHistory.unlimited(),
+      });
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      engine.resolutionDone();
+      engine.applyMove({ cell: hex(1, 0), value: 6 });
+      engine.resolutionDone();
+      engine.undo();
+      const eventCountBeforeRedo = types().length;
+
+      // Act
+      const redone = engine.redo();
+
+      // Assert
+      expect(redone).toBe(true);
+      expect(engine.status).toBe('playing');
+      expect(engine.board.cellAt(hex(1, 0))).toBe(6);
+      expect(engine.state).toEqual({ score: 10, moveCount: 2, placed: 2 });
+      expect(engine.canRedo).toBe(false);
+      expect(types().slice(eventCountBeforeRedo)).toEqual(['MoveRedone']);
+      expect(events.at(-1)).toEqual({
+        type: 'MoveRedone',
+        move: { cell: hex(1, 0), value: 6 },
+      });
+    });
+
+    it('should_clear_redo_history_when_a_new_move_is_applied_after_undo', () => {
+      // Arrange
+      const { engine } = numberGame({ history: CommandHistory.unlimited() });
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      engine.resolutionDone();
+      engine.applyMove({ cell: hex(1, 0), value: 6 });
+      engine.resolutionDone();
+      engine.undo();
+      const canRedoBeforeNewMove = engine.canRedo;
+
+      // Act
+      engine.applyMove({ cell: hex(0, 1), value: 2 });
+      engine.resolutionDone();
+
+      // Assert
+      expect(canRedoBeforeNewMove).toBe(true);
+      expect(engine.canRedo).toBe(false);
+      expect(engine.redo()).toBe(false);
+      expect(engine.state).toEqual({ score: 6, moveCount: 2, placed: 2 });
+    });
+
+    it('should_not_record_command_or_clear_redo_when_move_is_rejected_or_throws', () => {
+      // Arrange
+      const { engine } = numberGame({ history: CommandHistory.unlimited() });
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      engine.resolutionDone();
+      engine.applyMove({ cell: hex(1, 0), value: 6 });
+      engine.resolutionDone();
+      engine.undo();
+
+      // Act
+      const rejected = engine.applyMove({ cell: HexCoord.ORIGIN, value: 9 });
+      const throwing = () => engine.applyMove({ cell: hex(1, 0), value: -1 });
+
+      // Assert
+      expect(rejected).toEqual({ kind: 'rejected', reason: 'cell is taken' });
+      expect(throwing).toThrow('broken rule');
+      expect(engine.canRedo).toBe(true);
+      expect(engine.board.isEmpty(hex(1, 0))).toBe(true);
+      expect(engine.state).toEqual({ score: 4, moveCount: 1, placed: 1 });
+      expect(engine.redo()).toBe(true);
+      expect(engine.board.cellAt(hex(1, 0))).toBe(6);
+    });
+
+    it('should_restore_source_snapshot_so_repeated_move_deals_same_piece_when_undone', () => {
+      // Arrange
+      const pool = ['p1', 'p2', 'p3', 'p4', 'p5'];
+      const source = RandomPieceSource.uniform(pool, new SeededRandom(99));
+      const engine = GameEngine.start({
+        board: new Board<string, HexCoord>(
+          BoardShape.ofRadius(geometry, 1),
+          geometry,
+        ),
+        state: {
+          score: 0,
+          moveCount: 0,
+          dealt: [],
+          source: Snapshot.of(source),
+        },
+        rules: new RandomDealRules(),
+        seed: 99,
+        history: CommandHistory.singleUndo(),
+      });
+      engine.applyMove(HexCoord.ORIGIN);
+      engine.resolutionDone();
+      engine.applyMove(hex(1, 0));
+      engine.resolutionDone();
+      const dealtAfterSecondMove = [...engine.state.dealt];
+
+      // Act
+      const undone = engine.undo();
+      const dealtAfterUndo = [...engine.state.dealt];
+      engine.applyMove(hex(1, 0));
+      engine.resolutionDone();
+
+      // Assert
+      expect(undone).toBe(true);
+      expect(dealtAfterUndo).toHaveLength(1);
+      expect(engine.state.dealt).toEqual(dealtAfterSecondMove);
+    });
+
+    it('should_unlock_extra_undo_mid_game_when_grant_undo_is_called_on_disabled_or_single_undo_game', () => {
+      // Arrange
+      const { engine: disabledGame } = numberGame();
+      disabledGame.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      disabledGame.resolutionDone();
+      disabledGame.applyMove({ cell: hex(1, 0), value: 6 });
+      disabledGame.resolutionDone();
+
+      const { engine: singleUndoGame } = numberGame({
+        history: CommandHistory.singleUndo(),
+      });
+      singleUndoGame.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      singleUndoGame.resolutionDone();
+      singleUndoGame.applyMove({ cell: hex(1, 0), value: 6 });
+      singleUndoGame.resolutionDone();
+
+      // Act
+      const canUndoBeforeGrant = disabledGame.canUndo;
+      disabledGame.grantUndo(1);
+      const disabledUnlocked = disabledGame.undo();
+      singleUndoGame.grantUndo(1);
+      const firstSingle = singleUndoGame.undo();
+      const secondSingle = singleUndoGame.undo();
+      const thirdSingle = singleUndoGame.undo();
+
+      // Assert
+      expect(canUndoBeforeGrant).toBe(false);
+      expect(disabledUnlocked).toBe(true);
+      expect(disabledGame.board.isEmpty(hex(1, 0))).toBe(true);
+      expect(disabledGame.canUndo).toBe(false);
+      expect(firstSingle).toBe(true);
+      expect(secondSingle).toBe(true);
+      expect(thirdSingle).toBe(false);
+      expect(singleUndoGame.state).toEqual({
+        score: 0,
+        moveCount: 0,
+        placed: 0,
+      });
+    });
+
+    it('should_ignore_undo_and_redo_when_not_playing_or_nothing_to_undo', () => {
+      // Arrange
+      const { engine, types } = numberGame({
+        radius: 0,
+        history: CommandHistory.unlimited(),
+      });
+      const beforeEmpty = types().length;
+      const emptyUndo = engine.undo();
+      const emptyRedo = engine.redo();
+      const afterEmpty = types().length;
+
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      const beforeResolving = types().length;
+      const canUndoWhileResolving = engine.canUndo;
+      const undoWhileResolving = engine.undo();
+      const redoWhileResolving = engine.redo();
+      const afterResolving = types().length;
+
+      engine.pause();
+      const beforePaused = types().length;
+      const canUndoWhilePaused = engine.canUndo;
+      const undoWhilePaused = engine.undo();
+      const redoWhilePaused = engine.redo();
+      const afterPaused = types().length;
+
+      engine.resume();
+      const beforeFinished = types().length;
+      const canUndoWhenFinished = engine.canUndo;
+      const undoWhenFinished = engine.undo();
+      const redoWhenFinished = engine.redo();
+      const afterFinished = types().length;
+
+      // Assert
+      expect(emptyUndo).toBe(false);
+      expect(emptyRedo).toBe(false);
+      expect(afterEmpty).toBe(beforeEmpty);
+      expect(canUndoWhileResolving).toBe(false);
+      expect(undoWhileResolving).toBe(false);
+      expect(redoWhileResolving).toBe(false);
+      expect(afterResolving).toBe(beforeResolving);
+      expect(canUndoWhilePaused).toBe(false);
+      expect(undoWhilePaused).toBe(false);
+      expect(redoWhilePaused).toBe(false);
+      expect(afterPaused).toBe(beforePaused);
+      expect(canUndoWhenFinished).toBe(false);
+      expect(undoWhenFinished).toBe(false);
+      expect(redoWhenFinished).toBe(false);
+      expect(afterFinished).toBe(beforeFinished);
+      expect(engine.status).toBe('finished');
+    });
   });
 });
