@@ -769,6 +769,12 @@ One entry per significant use. Copy the template.
   - Keeping circular wrap-around and swipe threshold resolution as pure
     functions in layer 3 lets them be tested independently of React Native
     gesture internals while keeping `MainMenuView` a Humble View.
+  - Testing in Expo Go on a real phone caught that a child `<Pressable>`
+    claimed the JS touch responder before the parent `PanResponder` captured
+    horizontal movement; fixed in a follow-up (`onMoveShouldSetPanResponderCapture`
+    at 10 px, `translateX` feedback, outer touch listeners separated from
+    `panHandlers` so React Native Testing Library keeps touch events enabled,
+    and drag-suppression on `onPress`; `258 / 258` app, `9 / 9` panel).
 
 ## 3. Critical evaluation
 
