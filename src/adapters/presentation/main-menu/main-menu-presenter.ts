@@ -5,11 +5,56 @@ import type {
 import type { IUseCase } from '@application/use-cases/use-case';
 
 import {
+  type CarouselStep,
+  type MainMenuMode,
   type MainMenuViewModel,
   type MenuVariantEntry,
   type ProgressKind,
   SUITE_NAME,
 } from './main-menu-view-model';
+
+/** Minimum horizontal drag distance in points to change carousel cards. */
+export const DEFAULT_SWIPE_THRESHOLD = 40;
+
+/**
+ * Pure circular index navigation for the main menu carousel (#117):
+ * wraps around in both directions (`0 ↔ count - 1`) for any number of
+ * variants in `MENU_VARIANTS` (OCP).
+ */
+export function stepCarouselIndex(
+  currentIndex: number,
+  count: number,
+  step: CarouselStep,
+): number {
+  if (count <= 0) {
+    return 0;
+  }
+  return (((currentIndex + step) % count) + count) % count;
+}
+
+/** Switches between the default `'carousel'` view and the `'list'` view (#117). */
+export function toggleMenuMode(mode: MainMenuMode): MainMenuMode {
+  return mode === 'carousel' ? 'list' : 'carousel';
+}
+
+/**
+ * Translates a horizontal swipe displacement (`dx`) into a carousel step:
+ * swiping left (`dx <= -threshold`) advances to the next variant (`1`),
+ * swiping right (`dx >= threshold`) moves to the previous one (`-1`), and
+ * shorter drags return `0`.
+ */
+export function resolveCarouselSwipe(
+  dx: number,
+  threshold: number = DEFAULT_SWIPE_THRESHOLD,
+): CarouselStep | 0 {
+  if (dx <= -threshold) {
+    return 1;
+  }
+  if (dx >= threshold) {
+    return -1;
+  }
+  return 0;
+}
 
 const PROGRESS_LABELS: Record<
   ProgressKind,

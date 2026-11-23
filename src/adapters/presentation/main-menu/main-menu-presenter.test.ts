@@ -4,7 +4,12 @@ import type {
 } from '@application/use-cases/load-progress-summary';
 import type { IUseCase } from '@application/use-cases/use-case';
 
-import { MainMenuPresenter } from './main-menu-presenter';
+import {
+  MainMenuPresenter,
+  resolveCarouselSwipe,
+  stepCarouselIndex,
+  toggleMenuMode,
+} from './main-menu-presenter';
 import type { MenuVariantEntry } from './main-menu-view-model';
 import { MENU_VARIANTS } from './menu-variants';
 
@@ -135,5 +140,51 @@ describe('MainMenuPresenter', () => {
       name: 'Hexa Quest',
       progressLabel: 'Levels completed: 2',
     });
+  });
+
+  it('should_wrap_around_in_both_directions_when_stepping_carousel_index', () => {
+    // Arrange
+    const count = 4;
+
+    // Act
+    const backwardWrap = stepCarouselIndex(0, count, -1);
+    const forwardWrap = stepCarouselIndex(3, count, 1);
+    const forwardStep = stepCarouselIndex(0, count, 1);
+    const backwardStep = stepCarouselIndex(2, count, -1);
+    const emptyStep = stepCarouselIndex(0, 0, 1);
+
+    // Assert
+    expect(backwardWrap).toBe(3);
+    expect(forwardWrap).toBe(0);
+    expect(forwardStep).toBe(1);
+    expect(backwardStep).toBe(1);
+    expect(emptyStep).toBe(0);
+  });
+
+  it('should_switch_between_carousel_and_list_when_toggling_menu_mode', () => {
+    // Arrange
+    const initial = 'carousel';
+
+    // Act
+    const toList = toggleMenuMode(initial);
+    const backToCarousel = toggleMenuMode(toList);
+
+    // Assert
+    expect(toList).toBe('list');
+    expect(backToCarousel).toBe('carousel');
+  });
+
+  it('should_resolve_swipe_direction_only_when_horizontal_distance_exceeds_threshold', () => {
+    // Arrange
+    const leftSwipeDx = -50;
+    const rightSwipeDx = 50;
+    const shortRightDx = 20;
+    const shortLeftDx = -20;
+
+    // Act & Assert
+    expect(resolveCarouselSwipe(leftSwipeDx)).toBe(1);
+    expect(resolveCarouselSwipe(rightSwipeDx)).toBe(-1);
+    expect(resolveCarouselSwipe(shortRightDx)).toBe(0);
+    expect(resolveCarouselSwipe(shortLeftDx)).toBe(0);
   });
 });

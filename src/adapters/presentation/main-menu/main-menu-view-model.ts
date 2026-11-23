@@ -21,6 +21,12 @@ export interface MenuVariantItem {
   readonly progressLabel: string | null;
 }
 
+/** Active layout mode of the main menu screen (#117). */
+export type MainMenuMode = 'carousel' | 'list';
+
+/** Direction step when moving across the variant carousel (-1: previous, 1: next). */
+export type CarouselStep = -1 | 1;
+
 /** View model consumed by the passive main menu view. */
 export interface MainMenuViewModel {
   readonly title: string;
