@@ -908,6 +908,17 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The browser needed a wrapper around fetch.
   Role checks passed against simulated API responses; deployment is separate.
 
+### 2026-11-23 — Hexa Fit score and stars
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #83.
+- **Prompt:** Apply the D-08 Fit score and award stars from each level's thresholds.
+- **Result:** Added score calculation, a Fit progress strategy and a use case test
+  for saving stars through the progress port.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** The test uses a temporary progress store and test
+  thresholds. The mobile screen and persistent repository are tracked separately.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
