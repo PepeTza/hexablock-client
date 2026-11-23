@@ -791,6 +791,20 @@ One entry per significant use. Copy the template.
   reports panel coverage; Jest enforces the shared domain and application
   thresholds.
 
+### 2026-11-23 — Level definition, builder and validator port
+
+- **Tool / model:** Codex (GPT-6).
+- **Issue / PR:** #60 (T22).
+- **Prompt:** Implement the level definition, JSON Builder and validator port
+  for RN-13 and RN-37 in an isolated checkout, with tests first and no
+  speculative Fit or Sort schema.
+- **Result:** Added an immutable level snapshot, field-specific errors for
+  malformed common data and a validator port for variant playability checks.
+- **Team modifications:** Pending team review.
+- **Lessons / limitations:** Backend #32 owns the variant-specific JSON
+  format. The Builder preserves the spec as JSON and leaves version support
+  and playability to the variant validator.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
