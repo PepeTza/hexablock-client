@@ -6,5 +6,6 @@ export type RootStackParamList = {
   Home: undefined;
   Variant: { gameId: GameId; name: string; levelId?: string | null };
   Settings: undefined;
+  SkiaSpike: undefined;
   GameResult: GameResultInput;
 };

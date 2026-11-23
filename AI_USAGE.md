@@ -791,6 +791,21 @@ One entry per significant use. Copy the template.
   reports panel coverage; Jest enforces the shared domain and application
   thresholds.
 
+### 2026-11-23 — Skia rendering spike
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #11.
+- **Prompt:** Complete the assigned issues in plan order, starting with the
+  Android Skia board and drag experiment. Reuse the engine's hex geometry.
+- **Result:** Added a development-only screen, projection tests and a
+  drag-time frame-rate readout.
+- **Team modifications:** The team approved reusing the existing geometry.
+- **Lessons / limitations:** The Android JS bundle compiles, but the
+  emulator could not complete the connection to Metro. Drag behavior and
+  frame rate on a physical Android device remain unverified.
+- **Reference:** Red Blob Games, Hexagonal Grids (pointy-top projection and
+  cube rounding).
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
