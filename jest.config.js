@@ -26,6 +26,10 @@ module.exports = {
   coverageThreshold,
   moduleNameMapper,
   // `admin/` is a separate web app tested with Vitest (D-18).
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/admin/'],
+  testMatch: [
+    '**/__tests__/**/*.?([mc])[jt]s?(x)',
+    '**/?(*.)+(spec|test).?([mc])[jt]s?(x)',
+    '!**/admin/**',
+  ],
   modulePathIgnorePatterns: ['<rootDir>/admin/'],
 };
