@@ -851,6 +851,19 @@ One entry per significant use. Copy the template.
   shape starts at weight 1 and can be configured by ID. The source
   snapshot prevents previews from consuming future pieces.
 
+### 2026-11-23 — Hexa Fit figure coverage
+
+- **Tool / model:** Codex (GPT-6).
+- **Issue / PR:** #71 (HU15).
+- **Prompt:** Implement the Fit placement core on top of #60 using
+  catalog-resolved pieces and tests first.
+- **Result:** Added a typed session starter, Fit placement rules and engine
+  tests for exact coverage, invalid placements and preview.
+- **Team modifications:** Pending team review.
+- **Lessons / limitations:** Session-local piece IDs distinguish copies of
+  the same catalog shape. The starter expects an already resolved figure
+  and pieces. Rotation interactions, undo and solution search are separate.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
