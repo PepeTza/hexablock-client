@@ -155,3 +155,29 @@ describe('Hexa Fit core', () => {
     expect(game.state.moveCount).toBe(0);
   });
 });
+
+it('should_restore_board_tray_and_moves_when_undoing_and_redoing_fit', () => {
+  // Arrange
+  const game = startFitGame(BoardShape.of([west, origin, east]), [
+    single,
+    single,
+    single,
+  ]);
+  game.applyMove({ pieceId: 0, anchor: origin });
+  game.resolutionDone();
+  game.applyMove({ pieceId: 1, anchor: east });
+  game.resolutionDone();
+
+  // Act and assert
+  expect(game.undo()).toBe(true);
+  expect(game.undo()).toBe(true);
+  expect(game.board.isEmpty(origin)).toBe(true);
+  expect(game.state.pendingPieces).toHaveLength(3);
+  expect(game.state.moveCount).toBe(0);
+  expect(game.redo()).toBe(true);
+  expect(game.board.cellAt(origin)).toBe(0);
+  expect(game.state.moveCount).toBe(1);
+  game.applyMove({ pieceId: 2, anchor: west });
+  game.resolutionDone();
+  expect(game.redo()).toBe(false);
+});
