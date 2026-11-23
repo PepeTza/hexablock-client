@@ -701,6 +701,35 @@ One entry per significant use. Copy the template.
     explicit allowlist (`describe`), future use cases such as login would
     silently leak secrets or whole engine objects.
 
+### 2026-11-22 — Command history for undo and redo (issue #58)
+
+- **Tool / model:** Antigravity, Gemini 4 Argon (with Orchestrator and Claude
+  Opus 5.5 in earlier turns).
+- **Issue / PR:** #58 (`T20`).
+- **Prompt (paraphrase):** review #58 through the harness, resolve doc
+  inconsistencies (`CU-04`/`CU-06` session transitions and `IUndoable`),
+  discuss how in-game booster Decorators can unlock extra undos mid-game, and
+  implement generic command history in `GameEngine`.
+- **Result:** added `src/domain/engine/commands/` (`ICommand`, `IUndoable`,
+  `ApplyMoveCommand`, `CommandHistory` separating `maxDepth` from
+  `allowancePerMove` + `grantUndo`), `MoveUndone` / `MoveRedone` events,
+  `PlayingState` / `GameEngine` `undo()`, `redo()`, `canUndo`, `canRedo` and
+  `grantUndo()`, 14 new unit and integration tests (245 / 245 app, 9 / 9 panel),
+  aligned `docs/architecture.md` and `docs/use-cases.md`, and created #123
+  for `UndoMoveUseCase` / `RedoMoveUseCase`.
+- **Team modifications:**
+  - Chose option A on `CU-06`: `undo` and `redo` stay in `PlayingState` and
+    are ignored (return `false` with no events) when empty or not playing.
+  - Kept #58 scoped strictly to `src/domain/engine/` and split layer-2
+    use cases (`CU-04`, `CU-05`) into #123.
+  - Asked for mid-game boosters (such as `+1` undo from 0→1 or 1→2) to stay
+    decoupled via Decorator, leading to separating `maxDepth` from
+    `allowancePerMove` and adding `grantUndo`.
+- **Lessons / limitations:**
+  - Separating history retention (`maxDepth`) from permission (`allowance`) in
+    `CommandHistory` avoids breaking OCP later when booster Decorators unlock
+    undo mid-game in variants without baseline undo.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
