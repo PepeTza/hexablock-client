@@ -750,6 +750,26 @@ One entry per significant use. Copy the template.
     `StartGameUseCase`, `FinishGameUseCase` and `VariantFactoryRegistry` tests
     (ISP).
 
+### 2026-11-22 — Carousel main menu with list toggle (issue #117)
+
+- **Tool / model:** Antigravity, Gemini 4 Argon.
+- **Issue / PR:** #117 (improvement on HU01 #36).
+- **Prompt (paraphrase):** implement #117 through the harness (gate 1 plan,
+  circular carousel by default with swipe/arrows, demo placeholder, list mode
+  toggle and tests, without touching the engine or `package.json`).
+- **Result:** added pure `stepCarouselIndex`, `toggleMenuMode` and
+  `resolveCarouselSwipe` helpers to `main-menu-presenter.ts` (with `MainMenuMode`
+  and `CarouselStep` in `main-menu-view-model.ts`), updated `MainMenuView.tsx`
+  with React Native's built-in `PanResponder` and `Animated` (no new
+  dependencies), demo placeholder pointing to #118 and `☰` / `◫` toggle, and
+  updated presenter and screen tests (`257 / 257` app, `9 / 9` panel).
+- **Team modifications:** none; confirmed with the owner before starting that
+  `src/domain/` and `src/application/` stayed completely untouched.
+- **Lessons / limitations:**
+  - Keeping circular wrap-around and swipe threshold resolution as pure
+    functions in layer 3 lets them be tested independently of React Native
+    gesture internals while keeping `MainMenuView` a Humble View.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
