@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import { GameResultPresenter } from '@adapters/presentation/game-result/game-result-presenter';
@@ -91,6 +91,12 @@ describe('HomeScreen', () => {
 
     // Act
     await renderMenu(loadSummary);
+    expect(
+      await screen.findByRole('button', { name: 'Hexa Lines' }),
+    ).toBeTruthy();
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Switch to list view' }),
+    );
 
     // Assert
     for (const entry of MENU_VARIANTS) {

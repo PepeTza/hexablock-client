@@ -25,7 +25,7 @@ function createViewModel(): MainMenuViewModel {
 }
 
 describe('MainMenuView', () => {
-  it('should_show_suite_name_and_four_variants_when_rendered', async () => {
+  it('should_show_centred_variant_card_with_demo_placeholder_in_carousel_by_default', async () => {
     // Arrange
     const viewModel = createViewModel();
 
@@ -43,9 +43,67 @@ describe('MainMenuView', () => {
       screen.getByRole('header', { name: 'HexaBlock Suite' }),
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
+    expect(screen.getByText('Demo coming soon')).toBeTruthy();
+    expect(screen.getByText('Best: 1200')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Hexa Fit' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Hexa Sort' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Hexa Merge' })).toBeNull();
+  });
+
+  it('should_wrap_around_in_both_directions_when_previous_and_next_arrows_are_pressed', async () => {
+    // Arrange
+    await render(
+      <MainMenuView
+        viewModel={createViewModel()}
+        onSelectVariant={() => undefined}
+        onOpenSettings={() => undefined}
+      />,
+    );
+
+    // Act & Assert
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Previous variant' }),
+    );
+    expect(screen.getByRole('button', { name: 'Hexa Merge' })).toBeTruthy();
+    expect(screen.getByText('Best: 512')).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Next variant' }));
+    expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Next variant' }));
+    expect(screen.getByRole('button', { name: 'Hexa Fit' })).toBeTruthy();
+  });
+
+  it('should_switch_between_carousel_and_list_showing_all_variants_when_toggle_is_pressed', async () => {
+    // Arrange
+    await render(
+      <MainMenuView
+        viewModel={createViewModel()}
+        onSelectVariant={() => undefined}
+        onOpenSettings={() => undefined}
+      />,
+    );
+
+    // Act
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Switch to list view' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Hexa Fit' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Hexa Sort' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Hexa Merge' })).toBeTruthy();
+    expect(screen.queryByText('Demo coming soon')).toBeNull();
+
+    // Act
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Switch to carousel view' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Hexa Merge' })).toBeNull();
   });
 
   it('should_call_on_select_variant_with_game_id_when_variant_pressed', async () => {
@@ -57,6 +115,9 @@ describe('MainMenuView', () => {
         onSelectVariant={onSelectVariant}
         onOpenSettings={() => undefined}
       />,
+    );
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Previous variant' }),
     );
 
     // Act
@@ -110,6 +171,6 @@ describe('MainMenuView', () => {
     // Assert
     expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
     expect(screen.queryByText('null')).toBeNull();
-    expect(screen.getAllByText(/Best:|Levels completed:/)).toHaveLength(1);
+    expect(screen.queryByText(/Best:|Levels completed:/)).toBeNull();
   });
 });
