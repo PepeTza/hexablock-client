@@ -30,7 +30,7 @@ Decisions (D-xx) are listed in [`architecture.md`](./architecture.md).
 |---|---|---|
 | RN-08 | The tray offers 3 pieces, placeable in any order; a new tray is generated only when all 3 have been used. | Statement |
 | RN-09 | A line is complete when every cell of a row on any of the 3 axes is occupied; since the board is a hexagon, every row goes from edge to edge. Complete lines are cleared immediately, and a cell shared by two lines is cleared only once. Several lines in the same move form a combo. | Statement + Proposal |
-| RN-10 | Score = placed cells + a bonus per line, multiplied by the combo (simultaneous lines) and the streak (consecutive moves that clear lines). Initial values: 1 point per cell and 10 per line, adjustable by configuration. The exact formula is pending (D-08). | Statement + Proposal |
+| RN-10 | Score = placed cells + a bonus per line, multiplied by the combo (simultaneous lines) and the streak (consecutive moves that clear lines). Initial values: 1 point per cell and 10 per line, adjustable by configuration. See D-08 for the formula and streak handling. | Statement + Proposal |
 | RN-11 | Pieces do not rotate. | Proposal |
 | RN-12 | The game ends when none of the pieces left in the tray fits on the board; if the score beats the saved high score, it replaces it. Leaving a game midway also ends it and its score counts (same in Hexa Merge). | Statement |
 

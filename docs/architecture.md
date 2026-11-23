@@ -299,11 +299,33 @@ comfort; affinity with the course language (TypeScript).
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |
 
+### D-08 — Hexa Lines scoring
+
+Each accepted placement earns `cellPoints * C + linePoints * L² * (1 + 0.5 * (S - 1))`
+([#31 scoring proposal](https://github.com/PepeTza/hexablock-client/issues/31#issuecomment-6998461493)).
+`C` is the size of the placed piece, `L` is the number of complete lines
+cleared together, and `S` is the current streak, including this move.
+The streak starts at zero, increases once per clearing move and resets to
+zero on an accepted move without a clear. Rejected moves leave it unchanged.
+The defaults are 1 point per cell and 10 per line. An even line value keeps
+the line bonus integral. A shared cell is removed once, and each complete
+line still contributes to the combo.
+
+The scoring multiplier uses the full streak. A cap of five would simplify
+the server's plausibility check (RN-39) but would lower the score from the
+sixth consecutive clearing move onward. With the RN-03 catalog, a piece
+has at most five cells and can complete at most 15 lines: each new complete
+line crosses one of the placed cells, each of which lies on three axes.
+On move `m`, the streak is at most `m`, so default scoring gives a
+conservative per-move bound of `5 + 1125 * (m + 1)`. This bound
+assumes the board has no complete lines before placement and does not set
+the server's validation policy.
+
 ### Pending design items
 
 | ID | Item | Scope |
 |---|---|---|
-| D-08 | Scoring and stars | RN-10 formula, Hexa Fit score from moves and time, final values of RN-29 and RN-40, star thresholds per level (RN-18) |
+| D-08 | Scoring and stars | Hexa Fit score from moves and time, final values of RN-29 and RN-40, star thresholds per level (RN-18) |
 | D-09 | Level design tools | Candidate generator as a design aid (manual selection and adjustment) and validator with solution search (RN-13) |
 
 ## 11. Testing strategy
