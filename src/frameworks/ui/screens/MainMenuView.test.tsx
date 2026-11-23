@@ -173,4 +173,46 @@ describe('MainMenuView', () => {
     expect(screen.queryByText('null')).toBeNull();
     expect(screen.queryByText(/Best:|Levels completed:/)).toBeNull();
   });
+
+  it('should_wrap_around_and_suppress_card_tap_when_swiping_horizontally', async () => {
+    // Arrange
+    const onSelectVariant = jest.fn();
+    await render(
+      <MainMenuView
+        viewModel={createViewModel()}
+        onSelectVariant={onSelectVariant}
+        onOpenSettings={() => undefined}
+      />,
+    );
+    const wrapper = screen.getByTestId('carousel-card-wrapper');
+
+    // Act — swipe right (dx = +80) wraps from Hexa Lines to Hexa Merge
+    await fireEvent(wrapper, 'touchStart', {
+      nativeEvent: { pageX: 100, pageY: 100 },
+    });
+    await fireEvent(wrapper, 'touchMove', {
+      nativeEvent: { pageX: 180, pageY: 100 },
+    });
+    await fireEvent(wrapper, 'touchEnd', {
+      nativeEvent: { pageX: 180, pageY: 100 },
+    });
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Hexa Merge' })).toBeTruthy();
+
+    // Act — swipe left (dx = -80) wraps from Hexa Merge back to Hexa Lines
+    await fireEvent(wrapper, 'touchStart', {
+      nativeEvent: { pageX: 200, pageY: 100 },
+    });
+    await fireEvent(wrapper, 'touchMove', {
+      nativeEvent: { pageX: 120, pageY: 100 },
+    });
+    await fireEvent(wrapper, 'touchEnd', {
+      nativeEvent: { pageX: 120, pageY: 100 },
+    });
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Hexa Lines' })).toBeTruthy();
+    expect(onSelectVariant).not.toHaveBeenCalled();
+  });
 });
