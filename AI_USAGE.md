@@ -819,6 +819,18 @@ One entry per significant use. Copy the template.
   format. The Builder preserves the spec as JSON and leaves version support
   and playability to the variant validator.
 
+### 2026-11-23 — Client architecture diagrams
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #41.
+- **Prompt:** Prepare the Track B Clean Architecture and extensibility
+  diagrams from the agreed client design.
+- **Result:** Added Mermaid sources, scalable SVG exports and README links.
+- **Team modifications:** Jesus reported that the professor accepts image
+  exports. The written Lucidchart requirement remains documented.
+- **Lessons / limitations:** The client class diagram is tracked separately
+  within #41. Both SVGs were rendered and checked locally.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

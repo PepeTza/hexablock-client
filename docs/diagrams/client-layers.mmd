@@ -1,0 +1,41 @@
+---
+config:
+  theme: base
+  themeCSS: "text { font-family: Arial, sans-serif !important; }"
+  flowchart:
+    htmlLabels: false
+    curve: linear
+    nodeSpacing: 32
+    rankSpacing: 42
+    wrappingWidth: 395
+  themeVariables:
+    fontFamily: "Arial, sans-serif"
+    fontSize: "19px"
+    lineColor: "#475569"
+    textColor: "#14243a"
+    edgeLabelBackground: "#ffffff"
+---
+flowchart TB
+    accTitle: Client Clean Architecture layers
+    accDescr: Four layers with inward code dependencies. The admin panel provides its own adapters and imports application and domain directly.
+
+    Mobile["4 · Frameworks and drivers<br/>Mobile app · Expo / React Native<br/>Skia, audio and composition root<br/>SQLite (provisional) and HTTP client"]
+    Admin["4 · Frameworks and drivers<br/>Admin web panel · React / Vite<br/>Own HTTP and draft-storage adapters"]
+    Adapters["3 · Interface adapters<br/>Presenters, input mapping and board projection<br/>Repository adapters, DTO mappers and state serialization"]
+    App["2 · Application / Use cases<br/>StartGameUseCase, ApplyMoveUseCase, FinishGameUseCase<br/>Use-case decorators and ports (e.g. IProgressRepository)"]
+    Domain["1 · Domain / Entities<br/>Board, GameEngine and variant rules<br/>Geometry, scoring, piece sources, progress and events"]
+
+    Mobile --> Adapters
+    Adapters -->|"implements application ports"| App
+    App -->|"uses domain abstractions"| Domain
+    Admin -->|"@application"| App
+    Admin -->|"@domain"| Domain
+
+    classDef drivers fill:#eff6ff,stroke:#7da4d4,color:#14243a
+    classDef adapters fill:#edf4ff,stroke:#7da4d4,color:#14243a
+    classDef application fill:#edf8f5,stroke:#76a99b,color:#14243a
+    classDef domain fill:#e5f3ed,stroke:#58947f,color:#14243a
+    class Mobile,Admin drivers
+    class Adapters adapters
+    class App application
+    class Domain domain

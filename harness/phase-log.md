@@ -44,3 +44,4 @@ details live in the PR.
 | 2026-11-22 | Client CI for the Expo app and admin panel | #6 | jesusobando32 | 266 / 266 | Local checks passed with app and panel coverage; GitHub run pending |
 | 2026-11-23 | Hexa Lines three-axis clears and scoring | #31 | jesusobando32 | 270 / 270 app, 9 / 9 panel | D-08 Lines formula with uncapped streak; 12 new tests; tray and end rules follow in #32 and #33 |
 | 2026-11-23 | Level definition, builder and validator port | #60 | jesusobando32 | 276 / 276 app, 9 / 9 panel | T22; immutable common level data and field-specific errors; Fit and Sort spec schemas remain open in backend #32 |
+| 2026-11-23 | Client layers and extensibility diagrams | #41 | jesusobando32 | — | Two SVGs and Mermaid sources; class diagram belongs to Track A |
