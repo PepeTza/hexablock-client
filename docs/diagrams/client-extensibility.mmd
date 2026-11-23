@@ -1,0 +1,44 @@
+---
+config:
+  theme: base
+  themeCSS: "text { font-family: Arial, sans-serif !important; }"
+  flowchart:
+    htmlLabels: false
+    curve: linear
+    nodeSpacing: 24
+    rankSpacing: 44
+    wrappingWidth: 350
+  themeVariables:
+    fontFamily: "Arial, sans-serif"
+    fontSize: "19px"
+    lineColor: "#475569"
+    textColor: "#14243a"
+    edgeLabelBackground: "#ffffff"
+---
+flowchart TB
+    accTitle: Extending the generic client engine
+    accDescr: Four variants plug into the same engine. Hexa Quest illustrates the domain and presentation extension points and the two registrations that connect a fifth variant.
+
+    Merge["Hexa Merge"] --> Engine
+    Sort["Hexa Sort"] --> Engine
+    Engine["Generic engine · GameEngine and Board<br/>Variants supply cell, move and state types<br/>and rules through IGameRules"]
+    Fit["Hexa Fit"] --> Engine
+    Lines["Hexa Lines"] --> Engine
+
+    Engine -.- Quest["Hexa Quest · proposed fifth variant"]
+    Quest -.-> Domain["Domain · layer 1<br/>Cell, move, state and IGameRules implementation<br/>BaseGameRules or SourcedGameRules<br/>IVariantFactory creates a session and progress model"]
+    Quest -.-> Presentation["Presentation · layer 3<br/>VariantPresentationFactory supplies<br/>ICellRenderer and IInputMapper"]
+
+    Domain -->|"domain factory registration"| Wiring
+    Presentation -->|"presentation factory registration"| Wiring
+    Wiring["Composition root · layer 4<br/>VariantFactoryRegistry + VariantPresentationRegistry<br/>Register both factories under the same gameId"]
+    Domain --- Options["Additional domain extension points<br/>IScoringPolicy · IPieceSource · IProgressModel<br/>LevelSpec and ILevelValidator for level-based variants<br/>IUndoable for variants with undo"]
+
+    classDef engine fill:#e5f3ed,stroke:#46846e,stroke-width:2px,color:#14243a
+    classDef variant fill:#eff6ff,stroke:#7da4d4,color:#14243a
+    classDef proposed fill:#fff4da,stroke:#98671d,stroke-width:2px,stroke-dasharray:6 4,color:#14243a
+    classDef detail fill:#f7f9fc,stroke:#8492a6,color:#14243a
+    class Engine engine
+    class Lines,Fit,Sort,Merge variant
+    class Quest proposed
+    class Domain,Presentation,Wiring,Options detail

@@ -863,6 +863,17 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** Session-local piece IDs distinguish copies of
   the same catalog shape. The starter expects an already resolved figure
   and pieces. Rotation interactions, undo and solution search are separate.
+### 2026-11-23 — Client architecture diagrams
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #41.
+- **Prompt:** Prepare the Track B Clean Architecture and extensibility
+  diagrams from the agreed client design.
+- **Result:** Added Mermaid sources, scalable SVG exports and README links.
+- **Team modifications:** Jesus reported that the professor accepts image
+  exports. The written Lucidchart requirement remains documented.
+- **Lessons / limitations:** The client class diagram is tracked separately
+  within #41. Both SVGs were rendered and checked locally.
 
 ## 3. Critical evaluation
 
