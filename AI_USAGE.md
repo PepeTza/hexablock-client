@@ -908,6 +908,32 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The browser needed a wrapper around fetch.
   Role checks passed against simulated API responses; deployment is separate.
 
+### 2026-11-23 — CommandService with Either and zero production type casts (issue #146)
+
+- **Tool / model:** Antigravity (Gemini 4 Argon).
+- **Issue / PR:** #146.
+- **Prompt (paraphrase):** align Layer 2 AOP use cases with Mark Seemann's
+  `CommandService` + `Either<Error, TResult>` whiteboard pattern from class,
+  remove all production `as` type casts, and document the rule in `AGENTS.md`
+  and `docs/architecture.md`.
+- **Result:** created `Either<TLeft, TRight>` (`Left`/`Right` with `fold`,
+  `map`, `mapLeft`, `flatMap`), replaced `IUseCase` with `CommandService` and
+  `AsyncCommandService`, refactored `LoggingCommandServiceDecorator`, added
+  `ExceptionHandlingCommandServiceDecorator` (`<<aspect>>`), migrated all 7
+  use cases (including `LoginUseCase` after rebasing on #63), `MainMenuPresenter`
+  and `admin/src/App.tsx`, removed the remaining 4 `as` casts from
+  `src/domain/engine/`, and updated `AGENTS.md` and `docs/architecture.md`
+  (`345 / 345` app, `17 / 17` panel).
+- **Team modifications:** separated `CommandService` and
+  `AsyncCommandService` into explicit sync/async contracts instead of mixing
+  `TOutput | Promise<TOutput>`, eliminating the 3 `as` casts in the logging
+  decorator; kept exception-throwing tests aligned with ESLint's
+  `only-throw-error` rule.
+- **Lessons / limitations:** checking `src/` with `grep " as "` confirmed zero
+  production type assertions remain (`as const` literal narrowing and `export`
+  aliases only). Keeping the rule in `AGENTS.md` ensures all team members and
+  agents follow `CommandService` + `Either` without casts.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
