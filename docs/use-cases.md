@@ -271,11 +271,15 @@ move, consistently.
   is also a command, so it can be undone too.
 - The move (`TMove`) is only the data of what the player wants to do; the
   command is the object that executes and reverts it.
-- `UndoMoveUseCase` only accepts states that implement `IUndoable`: using it
-  with Lines or Sort does not compile (constrained generics and ISP).
+- `IUndoable` marks states whose baseline rules include undo (Hexa Fit and
+  Hexa Merge).
+- `CommandHistory` separates stack memory (`maxDepth`) from the per-move undo
+  allowance (`allowancePerMove`, plus extra undos via `grantUndo`), so an
+  in-game booster Decorator can unlock undo in any variant (0 → 1 or 1 → 2)
+  with no conditionals per variant.
 - Limits are configuration: each variant's factory creates its history with
-  its capacity (unlimited in Fit; 1 and no redo in Merge), with no
-  conditionals per variant.
+  its capacity (unlimited in Fit; 1 and no redo in Merge; 0 baseline in Lines
+  and Sort), with no conditionals per variant.
 - In Merge, undo does not allow re-rolling the new tile: since the generator
   is restored, repeating the same move produces the same tile.
 
@@ -333,7 +337,7 @@ back in progress.
   | Action | `PlayingState` | `ResolvingState` | `PausedState` | `FinishedState` |
   |---|---|---|---|---|
   | `applyMove` | Validates and applies; if valid → Resolving | Rejected (RN-06) | Rejected (A2) | Rejected |
-  | `undo` / `redo` | Applies → Resolving | Rejected | Rejected | Rejected |
+  | `undo` / `redo` | Applies (stays Playing); ignored if empty (CU-04 A1) | Ignored | Ignored | Ignored (CU-04 A4) |
   | `pause` | → Paused, clock stops | → Paused, the lock is dropped | Ignored (A1) | Ignored (A1) |
   | `resume` | Ignored | Ignored | → Playing, or → Finished if the last move ended the game | Ignored |
   | `resolutionDone` | Ignored | → Playing, or → Finished if the last move ended the game | Ignored | Ignored |

@@ -141,6 +141,15 @@ or in the domain model is listed here; a new port is added here first.
   `IPrototype<T>` names the `clone()` contract that `IPieceSource` and
   `IRandomSource` follow. Hexa Fit draws nothing during a move and extends
   `BaseGameRules` directly.
+- **`CommandHistory`, `ApplyMoveCommand`, `ICommand` and `IUndoable`**
+  (`engine/commands/`, #58): Command pattern for generic undo and redo across
+  any variant (RF-07). `ApplyMoveCommand` keeps isolated clones of the board
+  before and after the move together with the immutable `TState` (and any
+  `Snapshot<TSource>` inside it). `CommandHistory` separates stack memory
+  (`maxDepth`) from the undo allowance (`allowancePerMove` and `grantUndo`),
+  so baseline limits (0 in Lines/Sort, 1 without redo in Merge, unlimited with
+  redo in Fit) are configuration and an in-game booster Decorator can unlock
+  extra undos mid-game without touching the engine or the variants.
 - **`IVariantFactory` and `VariantFactoryRegistry`** (`engine/game/`): Abstract
   Factory contract producing a variant's `IGameSession` (`GameEngine`) and
   `IProgressModel`, registered by open `GameId` (`string`) so adding a fifth
@@ -153,8 +162,8 @@ or in the domain model is listed here; a new port is added here first.
   evaluating finished games (high score, level stars, unlocks) plus
   `mergeProgress` keeping the best of each (RN-36).
 - **Type constraints** (to be justified in the README): e.g.
-  `TCell extends IMergeable<TCell>` for Merge; `TMove extends ICommandable` to
-  support undo.
+  `TCell extends IMergeable<TCell>` for Merge; `TState extends IUndoable` for
+  variants with baseline undo (RF-07).
 - **ISP:** `IUndoable`, `ITimed`, `IRandomSeeded` as separate interfaces;
   Hexa Lines does not implement `IUndoable`.
 - **Common state:** every variant state extends `GameState` (score and move
