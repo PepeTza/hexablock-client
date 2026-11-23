@@ -299,6 +299,20 @@ comfort; affinity with the course language (TypeScript).
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |
 
+### D-07 — Hexa Lines tray
+
+Hexa Lines supplies positive relative spawn weights by catalog shape ID.
+The default weight is 1 per shape. The source draws with replacement from
+six equally weighted orientations per shape, preserving the relative shape
+weights. Each placement uses the rotation already stored on the piece
+(RN-11).
+
+The game starts with three pieces. Each accepted placement empties its
+selected slot and the third placement deals a full replacement tray
+(RN-08). The tray and its source snapshot live in the Lines state.
+Previewing a refill forks the source, so only an applied move commits the
+advanced sequence.
+
 ### D-08 — Hexa Lines scoring
 
 Each accepted placement earns `cellPoints * C + linePoints * L² * (1 + 0.5 * (S - 1))`
