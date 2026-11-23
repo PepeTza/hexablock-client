@@ -908,6 +908,16 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The browser needed a wrapper around fetch.
   Role checks passed against simulated API responses; deployment is separate.
 
+### 2026-11-23 — Level selection query and view
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #90.
+- **Prompt:** Display saved Fit stars, Sort completion and sequential locks.
+- **Result:** Added the CU-08 query and a reusable mobile level list.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Navigation and local data providers are integration
+  work. Component tests exercise locked and unlocked buttons with test data.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
