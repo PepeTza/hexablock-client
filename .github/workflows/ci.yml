@@ -61,8 +61,16 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: admin/package-lock.json
-      - name: Install dependencies
+          cache-dependency-path: |
+            package-lock.json
+            admin/package-lock.json
+      # Vite loads the root Expo tsconfig when compiling shared source files.
+      - name: Install shared source tooling
+        working-directory: .
+        env:
+          HUSKY: '0'
+        run: npm ci
+      - name: Install panel dependencies
         run: npm ci
       - name: Lint
         run: npm run lint
