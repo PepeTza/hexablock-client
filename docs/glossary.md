@@ -50,7 +50,7 @@ no synonyms: if a concept is missing, add it here first.
 | Cascade | Cascada | A chain of transfers between stacks (Sort) |
 | Transfer | Transferencia | Moving chips from one stack to another (Sort) |
 | Merge | Fusión | Two equal tiles joining into one of double value (Merge) |
-| Goal | Meta | A cleared stack of 10 chips (Sort) |
+| Goal | Meta | A stack removed after gathering 10 chips of one colour (Sort) |
 | Undo / Redo | Deshacer / Rehacer | Reverting or repeating moves |
 
 ## Game and progress
