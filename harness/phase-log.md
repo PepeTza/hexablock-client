@@ -48,3 +48,4 @@ details live in the PR.
 | 2026-11-23 | Client layers and extensibility diagrams | #41 | jesusobando32 | — | Two SVGs and Mermaid sources; class diagram belongs to Track A |
 | 2026-11-23 | Hexa Merge six-direction tile sliding | #59 | PepeTza | 334 / 334 app, 9 / 9 panel | HU24; Tile value object, geometry-agnostic slideTiles ray compaction, MergeRules and startMergeGame on radius-2 hex board; 6 directional tests |
 | 2026-11-23 | Admin-only panel login | #63 | jesusobando32 | 337 / 337 app, 17 / 17 panel | Role checks and sign-out verified with a simulated API in the browser |
+| 2026-11-23 | Hexa Fit unlimited undo and redo | #81 | jesusobando32 | 338 / 338 app, 17 / 17 panel | RN-16 and RN-17 history; undo leaves elapsed time intact in the Fit screen integration |

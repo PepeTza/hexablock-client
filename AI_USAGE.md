@@ -908,6 +908,18 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The browser needed a wrapper around fetch.
   Role checks passed against simulated API responses; deployment is separate.
 
+### 2026-11-23 — Hexa Fit undo and redo
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #81.
+- **Prompt:** Give Fit unlimited undo and redo under RN-16 and RN-17.
+- **Result:** Reused the generic command history and verified that undo restores
+  the board, tray and move count. A successful move clears the redo history.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Elapsed time belongs to the session clock, outside
+  the command history. The clock test in the Fit screen draft (#155) verifies
+  that undo does not give back time.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
