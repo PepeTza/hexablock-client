@@ -1,25 +1,26 @@
+import type { Board } from '../../engine/board/board';
 import type { DomainEvent } from '../../engine/events/domain-event';
 import type { GameState } from '../../engine/game/game-state';
-import type { HexBoard } from '../../engine/hex/hex-board';
-import type { HexCoord } from '../../engine/hex/hex-coord';
+import type { ICoord } from '../../engine/geometry/coord';
 import type { LinesResolution } from './lines-scoring-policy';
 
 export interface LinesState extends GameState {
   readonly streak: number;
 }
 
-export interface LineCleared extends DomainEvent {
+export interface LineCleared<TCoord extends ICoord> extends DomainEvent {
   readonly type: 'LineCleared';
   readonly linesCleared: number;
-  readonly cells: readonly HexCoord[];
+  readonly cells: readonly TCoord[];
 }
 
 /** Resolve an accepted placement on the engine's working board (RN-09). */
 export function resolveLines<
   TCell extends NonNullable<unknown>,
+  TCoord extends ICoord,
   TState extends LinesState,
->(board: HexBoard<TCell>, state: TState, cellsPlaced: number) {
-  const cellsToClear = new Map<string, HexCoord>();
+>(board: Board<TCell, TCoord>, state: TState, cellsPlaced: number) {
+  const cellsToClear = new Map<string, TCoord>();
   let linesCleared = 0;
 
   // Discover every complete line before removing cells from any of them.
@@ -36,7 +37,7 @@ export function resolveLines<
   cells.forEach((cell) => board.remove(cell));
   const streak = linesCleared === 0 ? 0 : state.streak + 1;
   const resolution: LinesResolution = { cellsPlaced, linesCleared, streak };
-  const events: readonly LineCleared[] =
+  const events: readonly LineCleared<TCoord>[] =
     linesCleared === 0 ? [] : [{ type: 'LineCleared', linesCleared, cells }];
 
   return { state: { ...state, streak }, resolution, events };
