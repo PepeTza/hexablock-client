@@ -66,9 +66,11 @@ Every task follows [`harness/`](./harness/README.md). In short:
 3. **Commit** only after the human approves the diff and the message.
    Current mode: **approval per commit**. The team may later switch to
    approval per push by editing this line.
-4. **Done:** run the checklist, run the `code-rules-review` and
-   `architecture-review` skills on your branch and fix or explain each
-   finding, update `harness/phase-log.md`, add an `AI_USAGE.md` entry if
+4. **Done:** run the checklist; have a **separate agent** with a clean
+   context run the `code-rules-review` and `architecture-review` skills on
+   your branch (in Claude Code, their subagents; never review your own code
+   yourself), and let the human decide how each finding is fixed or
+   explained; update `harness/phase-log.md`, add an `AI_USAGE.md` entry if
    significant, and write a short "How it works" summary for the PR. List
    what you did on your own (see §3, "You may do and report").
 
@@ -103,7 +105,8 @@ so the human sees it:
   generic type parameters and their constraints, public interfaces of the
   domain. When a task takes, changes or contradicts a decision or a part of
   the plan, the same PR updates `docs/implementation-plan.md` §7 and
-  `docs/architecture.md` §10 (in the client repository).
+  `docs/architecture.md` §10 (in the client repository). Changing a decision
+  already taken needs another teammate's approval (`CONTRIBUTING.md` §3).
 - Adding, removing or upgrading a dependency.
 - Changing the API contract (`docs/api-contracts.md`) or the database schema.
 - Interpreting or deviating from a business rule (RN-xx) or a use case
@@ -123,9 +126,17 @@ so the human sees it:
 - Use `any`, `@ts-ignore` or `eslint-disable` to silence an error without the
   human's approval and a comment explaining why.
 - Use type assertions / casts (`as SomeType`, `<SomeType>value`) in production
-  code to presuppose a concrete subtype or silence `noUncheckedIndexedAccess`;
-  use generics, type guards or narrowing (`typeof`, `instanceof`, explicit
-  `undefined` checks).
+  code. The only exception is `as const`, which narrows a literal and asserts
+  nothing. Use generics, polymorphism or narrowing (`typeof`, explicit
+  `undefined` checks) instead. The lint enforces it
+  (`@typescript-eslint/consistent-type-assertions`). Non-null assertions
+  (`value!`) are forbidden too (`@typescript-eslint/no-non-null-assertion`).
+- Use `instanceof`, or `in` to guess an object's type, in production code:
+  decide by polymorphism, asking the object to act instead of asking what it
+  is (OCP, the State pattern). A failure thrown by infrastructure is wrapped
+  whole in an `UnexpectedError`, without inspecting it. The existing uses are
+  removed in #172; add no new ones. Once they are gone, the lint
+  forbids `instanceof` too.
 - Put business rules in UI components, screens or HTTP controllers.
 
 ## 4. Code rules (summary)

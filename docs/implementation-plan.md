@@ -434,8 +434,11 @@ At most **three implementation agents at a time, one per person**. With
 approval per commit, every agent needs its human at each gate of the
 [harness](../harness/README.md).
 
-- **Optional review agent:** a read-only agent reviews the PR before the human
-  review. It never commits.
+- **Reviewer agents (#167):** before opening a PR, a separate agent with a
+  clean context runs the `code-rules-review` and `architecture-review` skills
+  on the branch (never the agent that wrote the code). The reviewer uses
+  `pr-review` to draft the review. They are read-only: they recommend, never
+  decide, commit or post.
 - **One branch and one `git worktree` per issue:**
   `git worktree add ../hexablock-client-<issue> -b feat/<issue>-...`.
 - **Folders per track:** Ronald touches `domain/engine`, `hexa-merge`,
@@ -456,6 +459,9 @@ approval per commit, every agent needs its human at each gate of the
 | `design-level` | cl | `spec` format, validator and solver, difficulty curve (RN-19, RN-25), ids, where the JSON goes | When designing the 25 levels |
 | `api-endpoint` | be | From contract to code: DTO → controller → use case → port → Prisma adapter, errors, Swagger, tests and Pact | For every endpoint |
 | `log-ai-usage` | both | `AI_USAGE.md` entry, `phase-log.md` row, footer check | At gate 4 |
+| `code-rules-review` | both | Code rules: casts, `instanceof`, silenced errors, rule values fixed in code, naming, tests | Gate 4 self-review (by a separate agent) and PR reviews |
+| `architecture-review` | both | Structure: dependency rule and ports, generic code over `TCoord`, `CommandService` + `Either`, aspects, no rules in the UI, patterns | Gate 4 self-review (by a separate agent) and PR reviews |
+| `pr-review` | both | The whole PR (issue, gates, traceability, contract, decisions, overlaps, CI) and the review comment in a fixed format | When reviewing a teammate's PR |
 
 - **Where:** `.claude/skills/<name>/SKILL.md` in each repository, versioned.
   Claude Code loads them automatically.
