@@ -1,5 +1,11 @@
+import { PieceCatalog } from '../../engine/pieces/piece-catalog';
+import {
+  PieceShape,
+  type PieceGeometry,
+} from '../../engine/pieces/piece-shape';
 import { LevelBuilder } from '../../content/level-builder';
 import { FitLevelValidator } from './fit-level-validator';
+import { createHexFitLevelValidator } from './hex-fit-level-validator';
 
 const level = (figure: unknown, pieces: readonly string[]) =>
   LevelBuilder.fromData({
@@ -16,7 +22,7 @@ const level = (figure: unknown, pieces: readonly string[]) =>
   });
 
 describe('FitLevelValidator', () => {
-  const validator = new FitLevelValidator();
+  const validator = createHexFitLevelValidator();
 
   it('should_return_a_solution_when_the_catalog_covers_the_figure', () => {
     const result = validator.validate(
@@ -57,5 +63,38 @@ describe('FitLevelValidator', () => {
       valid: false,
       errors: [{ field: 'spec.figure' }],
     });
+  });
+});
+
+it('should_find_a_cover_when_the_geometry_catalog_and_parser_are_injected', () => {
+  // Arrange
+  const cell = { index: 0, key: () => '0' };
+  const geometry: PieceGeometry<typeof cell> = {
+    origin: cell,
+    directions: [],
+    axes: [],
+    rotationSteps: 2,
+    neighbour: () => {
+      throw new RangeError('No directions');
+    },
+    neighbours: () => [],
+    line: () => [],
+    ring: (centre, radius) => (radius === 0 ? [centre] : []),
+    translate: (_coord, _from, to) => to,
+    rotate: (coord) => coord,
+  };
+  const shape = PieceShape.of('single', [cell], geometry);
+  const catalog = PieceCatalog.of([shape], 1);
+  const validator = new FitLevelValidator(geometry, catalog, (raw: unknown) =>
+    raw === 0 ? cell : null,
+  );
+
+  // Act
+  const result = validator.validate(level([0], ['single']));
+
+  // Assert
+  expect(result).toMatchObject({
+    valid: true,
+    solution: [{ pieceIndex: 0, anchor: cell, cells: [cell] }],
   });
 });

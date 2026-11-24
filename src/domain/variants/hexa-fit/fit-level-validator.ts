@@ -3,41 +3,35 @@ import type {
   ILevelValidator,
   LevelValidationResult,
 } from '../../content/level-validator';
-import { HexCoord } from '../../engine/hex/hex-coord';
-import { HexGeometry } from '../../engine/hex/hex-geometry';
-import { loadHexPieceCatalog } from '../../engine/hex/hex-piece-catalog';
+import type { IBoardGeometry } from '../../engine/geometry/board-geometry';
+import type { ICoord } from '../../engine/geometry/coord';
+import type { PieceCatalog } from '../../engine/pieces/piece-catalog';
 import { Piece } from '../../engine/pieces/piece';
 import { solveFitFigure, type FitSolutionPlacement } from './fit-solver';
 
-type Result = LevelValidationResult<readonly FitSolutionPlacement[]>;
+type Result<TCoord extends ICoord> = LevelValidationResult<
+  readonly FitSolutionPlacement<TCoord>[]
+>;
 
-function invalid(field: string, message: string): Result {
-  return { valid: false, errors: [{ field, message }] };
+function invalid(field: string, message: string) {
+  return { valid: false as const, errors: [{ field, message }] };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function readCell(value: unknown): HexCoord | null {
-  if (!isObject(value)) return null;
-  const { q, r } = value;
-  return typeof q === 'number' &&
-    typeof r === 'number' &&
-    Number.isSafeInteger(q) &&
-    Number.isSafeInteger(r)
-    ? new HexCoord(q, r)
-    : null;
-}
-
 /** Validates the proposed Fit v1 payload and searches for a cover (RN-13). */
-export class FitLevelValidator implements ILevelValidator<
-  readonly FitSolutionPlacement[]
-> {
-  private readonly geometry = new HexGeometry();
-  private readonly catalog = loadHexPieceCatalog(this.geometry);
+export class FitLevelValidator<
+  TCoord extends ICoord,
+> implements ILevelValidator<readonly FitSolutionPlacement<TCoord>[]> {
+  constructor(
+    private readonly geometry: IBoardGeometry<TCoord>,
+    private readonly catalog: PieceCatalog<TCoord>,
+    private readonly readCell: (value: unknown) => TCoord | null,
+  ) {}
 
-  validate(level: LevelDefinition): Result {
+  validate(level: LevelDefinition): Result<TCoord> {
     if (level.gameId !== 'hexa-fit')
       return invalid('gameId', 'Expected hexa-fit');
     if (level.schemaVersion !== 1) {
@@ -49,11 +43,11 @@ export class FitLevelValidator implements ILevelValidator<
       return invalid('spec.figure', 'Expected a non-empty array');
     }
 
-    const cells: HexCoord[] = [];
+    const cells: TCoord[] = [];
     for (const [index, value] of figure.entries()) {
-      const cell = readCell(value);
+      const cell = this.readCell(value);
       if (cell === null)
-        return invalid(`spec.figure[${index}]`, 'Expected axial integers');
+        return invalid(`spec.figure[${index}]`, 'Expected a valid coordinate');
       cells.push(cell);
     }
     if (!this.isConnected(cells)) {
@@ -66,7 +60,7 @@ export class FitLevelValidator implements ILevelValidator<
     if (!Array.isArray(pieces) || pieces.length === 0) {
       return invalid('spec.pieces', 'Expected a non-empty array');
     }
-    const resolved: Piece<HexCoord>[] = [];
+    const resolved: Piece<TCoord>[] = [];
     for (const [index, id] of pieces.entries()) {
       if (typeof id !== 'string')
         return invalid(`spec.pieces[${index}]`, 'Expected a catalog ID');
@@ -109,7 +103,7 @@ export class FitLevelValidator implements ILevelValidator<
       : { valid: true, solution };
   }
 
-  private isConnected(cells: readonly HexCoord[]): boolean {
+  private isConnected(cells: readonly TCoord[]): boolean {
     const first = cells[0];
     const remaining = new Set(cells.map((cell) => cell.key()));
     if (first === undefined || remaining.size !== cells.length) return false;

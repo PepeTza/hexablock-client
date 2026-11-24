@@ -836,6 +836,17 @@ One entry per significant use. Copy the template.
   against decision 10 and proposed a tray of up to 3 stacks; the statement
   had to be read first. Issue #73 still has the old title.
 
+### 2026-11-24 — Generic Fit level validation
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165, #72 and PR #139.
+- **Prompt:** Apply the review of geometry dependencies in the Fit validator.
+- **Result:** Injected geometry, catalog and coordinate parsing. The solver
+  retains coordinate types. A hex factory wires the draft Fit v1 format.
+- **Team modifications:** PepeTza requested the dependencies be injected.
+- **Lessons / limitations:** The non-hex fixture failed validation before
+  the change and now has an exact cover. The backend contract awaits review.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

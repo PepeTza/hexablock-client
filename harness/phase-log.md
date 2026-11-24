@@ -45,3 +45,4 @@ details live in the PR.
 | 2026-11-23 | Hexa Lines three-axis clears and scoring | #31 | jesusobando32 | 270 / 270 app, 9 / 9 panel | D-08 Lines formula with uncapped streak; 12 new tests; tray and end rules follow in #32 and #33 |
 | 2026-11-23 | Level definition, builder and validator port | #60 | jesusobando32 | 276 / 276 app, 9 / 9 panel | T22; immutable common level data and field-specific errors; Fit and Sort spec schemas remain open in backend #32 |
 | 2026-11-23 | Align Hexa Sort rules with the project statement | #133 | KeneFu | — | Docs only; RN-23 removes the whole stack; tray of one stack (decision 11); decision 10 taken for Sort |
+| 2026-11-24 | Generic Fit level validator and solver | #165 | jesusobando32 | 295 / 295 app, 9 / 9 panel | PR #139 geometry review; published format approval pending |
