@@ -1014,6 +1014,20 @@ One entry per significant use. Copy the template.
   rejected. The tests also cover invalid changes and rotation without a
   move charge. Native interaction is tracked separately.
 
+### 2026-11-23 — Hexa Fit score and stars
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #83.
+- **Prompt:** Apply the D-08 Fit score and award stars from each level's thresholds.
+- **Result:** Added a Fit progress strategy and a domain victory summary that
+  calculates the score. The test plays a real move and saves the stars
+  through the progress port.
+- **Team modifications:** PepeTza requested configurable scoring parameters
+  and scoring in the domain in the #160 review.
+- **Lessons / limitations:** The test uses a temporary progress store and test
+  thresholds. The mobile screen and persistent repository are tracked separately.
+  The integration test follows the Either result introduced by #146.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
