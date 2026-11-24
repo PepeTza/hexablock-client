@@ -18,6 +18,7 @@ export function startFitGame(
     state: {
       score: 0,
       moveCount: 0,
+      placedPieces: [],
       pendingPieces: pieces.map((piece, id) => ({ id, piece })),
     },
     // Placements do not award points; RN-18 scores a completed level.

@@ -55,3 +55,4 @@ details live in the PR.
 | 2026-11-24 | Generic line resolution | #165 | jesusobando32 | 352 / 352 app, 17 / 17 panel | Non-hex coordinates preserved in LineCleared |
 | 2026-11-24 | Generic Fit rules | #165 | jesusobando32 | 353 / 353 app, 17 / 17 panel | Non-hex piece placement and victory |
 | 2026-11-24 | Configurable Lines sessions | #165 | jesusobando32 | 356 / 356 app, 17 / 17 panel | Configurable shape, radius, tray, color and weights with existing defaults |
+| 2026-11-24 | Fit piece edits | #87 | jesusobando32 | 361 / 361 app, 17 / 17 panel | Generic relocate, remove and rotate rules with move accounting and history |
