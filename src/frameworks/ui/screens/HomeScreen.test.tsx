@@ -45,6 +45,9 @@ async function renderMenu(loadSummary: LoadSummary) {
     createBoardProjection: () => {
       throw new Error('This screen does not project boards');
     },
+    startFit: () => {
+      throw new Error('The menu does not start sessions');
+    },
     startLines: () => {
       throw new Error('This screen does not start sessions');
     },

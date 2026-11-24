@@ -25,6 +25,15 @@ Accounts, progress sync, leaderboards and level content are served by the
 
 _Coming soon: screenshots or GIFs of the four variants._
 
+To play the offline Hexa Fit demo, select **Hexa Fit** in the mobile menu.
+Drag a piece onto the figure, or select it and tap a cell. Select a placed
+piece to rotate or remove it, or drag it to another position. Undo and redo
+restore the pieces and move counter. The clock stops when the figure is complete.
+
+The demo uses a three-cell figure and sample star thresholds. Progress is
+held in memory for the current app session. Published levels, level selection
+and restart persistence are tracked in issues #84, #90 and #40.
+
 ## Architecture
 
 The client follows Clean Architecture with four layers. Arrows show code
