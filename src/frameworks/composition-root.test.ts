@@ -1,6 +1,6 @@
 import { createAppServices } from './composition-root';
 
-it('should_log_allowlisted_fields_when_a_lines_game_finishes', async () => {
+it('should_log_the_result_once_when_the_same_lines_game_finishes_twice', async () => {
   // Arrange
   const now = jest.spyOn(Date, 'now').mockReturnValue(42);
   const info = jest.spyOn(console, 'info').mockImplementation(() => undefined);
@@ -18,19 +18,24 @@ it('should_log_allowlisted_fields_when_a_lines_game_finishes', async () => {
       if (candidate === undefined) break;
       expect(game.place(candidate.slot, candidate.coord)).toBe(true);
     }
-    const result = await game.finishIfOver();
+    const first = game.finishIfOver();
+    const duplicate = game.finishIfOver();
+    const result = await first;
+    await duplicate;
 
     // Assert
     expect(result?.isRight()).toBe(true);
-    const [entry] = info.mock.calls.filter(
+    const entries = info.mock.calls.filter(
       ([message]) => message === 'FinishGame executed',
     );
-    expect(entry).toEqual([
-      'FinishGame executed',
-      expect.objectContaining({
-        input: { gameId: 'hexa-lines', reason: 'defeat' },
-        output: { saveFailed: false },
-      }),
+    expect(entries).toEqual([
+      [
+        'FinishGame executed',
+        expect.objectContaining({
+          input: { gameId: 'hexa-lines', reason: 'defeat' },
+          output: { saveFailed: false },
+        }),
+      ],
     ]);
   } finally {
     info.mockRestore();
