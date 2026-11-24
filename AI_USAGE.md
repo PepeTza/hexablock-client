@@ -991,6 +991,17 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The non-hex control first failed type-checking.
   It also exercises placement and victory through the rules at runtime.
 
+### 2026-11-24 — Lines game configuration
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165 (Lines configuration).
+- **Prompt:** Let the Lines factory take board, tray and placement defaults.
+- **Result:** Added options for the board shape or radius, tray size,
+  color and piece weights. Existing callers can still pass weights second.
+- **Team modifications:** The issue specifies configurable rule values.
+- **Lessons / limitations:** The non-default board test expected seven cells
+  but got 61 before the change. It also checks refilling a two-piece tray.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

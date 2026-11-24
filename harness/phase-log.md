@@ -54,3 +54,4 @@ details live in the PR.
 | 2026-11-23 | Board projection for touch input | #34 | jesusobando32 | 351 / 351 app, 17 / 17 panel | RNF-14; coordinate conversion verified independently of renderer; device drag pending |
 | 2026-11-24 | Generic line resolution | #165 | jesusobando32 | 352 / 352 app, 17 / 17 panel | Non-hex coordinates preserved in LineCleared |
 | 2026-11-24 | Generic Fit rules | #165 | jesusobando32 | 353 / 353 app, 17 / 17 panel | Non-hex piece placement and victory |
+| 2026-11-24 | Configurable Lines sessions | #165 | jesusobando32 | 356 / 356 app, 17 / 17 panel | Configurable shape, radius, tray, color and weights with existing defaults |

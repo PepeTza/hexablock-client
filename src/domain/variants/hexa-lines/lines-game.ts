@@ -18,9 +18,15 @@ import {
 } from './lines-scoring-policy';
 import { resolveLines, type LinesState } from './resolve-lines';
 
-const TRAY_SIZE = 3;
-const BOARD_RADIUS = 4;
-const PLACED_COLOR = 'blue';
+export interface LinesGameOptions {
+  /** An explicit shape takes precedence over the default or supplied radius. */
+  readonly boardShape?: BoardShape<HexCoord>;
+  readonly boardRadius?: number;
+  readonly traySize?: number;
+  readonly placedColor?: string;
+  /** Overrides the positional weights when both are supplied. */
+  readonly weights?: ReadonlyMap<string, number>;
+}
 
 type LinesPieceSource = ReturnType<typeof createLinesPieceSource>;
 
@@ -44,6 +50,14 @@ class LinesGameRules extends SourcedGameRules<
   LinesResolution,
   LinesPieceSource
 > {
+  constructor(
+    scoring: LinesScoringPolicy,
+    private readonly traySize: number,
+    private readonly placedColor: string,
+  ) {
+    super(scoring);
+  }
+
   protected validate(
     board: HexBoard<string>,
     state: LinesGameState,
@@ -66,7 +80,7 @@ class LinesGameRules extends SourcedGameRules<
   ): void {
     this.pieceFor(state, move)
       .cellsAt(move.anchor)
-      .forEach((cell) => board.place(cell, PLACED_COLOR));
+      .forEach((cell) => board.place(cell, this.placedColor));
   }
 
   protected resolveWith(
@@ -84,7 +98,7 @@ class LinesGameRules extends SourcedGameRules<
       slot === move.slot ? null : piece,
     );
     const tray = remaining.every((piece) => piece === null)
-      ? source.draw(TRAY_SIZE)
+      ? source.draw(this.traySize)
       : remaining;
     return { ...resolved, state: { ...resolved.state, tray } };
   }
@@ -110,24 +124,34 @@ class LinesGameRules extends SourcedGameRules<
 export function createLinesGame(
   seed: number,
   weights?: ReadonlyMap<string, number>,
+  {
+    boardShape,
+    boardRadius = 4,
+    traySize = 3,
+    placedColor = 'blue',
+    weights: shapeWeights = weights,
+  }: LinesGameOptions = {},
 ) {
+  if (!Number.isSafeInteger(traySize) || traySize < 1) {
+    throw new RangeError('The Lines tray size must be a positive integer');
+  }
   const geometry = new HexGeometry();
   const board = new Board<string, HexCoord>(
-    BoardShape.ofRadius(geometry, BOARD_RADIUS),
+    boardShape ?? BoardShape.ofRadius(geometry, boardRadius),
     geometry,
   );
-  const source = createLinesPieceSource(new SeededRandom(seed), weights);
+  const source = createLinesPieceSource(new SeededRandom(seed), shapeWeights);
   const state: LinesGameState = {
     moveCount: 0,
     score: 0,
     streak: 0,
-    tray: source.draw(TRAY_SIZE),
+    tray: source.draw(traySize),
     source: Snapshot.of(source),
   };
   return GameEngine.start({
     board,
     state,
-    rules: new LinesGameRules(new LinesScoringPolicy()),
+    rules: new LinesGameRules(new LinesScoringPolicy(), traySize, placedColor),
     seed,
   });
 }
