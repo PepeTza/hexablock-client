@@ -1065,6 +1065,18 @@ One entry per significant use. Copy the template.
   engine retained the event type. Preview leaves live state and listeners
   untouched. Native drag remains part of the Lines screen verification.
 
+### 2026-11-24 — README generic-engine explanation
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #99 (layers and extensibility).
+- **Prompt:** Replace the generic-engine placeholder with verified examples.
+- **Result:** Explained the engine constraints and linked the domain
+  implementations and tests for coordinate reuse.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** A link check found 10 valid local paths and
+  failed when one path was replaced in a copy. Final README work remains
+  linked to the release and contributions from the other tracks.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

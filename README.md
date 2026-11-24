@@ -36,10 +36,35 @@ dependencies pointing toward application and domain. See
 
 ## Generic Engine
 
-_Coming soon._ Generic types of the engine (`Board<TCell>`,
-`GameEngine<TCell, TMove, TState>`, bounded generics such as
-`TTile extends IMergeable<TTile>`), their constraints and how each variant
-instantiates them. See [`docs/EXTENSIBILITY.md`](./docs/EXTENSIBILITY.md).
+[`Board<TCell, TCoord>`](./src/domain/engine/board/board.ts) stores occupied
+cells and delegates neighbour and line calculations to the geometry. A cell value
+must be non-null because the board uses `undefined` to represent an empty
+cell. The coordinate must implement
+[`ICoord`](./src/domain/engine/geometry/coord.ts), which supplies a stable key
+for looking up cells.
+
+[`GameEngine<TCell, TCoord, TMove, TState, TEvent>`](./src/domain/engine/game/game-engine.ts)
+runs a session with injected rules. Each variant supplies its own move type.
+State implements `GameState` so all sessions expose a score and move count.
+A variant can provide a narrower `DomainEvent` type, so a preview can return
+data such as the coordinates of a cleared line.
+
+| Variant in the domain | Cell contents | Move used by the engine |
+|---|---|---|
+| [Hexa Lines](./src/domain/variants/hexa-lines/lines-game.ts) | Placed colour | Tray slot and anchor |
+| [Hexa Fit](./src/domain/variants/hexa-fit/fit-rules.ts) | Placed piece ID | Place, relocate, remove or rotate a piece |
+| [Hexa Merge](./src/domain/variants/hexa-merge/merge-game.ts) | Tile | Slide direction |
+
+Factories wire these rules to a hex geometry. The rules can still use other
+coordinate types when they only need keys and board operations. The
+[Lines resolver test](./src/domain/variants/hexa-lines/resolve-lines.test.ts)
+and [Fit rules test](./src/domain/variants/hexa-fit/fit-rules.test.ts) exercise
+that reuse without a hex coordinate.
+
+To add a variant, supply its move and state, rules, and factory. Then wire
+the variant into the app and give it its presentation. The
+[extensibility guide](./docs/EXTENSIBILITY.md) walks through a fifth variant
+as a design example.
 
 ![Four variants share the generic engine. Hexa Quest illustrates the domain and presentation extension points.](./docs/diagrams/client-extensibility.svg)
 
