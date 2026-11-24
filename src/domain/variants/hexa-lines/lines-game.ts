@@ -1,5 +1,6 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import type { EventListener } from '../../engine/events/domain-event';
 import { GameEngine } from '../../engine/game/game-engine';
 import {
   SourcedGameRules,
@@ -16,9 +17,14 @@ import {
   LinesScoringPolicy,
   type LinesResolution,
 } from './lines-scoring-policy';
-import { resolveLines, type LinesState } from './resolve-lines';
+import {
+  resolveLines,
+  type LineCleared,
+  type LinesState,
+} from './resolve-lines';
 
 export interface LinesGameOptions {
+  readonly listeners?: readonly EventListener[];
   /** An explicit shape takes precedence over the default or supplied radius. */
   readonly boardShape?: BoardShape<HexCoord>;
   readonly boardRadius?: number;
@@ -48,7 +54,8 @@ class LinesGameRules extends SourcedGameRules<
   PlacePieceMove,
   LinesGameState,
   LinesResolution,
-  LinesPieceSource
+  LinesPieceSource,
+  LineCleared<HexCoord>
 > {
   constructor(
     scoring: LinesScoringPolicy,
@@ -67,10 +74,9 @@ class LinesGameRules extends SourcedGameRules<
     if (piece == null) {
       return 'Tray slot has no piece';
     }
-    const fits = piece
-      .cellsAt(move.anchor)
-      .every((cell) => board.contains(cell) && board.isEmpty(cell));
-    return fits ? null : 'Piece does not fit at this anchor';
+    return fitsAt(board, piece, move.anchor)
+      ? null
+      : 'Piece does not fit at this anchor';
   }
 
   protected apply(
@@ -103,9 +109,16 @@ class LinesGameRules extends SourcedGameRules<
     return { ...resolved, state: { ...resolved.state, tray } };
   }
 
-  protected evaluateEnd(): null {
-    // Defeat detection is implemented in HU14 (#33).
-    return null;
+  protected evaluateEnd(
+    board: HexBoard<string>,
+    state: LinesGameState,
+  ): 'defeat' | null {
+    const canPlay = state.tray.some(
+      (piece) =>
+        piece !== null &&
+        board.shape.coords.some((anchor) => fitsAt(board, piece, anchor)),
+    );
+    return canPlay ? null : 'defeat';
   }
 
   private pieceFor(
@@ -120,11 +133,22 @@ class LinesGameRules extends SourcedGameRules<
   }
 }
 
+function fitsAt(
+  board: HexBoard<string>,
+  piece: Piece<HexCoord>,
+  anchor: HexCoord,
+): boolean {
+  return piece
+    .cellsAt(anchor)
+    .every((cell) => board.contains(cell) && board.isEmpty(cell));
+}
+
 /** Start a Lines session with an empty board and the first seeded tray. */
 export function createLinesGame(
   seed: number,
   weights?: ReadonlyMap<string, number>,
   {
+    listeners,
     boardShape,
     boardRadius = 4,
     traySize = 3,
@@ -153,5 +177,6 @@ export function createLinesGame(
     state,
     rules: new LinesGameRules(new LinesScoringPolicy(), traySize, placedColor),
     seed,
+    listeners,
   });
 }

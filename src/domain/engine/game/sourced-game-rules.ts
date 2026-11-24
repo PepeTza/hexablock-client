@@ -1,4 +1,5 @@
 import type { Board } from '../board/board';
+import type { DomainEvent } from '../events/domain-event';
 import type { ICoord } from '../geometry/coord';
 import type { IPrototype } from '../state/prototype';
 import { Snapshot } from '../state/snapshot';
@@ -41,12 +42,13 @@ export abstract class SourcedGameRules<
   TState extends SourcedState<TSource>,
   TResolution,
   TSource extends IPrototype<TSource>,
-> extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution> {
+  TEvent extends DomainEvent = DomainEvent,
+> extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution, TEvent> {
   protected resolve(
     board: Board<TCell, TCoord>,
     state: TState,
     move: TMove,
-  ): Resolved<TState, TResolution> {
+  ): Resolved<TState, TResolution, TEvent> {
     const source = state.source.fork();
     const resolved = this.resolveWith(board, state, move, source);
     return {
@@ -65,5 +67,5 @@ export abstract class SourcedGameRules<
     state: TState,
     move: TMove,
     source: TSource,
-  ): Resolved<TState, TResolution>;
+  ): Resolved<TState, TResolution, TEvent>;
 }
