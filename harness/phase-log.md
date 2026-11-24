@@ -60,4 +60,4 @@ details live in the PR.
 | 2026-11-23 | Level selection query and view | #90 | jesusobando32 | 380 / 380 app, 17 / 17 panel | CU-08 lists ordered progress with Either errors and a configurable star limit; navigation pending |
 | 2026-11-24 | Generic Fit solution search | #72, #165 | jesusobando32 | 384 / 384 app, 17 / 17 panel | Negative control caught reuse of a piece; non-hex and no-cover cases verified |
 | 2026-11-24 | Typed Lines placement preview | #35 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Exposed clearing cells from simulation without mutation or events |
-| 2026-11-24 | Architecture sections in the client README | #99 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Verified generic declarations and 30 local references across the architecture sections |
+| 2026-11-24 | Architecture sections in the client README | #99 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Verified 30 README references and aligned the fifth-variant guide with the current engine |

@@ -18,13 +18,10 @@ import type { IProgressModel } from '../../progress/progress-model';
  * TypeScript compares the parameters of methods loosely (bivariance) but
  * those of function properties strictly (contravariance). So an erased
  * session cannot silently become an `IGameSession<SomeMove>`, which would
- * let one variant's moves reach another variant's engine. Recovering the
- * type takes one explicit, commented cast, written once in the variant's
- * presentation factory, never in generic code. The rule is TypeScript's
- * `strictFunctionTypes`: strict checking "applies to all function types,
- * except those originating in method or constructor declarations"
- * (TypeScript 2.6 release notes,
- * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-6.html).
+ * let one variant's moves reach another variant's engine. Generic callers use
+ * the erased session for lifecycle operations. Variant-specific presenters
+ * receive a typed session through their concrete factory in the composition
+ * root, where the move and state types are still known.
  */
 export interface IGameSession<
   TMove = never,
