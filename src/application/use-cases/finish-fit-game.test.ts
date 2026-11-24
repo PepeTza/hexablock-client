@@ -49,13 +49,23 @@ it('should_save_the_fit_stars_for_the_completed_level', async () => {
     },
   });
   const anchor = HexCoord.ORIGIN;
-  const pair = Piece.of(loadHexPieceCatalog().get('p2-01'));
-  const game = startFitGame(BoardShape.of(pair.cellsAt(anchor)), [pair]);
-  const durationMs = 100_000;
+  const catalog = loadHexPieceCatalog();
+  const single = Piece.of(catalog.get('p1-01'));
+  const pair = Piece.of(catalog.get('p2-01'));
+  const spare = new HexCoord(2, 0);
+  const game = startFitGame(BoardShape.of([...pair.cellsAt(anchor), spare]), [
+    single,
+    pair,
+  ]);
+  const durationMs = 90_000;
 
   // Act
   const beforeVictory = summarizeFitVictory(game, 'fit-01', durationMs);
   game.applyMove({ pieceId: 0, anchor });
+  game.resolutionDone();
+  game.applyMove({ kind: 'relocate', pieceId: 0, anchor: spare });
+  game.resolutionDone();
+  game.applyMove({ pieceId: 1, anchor });
   game.resolutionDone();
   const summary = summarizeFitVictory(game, 'fit-01', durationMs);
   if (summary === null) throw new Error('Expected a completed Fit session');
@@ -63,7 +73,7 @@ it('should_save_the_fit_stars_for_the_completed_level', async () => {
 
   // Assert
   expect(beforeVictory).toBeNull();
-  expect(summary.moveCount).toBe(1);
+  expect(summary.moveCount).toBe(3);
   expect(result).toMatchObject({
     kind: 'right',
     value: {

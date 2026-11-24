@@ -21,6 +21,7 @@ export function startFitGame(
     state: {
       score: 0,
       moveCount: 0,
+      placedPieces: [],
       pendingPieces: pieces.map((piece, id) => ({ id, piece })),
     },
     // Placements do not award points; RN-18 scores a completed level.
@@ -34,7 +35,7 @@ export function startFitGame(
 export function summarizeFitVictory<TCoord extends ICoord>(
   game: Pick<
     GameEngine<PieceId, TCoord, FitMove<TCoord>, FitState<TCoord>>,
-    'board' | 'state' | 'outcome'
+    'state' | 'outcome'
   >,
   levelId: string,
   durationMs: number,
@@ -42,18 +43,17 @@ export function summarizeFitVictory<TCoord extends ICoord>(
 ): FinishedGameSummary | null {
   if (game.outcome !== 'victory') return null;
 
-  // A catalog piece can cover several cells. Count each placed ID only once.
-  const placed = new Set<PieceId>();
-  for (const coord of game.board.shape.coords) {
-    const pieceId = game.board.cellAt(coord);
-    if (pieceId !== undefined) placed.add(pieceId);
-  }
-  const { moveCount } = game.state;
+  const { moveCount, placedPieces } = game.state;
   return {
     gameId: 'hexa-fit',
     levelId,
     reason: 'victory',
-    score: completedFitScore(moveCount, placed.size, durationMs, scoreConfig),
+    score: completedFitScore(
+      moveCount,
+      placedPieces.length,
+      durationMs,
+      scoreConfig,
+    ),
     moveCount,
     durationMs,
     seed: null,
