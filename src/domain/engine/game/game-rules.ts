@@ -4,7 +4,10 @@ import type { ICoord } from '../geometry/coord';
 import type { GameState } from './game-state';
 
 /** The result of playing a move: rejected, or applied with its new state. */
-export type MoveOutcome<TState extends GameState> =
+export type MoveOutcome<
+  TState extends GameState,
+  TEvent extends DomainEvent = DomainEvent,
+> =
   | { readonly kind: 'rejected'; readonly reason: string }
   | {
       readonly kind: 'applied';
@@ -12,7 +15,7 @@ export type MoveOutcome<TState extends GameState> =
       /** Points the move added to the score. */
       readonly points: number;
       /** Events of the variant, in the order they happened. */
-      readonly events: readonly DomainEvent[];
+      readonly events: readonly TEvent[];
       /** Set when this move ended the game (RN-12, RN-15, RN-24, RN-30). */
       readonly outcome: GameOutcome | null;
     };
@@ -34,10 +37,11 @@ export interface IGameRules<
   TCoord extends ICoord,
   TMove,
   TState extends GameState,
+  TEvent extends DomainEvent = DomainEvent,
 > {
   play(
     board: Board<TCell, TCoord>,
     state: TState,
     move: TMove,
-  ): MoveOutcome<TState>;
+  ): MoveOutcome<TState, TEvent>;
 }

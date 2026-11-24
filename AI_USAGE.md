@@ -1052,6 +1052,19 @@ One entry per significant use. Copy the template.
   return piece indices [0, 0] instead of [0, 1]. The validator and publication
   flow still need the agreed level contract.
 
+### 2026-11-24 — Typed Lines placement preview
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #35 (preview) and #165 (coordinate independence).
+- **Prompt:** Expose the simulated footprint and cleared cells independently
+  of the Lines screen.
+- **Result:** The engine carries each variant's event type through preview.
+  The Lines adapter maps the typed cells without a runtime subtype check.
+- **Team modifications:** The #159 review requested removing that check.
+- **Lessons / limitations:** Reading the cells failed with TS2339 before the
+  engine retained the event type. Preview leaves live state and listeners
+  untouched. Native drag remains part of the Lines screen verification.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
