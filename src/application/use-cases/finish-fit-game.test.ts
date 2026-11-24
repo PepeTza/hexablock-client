@@ -1,9 +1,14 @@
+import { BoardShape } from '@domain/engine/board/board-shape';
+import { HexCoord } from '@domain/engine/hex/hex-coord';
+import { Piece } from '@domain/engine/pieces/piece';
+import { loadHexPieceCatalog } from '@domain/engine/hex/hex-piece-catalog';
+import {
+  startFitGame,
+  summarizeFitVictory,
+} from '@domain/variants/hexa-fit/fit-game';
 import { VariantFactoryRegistry } from '@domain/engine/game/variant-factory';
 import type { PlayerProgress } from '@domain/progress/player-progress';
-import {
-  completedFitScore,
-  FitProgressModel,
-} from '@domain/variants/hexa-fit/fit-progress-model';
+import { FitProgressModel } from '@domain/variants/hexa-fit/fit-progress-model';
 
 import { FinishGameUseCase } from './finish-game';
 
@@ -43,21 +48,22 @@ it('should_save_the_fit_stars_for_the_completed_level', async () => {
       error: () => undefined,
     },
   });
-  const moveCount = 6;
-  const durationMs = 80_000;
+  const anchor = HexCoord.ORIGIN;
+  const pair = Piece.of(loadHexPieceCatalog().get('p2-01'));
+  const game = startFitGame(BoardShape.of(pair.cellsAt(anchor)), [pair]);
+  const durationMs = 100_000;
 
   // Act
-  const result = await finish.execute({
-    gameId: 'hexa-fit',
-    levelId: 'fit-01',
-    reason: 'victory',
-    score: completedFitScore(moveCount, 4, durationMs),
-    moveCount,
-    durationMs,
-    seed: null,
-  });
+  const beforeVictory = summarizeFitVictory(game, 'fit-01', durationMs);
+  game.applyMove({ pieceId: 0, anchor });
+  game.resolutionDone();
+  const summary = summarizeFitVictory(game, 'fit-01', durationMs);
+  if (summary === null) throw new Error('Expected a completed Fit session');
+  const result = await finish.execute(summary);
 
   // Assert
+  expect(beforeVictory).toBeNull();
+  expect(summary.moveCount).toBe(1);
   expect(result).toMatchObject({
     kind: 'right',
     value: {

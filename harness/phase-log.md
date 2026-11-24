@@ -51,4 +51,8 @@ details live in the PR.
 | 2026-11-23 | CommandService with Either and zero production type casts | #146 | PepeTza | 345 / 345 app, 17 / 17 panel | Seemann Ch. 10 CommandService + Either<TError, TResult>, Logging and ExceptionHandling aspect decorators, all 7 use cases and admin App migrated, 0 production `as` casts, AGENTS.md and architecture.md updated |
 | 2026-11-23 | Hexa Fit unlimited undo and redo | #81 | jesusobando32 | 346 / 346 app, 17 / 17 panel | RN-16 and RN-17 history; undo leaves elapsed time intact in the Fit screen integration |
 | 2026-11-23 | Hexa Fit rotation preview | #80 | jesusobando32 | 348 / 348 app, 17 / 17 panel | RN-14; positive and negative rotation controls; invalid moves leave board and tray intact |
-| 2026-11-23 | Hexa Fit score and stars | #83 | jesusobando32 | 360 / 360 app, 17 / 17 panel | D-08 defaults and configurable scoring; per-level stars verified through the finish command |
+| 2026-11-23 | Board projection for touch input | #34 | jesusobando32 | 351 / 351 app, 17 / 17 panel | RNF-14; coordinate conversion verified independently of renderer; device drag pending |
+| 2026-11-24 | Generic line resolution | #165 | jesusobando32 | 352 / 352 app, 17 / 17 panel | Non-hex coordinates preserved in LineCleared |
+| 2026-11-24 | Generic Fit rules | #165 | jesusobando32 | 353 / 353 app, 17 / 17 panel | Non-hex piece placement and victory |
+| 2026-11-24 | Configurable Lines sessions | #165 | jesusobando32 | 356 / 356 app, 17 / 17 panel | Configurable shape, radius, tray, color and weights with existing defaults |
+| 2026-11-23 | Hexa Fit score and stars | #83 | jesusobando32 | 368 / 368 app, 17 / 17 panel | Configurable domain scoring; played a Fit session and verified per-level stars through the finish command |
