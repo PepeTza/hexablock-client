@@ -1028,10 +1028,55 @@ One entry per significant use. Copy the template.
   thresholds. The mobile screen and persistent repository are tracked separately.
   The integration test follows the Either result introduced by #146.
 
+### 2026-11-24 — Interim AI evaluation
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #68 (layers and extensibility).
+- **Prompt:** Evaluate AI contributions using the commit history and reviews.
+- **Result:** Added traceability counts and two reviewed design examples.
+- **Team modifications:** Peer feedback in #155 and #165 informed the cases.
+- **Lessons / limitations:** The footer is commit-level evidence. A negative
+  control verified that the count changes when a footer is missing.
+
 ## 3. Critical evaluation
 
-To be completed at the end of the project.
+Interim review of client layers and extensibility (Jesus). The final
+evaluation also needs the client class and backend contributions.
 
-- **Approximate percentage of AI-assisted code:**
-- **Cases where the AI was wrong or suboptimal, and how they were detected:**
-- **Impact on productivity and quality:**
+### Traceability snapshot (2026-11-24)
+
+At client main `4b200bf`, all 60 non-merge commits that added production
+lines in `src/`, `admin/src/`, `App.tsx` or `index.ts` carried an
+`AI-Assisted` footer. Those commits accounted for 6,992 of 6,992 added
+lines in that scope (100% by this proxy). Git counted additions with rename detection and excluded TypeScript
+test files. The
+count measures historical additions, which can include code later replaced,
+and assigns each commit as a whole. The share of individual lines generated
+by AI cannot be inferred from it. As a control, removing one footer from a
+copy of the log returned 59 marked commits and 6,859 marked added lines.
+
+### Layers and extensibility
+
+- **Problem detected in review.** The first Fit screen draft called the
+  score formula from its presenter. PepeTza identified the ownership
+  problem in [#155](https://github.com/PepeTza/hexablock-client/pull/155).
+  The revised implementation moved that decision to the domain in
+  [#181](https://github.com/PepeTza/hexablock-client/pull/181). An
+  integration test finishes a real Fit session with a relocation and
+  checks the resulting score and stored stars.
+- **Problem detected with an alternate coordinate.** Initial rules
+  accepted only hex coordinates although their operations needed the
+  coordinate contract and board geometry. The review in #165 prompted
+  tests with a non-hex coordinate before adding the generic parameters.
+  The tests initially failed at type-checking and then exercised real line
+  clearing and Fit placement at runtime.
+  [Lines #175](https://github.com/PepeTza/hexablock-client/pull/175),
+  [Fit #176](https://github.com/PepeTza/hexablock-client/pull/176).
+- **Impact on productivity and quality.** AI helped produce the alternate
+  coordinate fixtures and port the existing Fit screen to the generic
+  engine. Human review caught the scoring boundary, and type checking
+  and runtime tests made the resulting design testable across geometries.
+  We did not record elapsed effort against a manual baseline. The Fit
+  screen's Android bundle and automated navigation were verified.
+  Native drag and the clock still require a device run.
+  [Fit screen #182](https://github.com/PepeTza/hexablock-client/pull/182).
