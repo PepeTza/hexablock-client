@@ -1392,6 +1392,19 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The tests use an in-process port. Configured
   seeds on real devices require the backend endpoint and client wiring.
 
+### 2026-11-24 — Admin seed settings HTTP and panel
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #76 (panel and HTTP adapter).
+- **Prompt:** Read and edit the published seed configuration through the
+  admin endpoint contract.
+- **Result:** Added the variant and level form, fixed and random modes,
+  response parsing and permission feedback.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Edge verified 403 and a level-scoped fixed
+  seed update with simulated API replies. The deployed endpoint and the
+  next-game effect are pending backend #28.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
