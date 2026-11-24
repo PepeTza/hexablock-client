@@ -27,6 +27,8 @@ export default tseslint.config(
         'error',
         { assertionStyle: 'never' },
       ],
+      // AGENTS.md §3: no non-null assertions (`value!`).
+      '@typescript-eslint/no-non-null-assertion': 'error',
     },
   },
   {
@@ -35,6 +37,7 @@ export default tseslint.config(
     files: ['**/*.test.ts', '**/*.test.tsx'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
   adminBoundaries,
