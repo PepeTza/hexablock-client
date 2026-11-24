@@ -1380,6 +1380,18 @@ One entry per significant use. Copy the template.
   tests failed because Fit still opened a placeholder. Expo exported an
   Android bundle, but native touch and restart persistence remain unverified.
 
+### 2026-11-24 — Seed settings use cases
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #76 (application layer).
+- **Prompt:** Validate seed changes using the documented game and level scopes.
+- **Result:** Added the read and save commands behind an admin seed port.
+  Validation rejects an empty Sort level or a seed outside the proposed
+  unsigned 32-bit range, and preserves the server's forbidden response.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** The tests use an in-process port. Configured
+  seeds on real devices require the backend endpoint and client wiring.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
