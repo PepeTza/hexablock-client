@@ -957,6 +957,18 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The two tests fail on the previous rules in
   opposite directions. The Fit screen integration in #155 handles gestures.
 
+### 2026-11-23 — Level selection query and view
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #90.
+- **Prompt:** Display Fit stars, Sort completion and sequential locks. Adapt
+  the selection query to the asynchronous command contract introduced by #146.
+- **Result:** Added the CU-08 query and the shared mobile list. A progress
+  read failure returns a controlled result. The view takes a maximum star count.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Navigation and local data providers are integration
+  work. Component tests cover locked and unlocked levels with fixtures.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
