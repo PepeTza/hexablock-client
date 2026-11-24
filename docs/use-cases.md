@@ -719,8 +719,8 @@ abandon the current game.
    the administrator reviews and adjusts (D-09).
 4. Taps "validate": the Builder assembles the level and validates it. In Fit,
    that the area matches and it has a solution (RN-13), and the panel draws
-   the solution found over the figure. In Sort, that it has free cells, at
-   least one colour and at least one goal.
+   the solution found over the figure. In Sort, that it has free cells, 2 to 8
+   colours and at least one goal.
 5. In Sort, chooses the level's seed mode (required; "random" is selected by
    default).
 6. Taps "publish": the server checks the admin role and the format of the
