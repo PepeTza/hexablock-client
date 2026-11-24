@@ -994,3 +994,7 @@ To be completed at the end of the project.
   missed. New subagent definitions load only when a Claude Code session
   starts. Ronald will confirm with the teacher that using this subagent in
   reviews is acceptable.
+- **Update (same day):** until the teacher approves it, Ronald removed the
+  `change-scenarios` skill, its subagent and the "Change scenarios" section
+  of the gate 1 plan; only the "Design for change" rule remains. Restoring
+  them is a revert of that commit.
