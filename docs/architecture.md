@@ -54,6 +54,7 @@ or in the domain model is listed here; a new port is added here first.
 | `IProgressRepository` | client (local and remote implementations), backend | §2, `domain-model.md` | CU-07, CU-08, CU-12 |
 | `ILevelRepository` | client, backend | §2, `domain-model.md` | CU-01, CU-08, CU-15, CU-17 |
 | `ISeedConfigRepository` | client, backend | `domain-model.md` | CU-01, CU-15, CU-18 |
+| `IAdminSeedConfigRepository` | client (`admin/`) | §2 | CU-18 (admin panel seed configuration read/save) |
 | `ILeaderboardRepository` | client (cache), backend | `domain-model.md` | CU-13, CU-14 |
 | `IAuthService` | client | §2 | CU-10, CU-11 |
 | `ISessionProvider` | client | CU-07 | CU-07 and the security aspect (RN-35) |

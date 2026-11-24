@@ -82,3 +82,4 @@ details live in the PR.
 | 2026-11-24 | Configured Lines tray layout | #165 | jesusobando32 | 396 / 396 app, 17 / 17 panel | Four-slot layout keeps the fourth touch target within the canvas |
 | 2026-11-24 | Fit and Lines integration | #87 | jesusobando32 | 399 / 399 app, 17 / 17 panel | Shared finish command and cells; navigation between variants verified |
 | 2026-11-24 | Fit result after leaving the screen | #87 | jesusobando32 | 400 / 400 app, 17 / 17 panel | Victory waits until the game screen regains focus |
+| 2026-11-24 | Seed settings use cases | #76 | jesusobando32 | 396 / 396 app, 17 / 17 panel | Tested variant scopes, fixed seed boundaries and forbidden responses through the port |
