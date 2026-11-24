@@ -80,3 +80,4 @@ details live in the PR.
 | 2026-11-23 | Hexa Lines playable screen | #37 | jesusobando32 | 394 / 394 app, 17 / 17 panel | Integrated #146 and typed line-clear previews and single finish execution; result, controlled failure and save warning verified; Android gestures and persistent records pending |
 | 2026-11-24 | Lines result after leaving the screen | #37 | jesusobando32 | 395 / 395 app, 17 / 17 panel | Result waits until the game screen is focused |
 | 2026-11-24 | Configured Lines tray layout | #165 | jesusobando32 | 396 / 396 app, 17 / 17 panel | Four-slot layout keeps the fourth touch target within the canvas |
+| 2026-11-24 | Fit and Lines integration | #87 | jesusobando32 | 399 / 399 app, 17 / 17 panel | Shared finish command and cells; navigation between variants verified |

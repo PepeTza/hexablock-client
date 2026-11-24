@@ -1,5 +1,6 @@
 import type { BoardProjectionFactory } from '@adapters/presentation/board/board-projection';
 import { HexBoardProjection } from '@adapters/presentation/board/hex-board-projection';
+import { FitGamePresenter } from '@adapters/presentation/hexa-fit/fit-game-presenter';
 import { LinesGamePresenter } from '@adapters/presentation/hexa-lines/lines-game-presenter';
 import { AsyncExceptionHandlingCommandServiceDecorator } from '@application/aspects/exception-handling-decorator';
 import { AsyncLoggingCommandServiceDecorator } from '@application/aspects/logging-use-case-decorator';
@@ -22,12 +23,15 @@ import {
 import { LoadProgressSummaryUseCase } from '@application/use-cases/load-progress-summary';
 import type { AsyncCommandService } from '@application/use-cases/use-case';
 
+import { FIT_DEMO_FACTORY, FIT_DEMO_ID } from './fit-demo';
+
 /** Services exposed to UI screens through `ServicesProvider`. */
 export interface AppServices {
   readonly mainMenu: MainMenuPresenter;
   readonly gameResult: GameResultPresenter;
   readonly loadLevels?: AsyncCommandService<LoadLevelsInput, LevelSelection>;
   readonly createBoardProjection: BoardProjectionFactory<HexCoord>;
+  readonly startFit: () => FitGamePresenter;
   readonly startLines: () => LinesGamePresenter<HexCoord>;
 }
 
@@ -57,6 +61,7 @@ export function createAppServices(
   const factories = new VariantFactoryRegistry();
   const linesFactory = new LinesVariantFactory();
   factories.register(linesFactory.gameId, linesFactory);
+  factories.register(FIT_DEMO_FACTORY.gameId, FIT_DEMO_FACTORY);
   const logger = console;
   const finishGame = new AsyncLoggingCommandServiceDecorator(
     'FinishGame',
@@ -90,11 +95,19 @@ export function createAppServices(
       finishGame,
       Date.now,
     );
+  const startFit = () =>
+    new FitGamePresenter(
+      FIT_DEMO_FACTORY.createEngine(),
+      FIT_DEMO_ID,
+      finishGame,
+      () => performance.now(),
+    );
   return {
     mainMenu,
     gameResult,
     loadLevels,
     createBoardProjection,
     startLines,
+    startFit,
   };
 }
