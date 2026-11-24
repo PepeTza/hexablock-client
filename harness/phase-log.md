@@ -59,3 +59,4 @@ details live in the PR.
 | 2026-11-23 | Hexa Fit score and stars | #83 | jesusobando32 | 373 / 373 app, 17 / 17 panel | A Fit session with one relocation earned 800 points and saved three stars |
 | 2026-11-23 | Level selection query and view | #90 | jesusobando32 | 380 / 380 app, 17 / 17 panel | CU-08 lists ordered progress with Either errors and a configurable star limit; navigation pending |
 | 2026-11-24 | Generic Fit solution search | #72, #165 | jesusobando32 | 384 / 384 app, 17 / 17 panel | Negative control caught reuse of a piece; non-hex and no-cover cases verified |
+| 2026-11-24 | Fit level validation | #72 | jesusobando32 | 391 / 391 app, 17 / 17 panel | Injected geometry and catalog; unknown fields rejected; contract approval pending |

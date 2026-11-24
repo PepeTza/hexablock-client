@@ -1052,6 +1052,18 @@ One entry per significant use. Copy the template.
   return piece indices [0, 0] instead of [0, 1]. The validator and publication
   flow still need the agreed level contract.
 
+### 2026-11-24 — Fit level validation against the proposed format
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #72 and #165 (validator).
+- **Prompt:** Connect the validator to the shared solver and check its payload.
+- **Result:** The generic validator accepts injected geometry, catalog and
+  coordinate parser. It rejects unknown spec, cell and threshold fields.
+- **Team modifications:** The #139 review requested injected dependencies.
+- **Lessons / limitations:** The previous validator accepted the three
+  unknown-field fixtures. Those now fail validation, and the valid
+  catalog example still produces a solution. Backend #66 is pending.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
