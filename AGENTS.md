@@ -165,6 +165,14 @@ override them.
 | [`add-variant`](./.claude/skills/add-variant/SKILL.md) | Building a variant or rehearsing "add a fifth variant" |
 | [`design-level`](./.claude/skills/design-level/SKILL.md) | Designing or checking a Hexa Fit or Hexa Sort level |
 | [`log-ai-usage`](./.claude/skills/log-ai-usage/SKILL.md) | Gate 4, before opening the pull request |
+| [`code-rules-review`](./.claude/skills/code-rules-review/SKILL.md) | Gate 4 on your own branch, and reviewing a pull request: code rules |
+| [`architecture-review`](./.claude/skills/architecture-review/SKILL.md) | Gate 4 on your own branch, and reviewing a pull request: architecture |
 
-`harness-task`, `aaa-test` and `log-ai-usage` are shared with the backend
-repository: whoever changes one updates the other copy the same day.
+`harness-task`, `aaa-test`, `log-ai-usage`, `code-rules-review` and
+`architecture-review` are shared with the backend repository: whoever changes
+one updates the other copy the same day.
+
+Claude Code also has a read-only subagent for each reviewer skill
+(`code-rules-review`, `architecture-review`, in
+[`.claude/agents/`](./.claude/agents/)), which runs it on a plan or a diff
+with fresh eyes. Other agents read the skill and apply it themselves.
