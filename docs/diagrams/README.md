@@ -16,9 +16,10 @@ mmdc -i client-layers.mmd -o client-layers.svg -b white
 mmdc -i client-extensibility.mmd -o client-extensibility.svg -b white
 ```
 
-The current text of [RNF-12](../requirements.md) calls for editable
-Lucidchart sources linked from the README. The files above provide editable
-Mermaid sources. Lucidchart links are pending under the written requirement.
+The written [RNF-12](../requirements.md) mentions editable sources. Jesus
+reported the instructor's clarification that the delivered diagrams can be
+images without an editable file. Use the SVG exports in the README. The
+Mermaid sources above are kept for maintenance and regeneration.
 
 Ronald owns the client class diagram. Kenneth owns the backend diagrams in
 the backend repository. T39 covers the final set of five diagrams.
