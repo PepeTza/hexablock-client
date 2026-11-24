@@ -42,6 +42,9 @@ async function renderMenu(loadSummary: LoadSummary) {
   const services: AppServices = {
     mainMenu: new MainMenuPresenter(loadSummary, MENU_VARIANTS),
     gameResult: new GameResultPresenter(),
+    startFit: () => {
+      throw new Error('The menu does not start sessions');
+    },
   };
   await render(
     <ServicesProvider services={services}>

@@ -1028,6 +1028,19 @@ One entry per significant use. Copy the template.
   thresholds. The mobile screen and persistent repository are tracked separately.
   The integration test follows the Either result introduced by #146.
 
+### 2026-11-24 — Hexa Fit mobile screen
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #87.
+- **Prompt:** Connect the Fit screen to the generic rules and domain scoring.
+- **Result:** Wired the offline session, board and tray, edit controls and
+  clock into the native navigation and shared finish-game command.
+- **Team modifications:** The #155 review requested Either handling, logging,
+  domain scoring, generic coordinates and a configurable piece palette.
+- **Lessons / limitations:** Before the route was wired, four navigation
+  tests failed because Fit still opened a placeholder. Expo exported an
+  Android bundle, but native touch and restart persistence remain unverified.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

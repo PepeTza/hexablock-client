@@ -4,6 +4,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../navigation/routes';
 
+import { FitGameScreen } from './FitGameScreen';
+
 type VariantPlaceholderScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Variant'
@@ -15,7 +17,11 @@ type VariantPlaceholderScreenProps = NativeStackScreenProps<
  */
 export function VariantPlaceholderScreen({
   route,
+  navigation,
 }: VariantPlaceholderScreenProps) {
+  if (route.params.gameId === 'hexa-fit') {
+    return <FitGameScreen navigation={navigation} route={route} />;
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.message}>{route.params.name} is coming soon.</Text>
