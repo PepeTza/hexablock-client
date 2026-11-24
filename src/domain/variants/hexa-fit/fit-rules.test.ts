@@ -40,7 +40,12 @@ it('should_complete_the_figure_when_a_piece_uses_a_non_hex_coordinate', () => {
   // Act
   const result = rules.play(
     board,
-    { score: 0, moveCount: 0, pendingPieces: [{ id: 0, piece }] },
+    {
+      score: 0,
+      moveCount: 0,
+      placedPieces: [],
+      pendingPieces: [{ id: 0, piece }],
+    },
     { pieceId: 0, anchor: target },
   );
 

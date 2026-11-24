@@ -10,7 +10,14 @@ export interface IFitPiece<TCoord extends ICoord> {
   readonly piece: Piece<TCoord>;
 }
 
-/** The board stores placed IDs; the tray holds the remaining pieces. */
+export interface IPlacedFitPiece<
+  TCoord extends ICoord,
+> extends IFitPiece<TCoord> {
+  readonly anchor: TCoord;
+}
+
+/** The board stores placed IDs; the session tracks their anchors and orientations. */
 export interface FitState<TCoord extends ICoord> extends GameState {
   readonly pendingPieces: readonly IFitPiece<TCoord>[];
+  readonly placedPieces: readonly IPlacedFitPiece<TCoord>[];
 }

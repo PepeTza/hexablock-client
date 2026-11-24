@@ -1002,6 +1002,18 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The non-default board test expected seven cells
   but got 61 before the change. It also checks refilling a two-piece tray.
 
+### 2026-11-24 — Fit piece edits
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #87 (domain piece edits).
+- **Prompt:** Reuse the Fit draft's piece edits on the generic domain in main.
+- **Result:** The rules handle relocation, removal and in-place rotation.
+  Command history restores the footprint and tray state.
+- **Team modifications:** The game rules define how each action counts (RN-17).
+- **Lessons / limitations:** Relocation and removal tests first returned
+  rejected. The tests also cover invalid changes and rotation without a
+  move charge. Native interaction is tracked separately.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
