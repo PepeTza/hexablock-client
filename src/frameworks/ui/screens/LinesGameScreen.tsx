@@ -1,9 +1,18 @@
+import type { FinishGameOutput } from '@application/use-cases/finish-game';
+import { useFocusEffect } from '@react-navigation/native';
 import type { BoardPoint } from '@adapters/presentation/board/board-projection';
 import { HexBoardProjection } from '@adapters/presentation/board/hex-board-projection';
 import type { LinesPlacementPreview } from '@adapters/presentation/hexa-lines/lines-placement-preview';
 import type { HexCoord } from '@domain/engine/hex/hex-coord';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   PanResponder,
   Pressable,
@@ -144,6 +153,19 @@ export function LinesGameScreen({ navigation }: Props) {
   const { startLines } = useServices();
   const [game] = useState(startLines);
   const [view, setView] = useState(() => game.view);
+  const [result, setResult] = useState<FinishGameOutput | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      if (result !== null) {
+        navigation.replace('GameResult', {
+          gameId: 'hexa-lines',
+          variantName: 'Hexa Lines',
+          levelId: null,
+          result,
+        });
+      }
+    }, [navigation, result]),
+  );
   const [selected, setSelected] = useState<number | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [message, setMessage] = useState(
@@ -173,16 +195,7 @@ export function LinesGameScreen({ navigation }: Props) {
       const showFinishError = () =>
         setMessage('Game over. The result could not be saved.');
       void finish
-        .then((outcome) =>
-          outcome.fold(showFinishError, (result) => {
-            navigation.replace('GameResult', {
-              gameId: 'hexa-lines',
-              variantName: 'Hexa Lines',
-              levelId: null,
-              result,
-            });
-          }),
-        )
+        .then((outcome) => outcome.fold(showFinishError, setResult))
         .catch(showFinishError);
     }
   }
