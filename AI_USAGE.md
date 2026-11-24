@@ -970,6 +970,16 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The native drag interaction still needs device
   verification. The projection can be tested independently of rendering.
 
+### 2026-11-24 — Generic line resolution
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165 (Lines resolver).
+- **Prompt:** Remove the HexCoord dependency from the shared line resolver.
+- **Result:** The resolver and its event retain the board's coordinate type.
+- **Team modifications:** The issue specifies the generic coordinate bound.
+- **Lessons / limitations:** The regression first failed at type-checking.
+  It also checks that the non-hex board is cleared at runtime.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
