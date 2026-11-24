@@ -251,6 +251,39 @@ describe('RootNavigator', () => {
     expect(fourth.parent).toHaveStyle({ left: edge * 0.75, width: edge / 4 });
   });
 
+  it('should_refresh_the_lines_seed_for_each_new_session_when_the_network_changes', async () => {
+    // Arrange
+    const services = createAppServices({
+      seedConfigs: {
+        findSeedConfig: jest
+          .fn()
+          .mockResolvedValueOnce({ mode: 'fixed', value: 0 })
+          .mockRejectedValueOnce(new Error('Offline')),
+      },
+    });
+    const startLines = jest.fn(services.startLines);
+    async function openLines() {
+      const app = await render(
+        <ServicesProvider services={{ ...services, startLines }}>
+          <RootNavigator />
+        </ServicesProvider>,
+      );
+      await fireEvent.press(
+        await screen.findByRole('button', { name: 'Hexa Lines' }),
+      );
+      await screen.findByText('Score: 0');
+      return app;
+    }
+
+    // Act
+    const first = await openLines();
+    await first.unmount();
+    await openLines();
+
+    // Assert
+    expect(startLines.mock.calls).toEqual([[0], [undefined]]);
+  });
+
   it('should_play_a_lines_move_when_the_player_opens_lines_from_home', async () => {
     // Arrange
     await render(

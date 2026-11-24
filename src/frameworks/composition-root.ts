@@ -1,5 +1,7 @@
+import { HttpSeedConfigReader } from '@adapters/http/http-seed-config-reader';
 import type { BoardProjectionFactory } from '@adapters/presentation/board/board-projection';
 import { HexBoardProjection } from '@adapters/presentation/board/hex-board-projection';
+import type { ISeedConfigRepository } from '@application/ports/seed-config-repository';
 import { FitGamePresenter } from '@adapters/presentation/hexa-fit/fit-game-presenter';
 import { LinesGamePresenter } from '@adapters/presentation/hexa-lines/lines-game-presenter';
 import { AsyncExceptionHandlingCommandServiceDecorator } from '@application/aspects/exception-handling-decorator';
@@ -32,13 +34,15 @@ export interface AppServices {
   readonly loadLevels?: AsyncCommandService<LoadLevelsInput, LevelSelection>;
   readonly createBoardProjection: BoardProjectionFactory<HexCoord>;
   readonly startFit: () => FitGamePresenter<HexCoord>;
-  readonly startLines: () => LinesGamePresenter<HexCoord>;
+  readonly startLines: (seed?: number) => LinesGamePresenter<HexCoord>;
+  readonly loadLinesSeed?: () => Promise<number | undefined>;
 }
 
 /** Optional overrides used in integration and navigation tests. */
 export interface AppServiceDependencies {
   readonly progress?: IProgressRepository;
   readonly levels?: Pick<ILevelRepository, 'findByGame'>;
+  readonly seedConfigs?: ISeedConfigRepository;
 }
 
 const DEFAULT_LEVELS: Pick<ILevelRepository, 'findByGame'> = {
@@ -55,6 +59,7 @@ export function createAppServices(
 ): AppServices {
   const progress = deps.progress ?? new InMemoryProgressRepository();
   const levels = deps.levels ?? DEFAULT_LEVELS;
+  const seedConfigs = deps.seedConfigs ?? configuredSeedReader();
   const loadSummary = new LoadProgressSummaryUseCase({ progress });
   const loadLevels = new LoadLevelsUseCase({ levels, progress });
   const mainMenu = new MainMenuPresenter(loadSummary, MENU_VARIANTS);
@@ -90,12 +95,8 @@ export function createAppServices(
     origin,
     size,
   ) => new HexBoardProjection(origin, size);
-  const startLines = () =>
-    new LinesGamePresenter(
-      createLinesGame(Date.now() >>> 0),
-      finishGame,
-      Date.now,
-    );
+  const startLines = (seed = Date.now() >>> 0) =>
+    new LinesGamePresenter(createLinesGame(seed), finishGame, Date.now);
   const startFit = () =>
     new FitGamePresenter(
       FIT_DEMO_FACTORY.createEngine(),
@@ -103,6 +104,12 @@ export function createAppServices(
       finishGame,
       () => performance.now(),
     );
+  const loadLinesSeed = seedConfigs
+    ? async () => {
+        const config = await seedConfigs.findSeedConfig('hexa-lines');
+        return config?.mode === 'fixed' ? config.value : undefined;
+      }
+    : undefined;
   return {
     mainMenu,
     gameResult,
@@ -110,5 +117,13 @@ export function createAppServices(
     createBoardProjection,
     startLines,
     startFit,
+    loadLinesSeed,
   };
+}
+
+function configuredSeedReader(): ISeedConfigRepository | undefined {
+  const url: unknown = process.env.EXPO_PUBLIC_API_URL;
+  return typeof url === 'string' && url.length > 0
+    ? new HttpSeedConfigReader(url)
+    : undefined;
 }

@@ -11,6 +11,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Fragment,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -125,9 +126,25 @@ interface LinesGameViewProps<TCoord extends ICoord> {
 }
 
 export function LinesGameScreen({ navigation }: Props) {
-  const { startLines, createBoardProjection } = useServices();
-  const [game] = useState(startLines);
-  return (
+  const { startLines, createBoardProjection, loadLinesSeed } = useServices();
+  const [game, setGame] = useState(() => (loadLinesSeed ? null : startLines()));
+
+  useEffect(() => {
+    if (!loadLinesSeed) return;
+    let active = true;
+    void loadLinesSeed()
+      .catch(() => undefined)
+      .then((seed) => {
+        if (active) setGame(startLines(seed));
+      });
+    return () => {
+      active = false;
+    };
+  }, [loadLinesSeed, startLines]);
+
+  return game === null ? (
+    <Text accessibilityLiveRegion="polite">Starting Hexa Lines…</Text>
+  ) : (
     <LinesGameView
       navigation={navigation}
       game={game}
