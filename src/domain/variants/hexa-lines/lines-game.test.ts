@@ -1,3 +1,4 @@
+import { BoardShape } from '../../engine/board/board-shape';
 import { HexCoord } from '../../engine/hex/hex-coord';
 import { createLinesGame } from './lines-game';
 
@@ -174,4 +175,55 @@ it('should_finish_in_defeat_when_no_remaining_tray_piece_can_fit', () => {
   // Assert
   expect(game.state.moveCount).toBeGreaterThan(0);
   expect(game.outcome).toBe('defeat');
+});
+
+it('should_keep_the_configured_board_and_tray_size_when_the_tray_refills', () => {
+  // Arrange
+  const game = createLinesGame(42, undefined, {
+    weights: MONOMINO_WEIGHTS,
+    boardRadius: 1,
+    traySize: 2,
+    placedColor: 'red',
+  });
+  const cellCount = game.board.shape.coords.length;
+  const initialTraySize = game.state.tray.length;
+
+  // Act
+  game.applyMove({ slot: 0, anchor: HexCoord.ORIGIN });
+  game.resolutionDone();
+  game.applyMove({ slot: 1, anchor: new HexCoord(1, 0) });
+  game.resolutionDone();
+
+  // Assert
+  expect(cellCount).toBe(7);
+  expect(initialTraySize).toBe(2);
+  expect(game.board.cellAt(HexCoord.ORIGIN)).toBe('red');
+  expect(game.state.moveCount).toBe(2);
+  expect(game.state.tray).toHaveLength(2);
+  expect(game.state.tray.every((piece) => piece !== null)).toBe(true);
+});
+
+it('should_use_the_explicit_figure_when_a_board_radius_is_also_supplied', () => {
+  // Arrange
+  const figure = BoardShape.of([HexCoord.ORIGIN, new HexCoord(1, 0)]);
+
+  // Act
+  const game = createLinesGame(42, undefined, {
+    boardShape: figure,
+    boardRadius: 4,
+  });
+
+  // Assert
+  expect(game.board.shape.coords.map((coord) => coord.key())).toEqual([
+    '0,0',
+    '1,0',
+  ]);
+});
+
+it('should_reject_the_configuration_when_the_tray_cannot_hold_a_piece', () => {
+  // Arrange & Act
+  const start = () => createLinesGame(42, MONOMINO_WEIGHTS, { traySize: 0 });
+
+  // Assert
+  expect(start).toThrow('The Lines tray size must be a positive integer');
 });

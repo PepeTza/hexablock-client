@@ -38,7 +38,7 @@ export class LinesVariantFactory implements IVariantFactory<
 
   createEngine({ seed, listeners }: VariantStartContext) {
     if (seed === null) throw new RangeError('Hexa Lines requires a seed');
-    return createLinesGame(seed, undefined, listeners);
+    return createLinesGame(seed, undefined, { listeners });
   }
 
   createProgressModel() {

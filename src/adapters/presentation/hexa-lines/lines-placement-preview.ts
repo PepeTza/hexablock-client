@@ -1,4 +1,4 @@
-import { HexCoord } from '@domain/engine/hex/hex-coord';
+import type { HexCoord } from '@domain/engine/hex/hex-coord';
 import type {
   createLinesGame,
   PlacePieceMove,
@@ -26,15 +26,7 @@ export function previewLinesPlacement(
     return { valid: false, cells, clearing: [] };
   }
 
-  const clearing = preview.events.flatMap((event) =>
-    event.type === 'LineCleared' &&
-    'cells' in event &&
-    Array.isArray(event.cells)
-      ? event.cells.filter(
-          (cell: unknown): cell is HexCoord => cell instanceof HexCoord,
-        )
-      : [],
-  );
+  const clearing = preview.events.flatMap((event) => event.cells);
 
   return { valid: true, cells, clearing };
 }

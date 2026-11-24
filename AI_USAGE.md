@@ -957,6 +957,51 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The two tests fail on the previous rules in
   opposite directions. The Fit screen integration in #155 handles gestures.
 
+### 2026-11-23 — Hex board projection
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #34 (projection review in #149).
+- **Prompt:** Translate touch positions to board coordinates through a
+  presentation port shared by the game renderers.
+- **Result:** Added the generic projection interface and the axial hex
+  implementation. Tests cover cell round trips and boundary cases.
+- **Team modifications:** PepeTza reviewed the separation between the
+  projection and the renderer and requested landing the projection first.
+- **Lessons / limitations:** The native drag interaction still needs device
+  verification. The projection can be tested independently of rendering.
+
+### 2026-11-24 — Generic line resolution
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165 (Lines resolver).
+- **Prompt:** Remove the HexCoord dependency from the shared line resolver.
+- **Result:** The resolver and its event retain the board's coordinate type.
+- **Team modifications:** The issue specifies the generic coordinate bound.
+- **Lessons / limitations:** The regression first failed at type-checking.
+  It also checks that the non-hex board is cleared at runtime.
+
+### 2026-11-24 — Generic Fit rules
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165 (Fit rules).
+- **Prompt:** Keep Fit placement rules independent of concrete coordinates.
+- **Result:** Fit state, moves and rules share the board coordinate type.
+  The Fit factory still supplies the hex geometry.
+- **Team modifications:** The issue specifies the generic coordinate bound.
+- **Lessons / limitations:** The non-hex control first failed type-checking.
+  It also exercises placement and victory through the rules at runtime.
+
+### 2026-11-24 — Lines game configuration
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165 (Lines configuration).
+- **Prompt:** Let the Lines factory take board, tray and placement defaults.
+- **Result:** Added options for the board shape or radius, tray size,
+  color and piece weights. Existing callers can still pass weights second.
+- **Team modifications:** The issue specifies configurable rule values.
+- **Lessons / limitations:** The non-default board test expected seven cells
+  but got 61 before the change. It also checks refilling a two-piece tray.
+
 ### 2026-11-23 — Hexa Lines playable screen
 
 - **Tool / model:** Codex.

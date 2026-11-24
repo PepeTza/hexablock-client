@@ -12,7 +12,7 @@ import type { FitState, PieceId } from './fit-state';
 export function startFitGame(
   figure: BoardShape<HexCoord>,
   pieces: readonly Piece<HexCoord>[],
-): GameEngine<PieceId, HexCoord, FitMove, FitState> {
+): GameEngine<PieceId, HexCoord, FitMove<HexCoord>, FitState<HexCoord>> {
   return GameEngine.start({
     board: new Board<PieceId, HexCoord>(figure, new HexGeometry()),
     state: {
@@ -21,8 +21,8 @@ export function startFitGame(
       pendingPieces: pieces.map((piece, id) => ({ id, piece })),
     },
     // Placements do not award points; RN-18 scores a completed level.
-    rules: new FitRules({ pointsFor: () => 0 }),
+    rules: new FitRules<HexCoord>({ pointsFor: () => 0 }),
     seed: null,
-    history: CommandHistory.unlimited<FitMove>(),
+    history: CommandHistory.unlimited<FitMove<HexCoord>>(),
   });
 }

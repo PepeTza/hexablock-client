@@ -1,3 +1,5 @@
+import { Axis } from '../../engine/geometry/axis';
+import type { IBoardGeometry } from '../../engine/geometry/board-geometry';
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
 import { HexCoord } from '../../engine/hex/hex-coord';
@@ -93,4 +95,38 @@ describe('resolveLines', () => {
     });
     expect(result.events).toEqual([]);
   });
+});
+
+it('should_keep_the_board_coordinate_type_when_clearing_a_non_hex_line', () => {
+  // Arrange
+  const origin = { column: 0, key: () => '0' };
+  const end = { column: 1, key: () => '1' };
+  const axis = new Axis('column');
+  const geometry: IBoardGeometry<typeof origin> = {
+    origin,
+    directions: [],
+    axes: [axis],
+    neighbour: () => {
+      throw new RangeError('No directions');
+    },
+    neighbours: () => [],
+    line: (coord, _axis, isInside) =>
+      isInside(coord) ? [origin, end].filter(isInside) : [],
+    ring: (centre, radius) => (radius === 0 ? [centre] : []),
+    translate: (coord) => coord,
+  };
+  const board = new Board<string, typeof origin>(
+    BoardShape.of([origin, end]),
+    geometry,
+  );
+  board.place(origin, 'red');
+  board.place(end, 'blue');
+
+  // Act
+  const { events } = resolveLines(board, state, 1);
+
+  // Assert
+  expect(events[0]?.cells.map(({ column }) => column)).toEqual([0, 1]);
+  expect(board.isEmpty(origin)).toBe(true);
+  expect(board.isEmpty(end)).toBe(true);
 });
