@@ -1077,6 +1077,27 @@ One entry per significant use. Copy the template.
   failed when one path was replaced in a copy. Final README work remains
   linked to the release and contributions from the other tracks.
 
+### 2026-11-23 — Hexa Sort stacks and cascade (issue #61)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #61.
+- **Prompt:** Plan and build HU20: place the tray stack on an empty cell and
+  transfer top runs in cascade until the board is stable, with a
+  deterministic tie-break, following the Hexa Lines pattern.
+- **Result:** `ColorStack` value object, seeded `SortStackSource`, the
+  `resolveCascade` queue algorithm, `SortGameRules` on the engine's Template
+  Method, `createSortGame` and `createHexSortGame`, `SortScoringPolicy`, 43
+  tests and `docs/rules/hexa-sort.md`.
+- **Team modifications:** The team chose the transfer semantics (top run,
+  longest run wins, resolving cell first on a tie). A teammate pointed out
+  that the first `createSortGame` built a hexagonal board inside it, breaking
+  OCP; it now receives the geometry and the figure, and a square-board test
+  proves another shape needs no change. RN-22 was reworded without axial
+  coordinates (#164).
+- **Lessons / limitations:** The AI first wrote two `as number` casts, which
+  `AGENTS.md` forbids; they were replaced with explicit `undefined` checks.
+  The tray limits (2-8 colours, heights 1-9) duplicate the API contract.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
