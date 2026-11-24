@@ -2,11 +2,22 @@ import { Either } from '@application/common/either';
 import type { FinishGameOutput } from '@application/use-cases/finish-game';
 import { LinesGamePresenter } from '@adapters/presentation/hexa-lines/lines-game-presenter';
 import { createLinesGame } from '@domain/variants/hexa-lines/lines-game';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { createAppServices } from '../../composition-root';
 import { ServicesProvider } from '../services/ServicesContext';
 import { RootNavigator } from './RootNavigator';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LinesGameScreen } from '../screens/LinesGameScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { GameResultScreen } from '../screens/GameResultScreen';
+import type { RootStackParamList } from './routes';
+
+const TestStack = createNativeStackNavigator<RootStackParamList>();
 
 describe('RootNavigator', () => {
   it('should_open_settings_screen_when_settings_pressed_from_home', async () => {
@@ -77,6 +88,10 @@ describe('RootNavigator', () => {
       name: 'should_show_the_result_with_a_warning_when_saving_fails',
       failure: 'save',
     },
+    {
+      name: 'should_keep_the_lines_route_when_finishing_while_settings_is_open',
+      failure: 'leave',
+    },
   ])('$name', async ({ failure }) => {
     // Arrange
     const game = createLinesGame(42, new Map([['p5-01', 1_000_000]]));
@@ -106,23 +121,27 @@ describe('RootNavigator', () => {
     if (lastMove === null)
       throw new Error('Expected a finishing move in the seeded game');
     const base = createAppServices();
+    let release: () => void = () => undefined;
+    const waitForSettings = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     const finish = jest.fn(
-      ({ score, seed }: { score: number; seed: number | null }) =>
-        Promise.resolve(
-          failure === 'finish'
-            ? Either.left<Error, FinishGameOutput>(
-                new Error('Progress unavailable'),
-              )
-            : Either.right<FinishGameOutput>({
-                score,
-                seed,
-                reason: 'defeat',
-                isNewRecord: true,
-                stars: null,
-                unlockedLevelId: null,
-                saveFailed: failure === 'save',
-              }),
-        ),
+      async ({ score, seed }: { score: number; seed: number | null }) => {
+        if (failure === 'leave') await waitForSettings;
+        return failure === 'finish'
+          ? Either.left<Error, FinishGameOutput>(
+              new Error('Progress unavailable'),
+            )
+          : Either.right<FinishGameOutput>({
+              score,
+              seed,
+              reason: 'defeat',
+              isNewRecord: true,
+              stars: null,
+              unlockedLevelId: null,
+              saveFailed: failure === 'save',
+            });
+      },
     );
 
     const services = {
@@ -130,13 +149,35 @@ describe('RootNavigator', () => {
       startLines: () =>
         new LinesGamePresenter(game, { execute: finish }, () => 0),
     };
-    await render(
-      <ServicesProvider services={services}>
-        <RootNavigator />
-      </ServicesProvider>,
-    );
-    await screen.findByRole('header', { name: 'HexaBlock Suite' });
-    await fireEvent.press(screen.getByRole('button', { name: 'Hexa Lines' }));
+    const navigation = createNavigationContainerRef<RootStackParamList>();
+    if (failure === 'leave') {
+      await render(
+        <ServicesProvider services={services}>
+          <NavigationContainer ref={navigation}>
+            <TestStack.Navigator>
+              <TestStack.Screen
+                name="Variant"
+                component={LinesGameScreen}
+                initialParams={{ gameId: 'hexa-lines', name: 'Hexa Lines' }}
+              />
+              <TestStack.Screen name="Settings" component={SettingsScreen} />
+              <TestStack.Screen
+                name="GameResult"
+                component={GameResultScreen}
+              />
+            </TestStack.Navigator>
+          </NavigationContainer>
+        </ServicesProvider>,
+      );
+    } else {
+      await render(
+        <ServicesProvider services={services}>
+          <RootNavigator />
+        </ServicesProvider>,
+      );
+      await screen.findByRole('header', { name: 'HexaBlock Suite' });
+      await fireEvent.press(screen.getByRole('button', { name: 'Hexa Lines' }));
+    }
     await screen.findByRole('header', { name: /^Score:/ });
 
     // Act
@@ -148,7 +189,20 @@ describe('RootNavigator', () => {
     );
 
     // Assert
-    if (failure === 'finish') {
+    if (failure === 'leave') {
+      await act(() => navigation.navigate('Settings'));
+      await screen.findByText('Settings are coming soon.');
+      await act(async () => {
+        release();
+        await finish.mock.results[0]?.value;
+      });
+      expect(navigation.getState().routes.map((route) => route.name)).toEqual([
+        'Variant',
+        'Settings',
+      ]);
+      await act(() => navigation.goBack());
+      expect(await screen.findByText('Seed: 42')).toBeTruthy();
+    } else if (failure === 'finish') {
       expect(
         await screen.findByText('Game over. The result could not be saved.'),
       ).toBeTruthy();
