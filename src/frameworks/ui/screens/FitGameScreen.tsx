@@ -1,10 +1,12 @@
+import type { FinishGameOutput } from '@application/use-cases/finish-game';
+import { useFocusEffect } from '@react-navigation/native';
 import type { BoardPoint } from '@adapters/presentation/board/board-projection';
 import { HexBoardProjection } from '@adapters/presentation/board/hex-board-projection';
 import type { FitGamePresenter } from '@adapters/presentation/hexa-fit/fit-game-presenter';
 import type { HexCoord } from '@domain/engine/hex/hex-coord';
 import type { PieceId } from '@domain/variants/hexa-fit/fit-state';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -47,6 +49,19 @@ export function FitGameScreen({
   const { startFit } = useServices();
   const [game] = useState(startFit);
   const [view, setView] = useState(() => game.view);
+  const [result, setResult] = useState<FinishGameOutput | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      if (result !== null) {
+        navigation.replace('GameResult', {
+          gameId: 'hexa-fit',
+          variantName: 'Hexa Fit demo',
+          levelId: game.levelId,
+          result,
+        });
+      }
+    }, [game.levelId, navigation, result]),
+  );
   const [selected, setSelected] = useState<PieceId | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [message, setMessage] = useState(INSTRUCTIONS);
@@ -74,17 +89,11 @@ export function FitGameScreen({
     if (finish !== null) {
       void finish
         .then((result) => {
-          if (!navigation.isFocused()) return;
           if (result.kind === 'left') {
             setMessage('Figure complete. The result could not be loaded.');
             return;
           }
-          navigation.replace('GameResult', {
-            gameId: 'hexa-fit',
-            variantName: 'Hexa Fit demo',
-            levelId: game.levelId,
-            result: result.value,
-          });
+          setResult(result.value);
         })
         .catch(() =>
           setMessage('Figure complete. The result could not be loaded.'),
