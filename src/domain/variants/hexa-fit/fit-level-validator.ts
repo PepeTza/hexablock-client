@@ -1,4 +1,7 @@
-import type { LevelDefinition } from '../../content/level-definition';
+import type {
+  LevelDefinition,
+  LevelSpec,
+} from '../../content/level-definition';
 import type {
   ILevelValidator,
   LevelValidationResult,
@@ -9,9 +12,12 @@ import type { PieceCatalog } from '../../engine/pieces/piece-catalog';
 import { Piece } from '../../engine/pieces/piece';
 import { solveFitFigure, type FitSolutionPlacement } from './fit-solver';
 
-type Result<TCoord extends ICoord> = LevelValidationResult<
-  readonly FitSolutionPlacement<TCoord>[]
->;
+type Result<TCoord extends ICoord> =
+  | {
+      readonly valid: true;
+      readonly solution: readonly FitSolutionPlacement<TCoord>[];
+    }
+  | Extract<LevelValidationResult, { readonly valid: false }>;
 
 function invalid(field: string, message: string) {
   return { valid: false as const, errors: [{ field, message }] };
@@ -38,7 +44,11 @@ export class FitLevelValidator<
       return invalid('schemaVersion', 'Expected version 1');
     }
 
-    const { spec } = level;
+    return this.validateSpec(level.spec);
+  }
+
+  /** Validate a draft before the server assigns publication metadata. */
+  validateSpec(spec: LevelSpec): Result<TCoord> {
     if (
       Object.keys(spec).some(
         (key) =>

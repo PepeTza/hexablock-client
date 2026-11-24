@@ -4,11 +4,9 @@ import type {
   LoginResult,
 } from '@application/ports/auth-service';
 import type { AsyncCommandService } from '@application/use-cases/use-case';
-import { BoardShape } from '@domain/engine/board/board-shape';
-import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 import { type FormEvent, useState } from 'react';
 
-const LINES_BOARD_RADIUS = 4;
+import { FitLevelEditor } from './FitLevelEditor';
 const LOGIN_ERRORS = {
   'invalid-input': 'Check the username and password format.',
   'invalid-credentials': 'Invalid username or password.',
@@ -75,11 +73,7 @@ export function App({ login }: AppProps) {
           <button type="button" onClick={() => setSession(null)}>
             Sign out
           </button>
-          <p>
-            A radius-{LINES_BOARD_RADIUS} board has{' '}
-            {BoardShape.ofRadius(new HexGeometry(), LINES_BOARD_RADIUS).size}{' '}
-            cells.
-          </p>
+          <FitLevelEditor accountKey={session.username} />
         </>
       ) : (
         <form

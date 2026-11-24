@@ -60,3 +60,4 @@ details live in the PR.
 | 2026-11-23 | Level selection query and view | #90 | jesusobando32 | 380 / 380 app, 17 / 17 panel | CU-08 lists ordered progress with Either errors and a configurable star limit; navigation pending |
 | 2026-11-24 | Generic Fit solution search | #72, #165 | jesusobando32 | 384 / 384 app, 17 / 17 panel | Negative control caught reuse of a piece; non-hex and no-cover cases verified |
 | 2026-11-24 | Fit level validation | #72 | jesusobando32 | 391 / 391 app, 17 / 17 panel | Injected geometry and catalog; unknown fields rejected; contract approval pending |
+| 2026-11-24 | Local Fit level editor | #92 | jesusobando32 | 391 / 391 app, 20 / 20 panel | SVG editing, validation and browser draft recovery verified; publication pending |

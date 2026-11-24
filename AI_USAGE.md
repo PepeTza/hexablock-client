@@ -1064,6 +1064,19 @@ One entry per significant use. Copy the template.
   unknown-field fixtures. Those now fail validation, and the valid
   catalog example still produces a solution. Backend #66 is pending.
 
+### 2026-11-24 — Local Fit level editor
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #92 (draft and validation).
+- **Prompt:** Draw the figure, edit catalog pieces and thresholds, persist
+  the draft locally and show the solution.
+- **Result:** Added the editor behind admin sign-in and reused the shared
+  validator without inventing publication metadata for drafts.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** Edge verified keyboard input, an invalid area,
+  a solved figure and reload recovery with a simulated admin response.
+  Publishing depends on backend #34.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
