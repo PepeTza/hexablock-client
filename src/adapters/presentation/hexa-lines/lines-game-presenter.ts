@@ -9,6 +9,7 @@ import { previewLinesPlacement } from './lines-placement-preview';
 
 export class LinesGamePresenter {
   private readonly startedAt: number;
+  private result: Promise<Either<Error, FinishGameOutput>> | null = null;
 
   constructor(
     private readonly game: ReturnType<typeof createLinesGame>,
@@ -44,9 +45,11 @@ export class LinesGamePresenter {
   }
 
   finishIfOver(): Promise<Either<Error, FinishGameOutput>> | null {
+    if (this.result !== null) return this.result;
+
     const reason = this.game.outcome;
     if (reason === null) return null;
-    return this.finishGame.execute({
+    this.result = this.finishGame.execute({
       gameId: 'hexa-lines',
       levelId: null,
       reason,
@@ -55,5 +58,6 @@ export class LinesGamePresenter {
       durationMs: Math.max(0, this.now() - this.startedAt),
       seed: this.game.seed,
     });
+    return this.result;
   }
 }
