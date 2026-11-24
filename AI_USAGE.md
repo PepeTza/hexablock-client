@@ -998,3 +998,41 @@ To be completed at the end of the project.
   `change-scenarios` skill, its subagent and the "Change scenarios" section
   of the gate 1 plan; only the "Design for change" rule remains. Restoring
   them is a revert of that commit.
+
+### 2026-11-23 — Reviewer skills, review format and decisions rule (issue #167)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #167 (twin: PepeTza/hexablock-backend#58).
+- **Prompt (paraphrase):** after the reviews of 2026-11-23 found the same
+  mistakes in several PRs, add three reviewer skills (code rules,
+  architecture, the whole PR), each with its own agent and a clean context,
+  a fixed format for review comments, and a rule so that decisions that
+  differ from the implementation plan are written back.
+- **Result:** the shared `code-rules-review`, `architecture-review` and
+  `pr-review` skills with read-only Claude Code subagents; the review comment
+  format; self-review before every PR; the decisions rule (plan §7 and
+  architecture §10 updated in the same PR); "agents recommend, humans decide"
+  in `AGENTS.md` §3 and `CONTRIBUTING.md` §9; Self-review and Decisions
+  sections in the PR template; lint banning type assertions (except
+  `as const`) and non-null assertions in the app and the panel.
+- **Team modifications:** Ronald defined the three reviewers, asked for the
+  review format and the decisions rule, and rejected a new status document.
+  He decided that agents never take decisions with alternatives (options with
+  pros and cons, one at a time), that the self-review is run by a separate
+  agent with a clean context and never by the agent that wrote the code,
+  that "human first" applies only to reviewers, and that changing a decision
+  needs another teammate's approval. He questioned keeping `instanceof` for
+  errors, which led to zero `instanceof` in production through an
+  `UnexpectedError` that wraps thrown values (#172), and pointed out that
+  `HexCoord.equals` is no longer needed since `ICoord` uses `key()`. He also
+  removed the `change-scenarios` skill until the teacher approves it.
+- **Lessons / limitations:** dry runs with no human finding: `code-rules-review`
+  found `instanceof HexCoord` in #150, `architecture-review` found the presenter
+  computing the score and the use case without aspects in #155 (plus a base
+  branch that was already closed), and `pr-review` drafted a review of #154
+  that found it obsolete by #160 and taking an open decision. A separate agent
+  reviewing this very branch found real gaps: the backend had no cast rule,
+  four wrong section references, and the plan still called the review agent
+  optional. commitlint caught a body line read as a footer and a header over
+  72 characters. Subagent definitions load only when a session starts. The
+  backend `instanceof` rule (#62) is still to be confirmed with the teacher.
