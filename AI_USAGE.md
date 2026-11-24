@@ -980,6 +980,17 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The regression first failed at type-checking.
   It also checks that the non-hex board is cleared at runtime.
 
+### 2026-11-24 — Generic Fit rules
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #165 (Fit rules).
+- **Prompt:** Keep Fit placement rules independent of concrete coordinates.
+- **Result:** Fit state, moves and rules share the board coordinate type.
+  The Fit factory still supplies the hex geometry.
+- **Team modifications:** The issue specifies the generic coordinate bound.
+- **Lessons / limitations:** The non-hex control first failed type-checking.
+  It also exercises placement and victory through the rules at runtime.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

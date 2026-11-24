@@ -53,3 +53,4 @@ details live in the PR.
 | 2026-11-23 | Hexa Fit rotation preview | #80 | jesusobando32 | 348 / 348 app, 17 / 17 panel | RN-14; positive and negative rotation controls; invalid moves leave board and tray intact |
 | 2026-11-23 | Board projection for touch input | #34 | jesusobando32 | 351 / 351 app, 17 / 17 panel | RNF-14; coordinate conversion verified independently of renderer; device drag pending |
 | 2026-11-24 | Generic line resolution | #165 | jesusobando32 | 352 / 352 app, 17 / 17 panel | Non-hex coordinates preserved in LineCleared |
+| 2026-11-24 | Generic Fit rules | #165 | jesusobando32 | 353 / 353 app, 17 / 17 panel | Non-hex piece placement and victory |
