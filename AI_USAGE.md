@@ -957,6 +957,19 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The two tests fail on the previous rules in
   opposite directions. The Fit screen integration in #155 handles gestures.
 
+### 2026-11-23 — Hex board projection
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #34 (projection review in #149).
+- **Prompt:** Translate touch positions to board coordinates through a
+  presentation port shared by the game renderers.
+- **Result:** Added the generic projection interface and the axial hex
+  implementation. Tests cover cell round trips and boundary cases.
+- **Team modifications:** PepeTza reviewed the separation between the
+  projection and the renderer and requested landing the projection first.
+- **Lessons / limitations:** The native drag interaction still needs device
+  verification. The projection can be tested independently of rendering.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
