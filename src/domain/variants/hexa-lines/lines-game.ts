@@ -1,5 +1,6 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import type { EventListener } from '../../engine/events/domain-event';
 import { GameEngine } from '../../engine/game/game-engine';
 import {
   SourcedGameRules,
@@ -24,6 +25,7 @@ import {
 } from './resolve-lines';
 
 export interface LinesGameOptions {
+  readonly listeners?: readonly EventListener[];
   /** An explicit shape takes precedence over the default or supplied radius. */
   readonly boardShape?: BoardShape<HexCoord>;
   readonly boardRadius?: number;
@@ -73,10 +75,9 @@ export class LinesGameRules<
     if (piece == null) {
       return 'Tray slot has no piece';
     }
-    const fits = piece
-      .cellsAt(move.anchor)
-      .every((cell) => board.contains(cell) && board.isEmpty(cell));
-    return fits ? null : 'Piece does not fit at this anchor';
+    return fitsAt(board, piece, move.anchor)
+      ? null
+      : 'Piece does not fit at this anchor';
   }
 
   protected apply(
@@ -109,9 +110,16 @@ export class LinesGameRules<
     return { ...resolved, state: { ...resolved.state, tray } };
   }
 
-  protected evaluateEnd(): null {
-    // Defeat detection is implemented in HU14 (#33).
-    return null;
+  protected evaluateEnd(
+    board: Board<string, TCoord>,
+    state: LinesGameState<TCoord>,
+  ): 'defeat' | null {
+    const canPlay = state.tray.some(
+      (piece) =>
+        piece !== null &&
+        board.shape.coords.some((anchor) => fitsAt(board, piece, anchor)),
+    );
+    return canPlay ? null : 'defeat';
   }
 
   private pieceFor(
@@ -126,11 +134,22 @@ export class LinesGameRules<
   }
 }
 
+function fitsAt<TCoord extends ICoord>(
+  board: Board<string, TCoord>,
+  piece: Piece<TCoord>,
+  anchor: TCoord,
+): boolean {
+  return piece
+    .cellsAt(anchor)
+    .every((cell) => board.contains(cell) && board.isEmpty(cell));
+}
+
 /** Start a Lines session with an empty board and the first seeded tray. */
 export function createLinesGame(
   seed: number,
   weights?: ReadonlyMap<string, number>,
   {
+    listeners,
     boardShape,
     boardRadius = 4,
     traySize = 3,
@@ -162,5 +181,6 @@ export function createLinesGame(
     state,
     rules: new LinesGameRules(new LinesScoringPolicy(), traySize, placedColor),
     seed,
+    listeners,
   });
 }

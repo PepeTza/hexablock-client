@@ -4,6 +4,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../navigation/routes';
 
+import { LinesGameScreen } from './LinesGameScreen';
+
 type VariantPlaceholderScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Variant'
@@ -14,8 +16,12 @@ type VariantPlaceholderScreenProps = NativeStackScreenProps<
  * T28 (level selection for Fit and Sort) and variant screens.
  */
 export function VariantPlaceholderScreen({
+  navigation,
   route,
 }: VariantPlaceholderScreenProps) {
+  if (route.params.gameId === 'hexa-lines') {
+    return <LinesGameScreen navigation={navigation} route={route} />;
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.message}>{route.params.name} is coming soon.</Text>
