@@ -968,6 +968,7 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** The test uses a temporary progress store and test
   thresholds. The mobile screen and persistent repository are tracked separately.
   The integration test follows the Either result introduced by #146.
+  PepeTza requested configurable scoring parameters in the #160 review.
 
 ## 3. Critical evaluation
 

@@ -5,21 +5,33 @@ import type {
   ProgressEvaluation,
 } from '../../progress/progress-model';
 
-const BASE_SCORE = 1000;
-const MIN_SCORE = 100;
-const MOVE_COST = 20;
-const SECOND_COST = 2;
+export interface FitScoreConfig {
+  readonly baseScore: number;
+  readonly minScore: number;
+  readonly moveCost: number;
+  readonly secondCost: number;
+}
+
+const DEFAULT_FIT_SCORE: FitScoreConfig = {
+  baseScore: 1000,
+  minScore: 100,
+  moveCost: 20,
+  secondCost: 2,
+};
 
 export function completedFitScore(
   moves: number,
   pieceCount: number,
   durationMs: number,
+  config: FitScoreConfig = DEFAULT_FIT_SCORE,
 ): number {
   const extraMoves = Math.max(0, moves - pieceCount);
   const seconds = Math.floor(Math.max(0, durationMs) / 1000);
   return Math.max(
-    MIN_SCORE,
-    BASE_SCORE - MOVE_COST * extraMoves - SECOND_COST * seconds,
+    config.minScore,
+    config.baseScore -
+      config.moveCost * extraMoves -
+      config.secondCost * seconds,
   );
 }
 

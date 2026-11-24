@@ -93,3 +93,25 @@ describe('Hexa Fit scoring', () => {
     });
   });
 });
+
+it.each([
+  [6, 4, 12_000, 380],
+  [100, 4, 12_000, 70],
+])(
+  'should_apply_the_configured_score_economy_when_the_rules_change',
+  (moves, pieces, duration, expected) => {
+    // Arrange
+    const configuration = {
+      baseScore: 500,
+      minScore: 70,
+      moveCost: 30,
+      secondCost: 5,
+    };
+
+    // Act
+    const score = completedFitScore(moves, pieces, duration, configuration);
+
+    // Assert
+    expect(score).toBe(expected);
+  },
+);
