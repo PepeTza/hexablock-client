@@ -8,6 +8,8 @@ import { BoardShape } from '@domain/engine/board/board-shape';
 import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 import { type FormEvent, useState } from 'react';
 
+import { SeedSettings, type SeedSettingsServices } from './SeedSettings';
+
 const LINES_BOARD_RADIUS = 4;
 const LOGIN_ERRORS = {
   'invalid-input': 'Check the username and password format.',
@@ -19,9 +21,10 @@ const LOGIN_ERRORS = {
 
 interface AppProps {
   readonly login: AsyncCommandService<Credentials, LoginResult>;
+  readonly seedSettingsFor?: (session: AuthSession) => SeedSettingsServices;
 }
 
-export function App({ login }: AppProps) {
+export function App({ login, seedSettingsFor }: AppProps) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +70,8 @@ export function App({ login }: AppProps) {
     }
   }
 
+  const seedSettings = session && seedSettingsFor?.(session);
+
   return (
     <main>
       <h1>HexaBlock Admin</h1>
@@ -75,6 +80,7 @@ export function App({ login }: AppProps) {
           <button type="button" onClick={() => setSession(null)}>
             Sign out
           </button>
+          {seedSettings && <SeedSettings {...seedSettings} />}
           <p>
             A radius-{LINES_BOARD_RADIUS} board has{' '}
             {BoardShape.ofRadius(new HexGeometry(), LINES_BOARD_RADIUS).size}{' '}

@@ -9,3 +9,12 @@ export type SeedMode = 'random' | 'fixed';
 export type SeedConfig =
   | { readonly mode: 'random' }
   | { readonly mode: 'fixed'; readonly value: number };
+/** Range of the unsigned 32-bit seeds in the seed configuration contract. */
+export function isSeedValue(value: unknown): value is number {
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 0xffffffff
+  );
+}

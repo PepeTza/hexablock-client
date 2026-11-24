@@ -1,4 +1,4 @@
-import type { SeedConfig } from '@domain/content/seed-config';
+import { isSeedValue, type SeedConfig } from '@domain/content/seed-config';
 
 import { Either } from '../common/either';
 import {
@@ -55,12 +55,7 @@ export class SaveSeedConfigUseCase implements AsyncCommandService<
         ),
       );
     }
-    if (
-      config.mode === 'fixed' &&
-      (!Number.isInteger(config.value) ||
-        config.value < 0 ||
-        config.value > 0xffffffff)
-    ) {
+    if (config.mode === 'fixed' && !isSeedValue(config.value)) {
       return Promise.resolve(
         Either.left(
           new SeedSettingsError(
