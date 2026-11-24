@@ -1040,6 +1040,18 @@ One entry per significant use. Copy the template.
 - **Lessons / limitations:** Navigation and local data providers are integration
   work. Component tests cover locked and unlocked levels with fixtures.
 
+### 2026-11-24 — Generic Fit solution search
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #72 and #165 (solution search).
+- **Prompt:** Extract the geometry-independent solver from the Fit validator.
+- **Result:** Added exact cover search and verified that identical catalog
+  pieces remain distinct even on non-hex coordinates.
+- **Team modifications:** The #139 review requested generic coordinates.
+- **Lessons / limitations:** Removing the used-piece guard made the test
+  return piece indices [0, 0] instead of [0, 1]. The validator and publication
+  flow still need the agreed level contract.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
