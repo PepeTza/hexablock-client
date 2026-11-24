@@ -164,6 +164,37 @@ describe('createLinesGame', () => {
   });
 });
 
+it('should_finish_in_defeat_when_no_remaining_tray_piece_can_fit', () => {
+  // Arrange
+  const game = createLinesGame(42, new Map([['p5-01', 1_000_000]]));
+
+  // Act
+  for (let step = 0; step < 80; step++) {
+    const candidates = game.state.tray.flatMap((piece, slot) =>
+      piece === null
+        ? []
+        : game.board.shape.coords
+            .filter((anchor) =>
+              piece
+                .cellsAt(anchor)
+                .every(
+                  (cell) =>
+                    game.board.contains(cell) && game.board.isEmpty(cell),
+                ),
+            )
+            .map((anchor) => ({ slot, anchor })),
+    );
+    const next = candidates[0];
+    if (next === undefined) break;
+    expect(game.applyMove(next).kind).toBe('applied');
+    game.resolutionDone();
+  }
+
+  // Assert
+  expect(game.state.moveCount).toBeGreaterThan(0);
+  expect(game.outcome).toBe('defeat');
+});
+
 it('should_keep_the_configured_board_and_tray_size_when_the_tray_refills', () => {
   // Arrange
   const game = createLinesGame(42, undefined, {
