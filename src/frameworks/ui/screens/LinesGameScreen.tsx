@@ -72,6 +72,7 @@ interface TrayPieceProps {
   readonly cells: readonly HexCoord[];
   readonly center: BoardPoint;
   readonly size: number;
+  readonly touchWidth: number;
   readonly selected: boolean;
   readonly onSelect: () => void;
   readonly onDrag: (point: BoardPoint) => void;
@@ -84,6 +85,7 @@ function TrayPiece({
   cells,
   center,
   size,
+  touchWidth,
   selected,
   onSelect,
   onDrag,
@@ -124,9 +126,9 @@ function TrayPiece({
         {...pan.panHandlers}
         style={{
           position: 'absolute',
-          left: center.x - size * 2.25,
+          left: center.x - touchWidth / 2,
           top: center.y - 2 * size,
-          width: size * 4.5,
+          width: touchWidth,
           height: size * 4,
         }}
       >
@@ -174,6 +176,7 @@ export function LinesGameScreen({ navigation }: Props) {
   const { width, height } = useWindowDimensions();
   const edge = Math.max(64, Math.min(width - 20, (height - 220) * 0.85, 480));
   const size = edge / 16.5;
+  const slotWidth = edge / view.tray.length;
   const projection = new HexBoardProjection(
     { x: edge / 2, y: size * 7.2 },
     size,
@@ -250,7 +253,8 @@ export function LinesGameScreen({ navigation }: Props) {
                 key={slot}
                 slot={slot}
                 cells={cells}
-                center={{ x: (edge * (slot + 0.5)) / 3, y: size * 16.6 }}
+                center={{ x: slotWidth * (slot + 0.5), y: size * 16.6 }}
+                touchWidth={Math.min(slotWidth, size * 4.5)}
                 size={size}
                 selected={selected === slot}
                 onSelect={() => {

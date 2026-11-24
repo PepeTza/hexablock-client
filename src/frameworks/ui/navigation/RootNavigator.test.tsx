@@ -1,3 +1,4 @@
+import { Dimensions } from 'react-native';
 import { Either } from '@application/common/either';
 import type { FinishGameOutput } from '@application/use-cases/finish-game';
 import { LinesGamePresenter } from '@adapters/presentation/hexa-lines/lines-game-presenter';
@@ -54,6 +55,41 @@ describe('RootNavigator', () => {
 
     // Assert
     expect(await screen.findByText('Hexa Sort is coming soon.')).toBeTruthy();
+  });
+
+  it('should_fit_the_touch_targets_when_the_lines_tray_has_four_slots', async () => {
+    // Arrange
+    const game = createLinesGame(42, undefined, { traySize: 4 });
+    const services = {
+      ...createAppServices(),
+      startLines: () =>
+        new LinesGamePresenter(
+          game,
+          {
+            execute: () =>
+              Promise.resolve(
+                Either.left(new Error('Game is still in progress')),
+              ),
+          },
+          () => 0,
+        ),
+    };
+
+    // Act
+    await render(
+      <ServicesProvider services={services}>
+        <RootNavigator />
+      </ServicesProvider>,
+    );
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Hexa Lines' }),
+    );
+
+    // Assert
+    const fourth = await screen.findByRole('button', { name: 'Piece 4' });
+    const { width, height } = Dimensions.get('window');
+    const edge = Math.max(64, Math.min(width - 20, (height - 220) * 0.85, 480));
+    expect(fourth.parent).toHaveStyle({ left: edge * 0.75, width: edge / 4 });
   });
 
   it('should_play_a_lines_move_when_the_player_opens_lines_from_home', async () => {
