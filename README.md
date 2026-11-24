@@ -70,17 +70,45 @@ as a design example.
 
 ## Design Patterns
 
-_Coming soon:_ table of the patterns implemented, with a short description and
-a link to the code.
+| Category | Pattern | Implementation and purpose |
+|---|---|---|
+| Creational | Abstract Factory | [`IVariantFactory`](./src/domain/engine/game/variant-factory.ts) supplies `createEngine(context)` and `createProgressModel()`. The registry can start a variant and later select its progress policy through the same factory. |
+| Creational | Builder | [`LevelBuilder.fromData(data)`](./src/domain/content/level-builder.ts) validates shared level metadata and creates an immutable snapshot. |
+| Creational | Prototype | [`Board.clone()`](./src/domain/engine/board/board.ts) gives a preview a separate board while retaining its shape and geometry. |
+| Structural | Decorator | [`LoggingCommandServiceDecorator.execute(command)`](./src/application/aspects/logging-use-case-decorator.ts) surrounds a use case with logging and preserves its command interface. |
+| Behavioural | Strategy | [`IScoringPolicy.pointsFor(resolution)`](./src/domain/engine/scoring/scoring-policy.ts) lets each variant score its own resolution while sharing the turn sequence. |
+| Behavioural | Template Method | [`BaseGameRules.play(board, state, move)`](./src/domain/engine/game/base-game-rules.ts) runs validation, placement, resolution, scoring and end detection in order. |
+| Behavioural | State | [`PlayingState`, `ResolvingState`, `PausedState`, and `FinishedState`](./src/domain/engine/game/session-states.ts) govern which actions a session accepts. |
+| Behavioural | Command | [`CommandHistory`](./src/domain/engine/commands/command-history.ts) keeps applied moves so supported variants can undo and redo them. |
+| Behavioural | Memento | [`Snapshot.fork()`](./src/domain/engine/state/snapshot.ts) gives turn resolution a working copy of the piece source. Preview and failed moves leave the saved source intact. |
+| Behavioural | Observer | [`GameEngine.subscribe(listener)`](./src/domain/engine/game/game-engine.ts) lets callers observe game events after a turn completes. |
 
 ## SOLID Principles
 
-_Coming soon:_ how each principle is applied, with code examples.
+| Principle | Example |
+|---|---|
+| Single Responsibility | [`HexBoardProjection`](./src/adapters/presentation/board/hex-board-projection.ts) converts between touch positions and board coordinates. Drawing and placement rules live in their own modules. |
+| Open/Closed | [`GameEngine`](./src/domain/engine/game/game-engine.ts) accepts variant rules through `IGameRules`. Fit provides its own placement and victory checks without an engine branch for Fit. |
+| Liskov Substitution | [`FitRules`](./src/domain/variants/hexa-fit/fit-rules.ts) plugs into the shared rules contract. Rejected placements leave the session unchanged, as the [Fit game tests](./src/domain/variants/hexa-fit/fit-game.test.ts) verify. |
+| Interface Segregation | [`LoadLevelsUseCase`](./src/application/use-cases/load-levels.ts) takes only `findByGame` from each repository port. It has no write operation in its dependency interface. |
+| Dependency Inversion | [`FinishGameUseCase`](./src/application/use-cases/finish-game.ts) uses [`IProgressRepository`](./src/application/ports/progress-repository.ts). The composition root supplies the concrete store. |
 
 ## AOP
 
-_Coming soon:_ aspects implemented (logging, security, error handling with
-retries, caching) and the decorator-based strategy used.
+The application layer defines sync and async command contracts that wrappers
+can implement. The composition root can apply these wrappers without
+changing the use case:
+
+- [Logging](./src/application/aspects/logging-use-case-decorator.ts) records
+  elapsed time and outcome. An explicit allowlist controls which input and
+  output fields enter the log.
+- [Exception handling](./src/application/aspects/exception-handling-decorator.ts)
+  converts unexpected exceptions into `Either.left(Error)`, so callers can
+  handle them through the same result contract.
+
+The logging and exception-handling tests cover successful results, controlled
+failures and exceptions. See the [architecture notes](./docs/architecture.md)
+for the design and planned aspects.
 
 ## Getting Started
 
