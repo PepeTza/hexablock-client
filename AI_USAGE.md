@@ -1098,6 +1098,40 @@ One entry per significant use. Copy the template.
   `AGENTS.md` forbids; they were replaced with explicit `undefined` checks.
   The tray limits (2-8 colours, heights 1-9) duplicate the API contract.
 
+### 2026-11-23 — Design-for-change rule (issue #162)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #162 (twin: PepeTza/hexablock-backend#48).
+- **Prompt (paraphrase):** after the review of backend #43 found plausibility
+  limits fixed at 19 cells, write the rule "never assume a requirement will
+  not change" into the repositories so every teammate's agent sees it, and add
+  a subagent that asks "what if tomorrow they ask for this?", bounded by the
+  kinds of change the teacher raised in class.
+- **Result:** a "Design for change" rule in `CONTRIBUTING.md` §4 and
+  `AGENTS.md` §4, a review bullet in `CONTRIBUTING.md` §3, the shared
+  `change-scenarios` skill (late change test, catalog of six kinds of change,
+  out-of-bounds list, three verdicts, guard against over-engineering), a
+  read-only Claude Code subagent, and a "Change scenarios" section in the
+  gate 1 plan (template, checklist, `harness-task` skill).
+- **Team modifications:** Ronald supplied the catalog from the teacher's
+  examples in class (cell geometry, 2D to 3D, database swap, multiplayer) and
+  added triangles and frameworks; renamed the measure from a single day before
+  the delivery to a late change of requirements in the last days; and added
+  the "human first" rule, so the planner or reviewer writes their own scenario
+  before the skill, which stays a second opinion. Commits were reordered so
+  the rule never links to a skill that does not exist yet.
+- **Lessons / limitations:** in a dry run on the merged backend #43, with no
+  human scenario given, the subagent reminded the reviewer to add their own,
+  found the 19-cell limits on its own, and also found hand-copied rule values
+  (`FIT_MAX_SCORE = 1000`, the Lines factor `1125`) that the human review had
+  missed. New subagent definitions load only when a Claude Code session
+  starts. Ronald will confirm with the teacher that using this subagent in
+  reviews is acceptable.
+- **Update (same day):** until the teacher approves it, Ronald removed the
+  `change-scenarios` skill, its subagent and the "Change scenarios" section
+  of the gate 1 plan; only the "Design for change" rule remains. Restoring
+  them is a revert of that commit.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

@@ -62,3 +62,4 @@ details live in the PR.
 | 2026-11-24 | Typed Lines placement preview | #35 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Exposed clearing cells from simulation without mutation or events |
 | 2026-11-24 | Architecture sections in the client README | #99 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Verified 30 README references and aligned the fifth-variant guide with the current engine |
 | 2026-11-23 | Hexa Sort stacks with cascade transfers | #61 | KeneFu | 430 / 430 app | Top-run transfers until stable; tie to the resolving cell, then geometry order; runs on any cell shape (square-board test); closes #164 docs |
+| 2026-11-23 | Design-for-change rule | #162 | PepeTza | 430 / 430 app (docs only) | Added the design-for-change rule to CONTRIBUTING.md §4 and AGENTS.md §4 (change-scenarios skill removed until teacher approval) |
