@@ -6,7 +6,17 @@ import type { MenuVariantEntry } from './main-menu-view-model';
  */
 export const MENU_VARIANTS: readonly MenuVariantEntry[] = [
   { gameId: 'hexa-lines', name: 'Hexa Lines', progressKind: 'high-score' },
-  { gameId: 'hexa-fit', name: 'Hexa Fit', progressKind: 'levels' },
-  { gameId: 'hexa-sort', name: 'Hexa Sort', progressKind: 'levels' },
+  {
+    gameId: 'hexa-fit',
+    name: 'Hexa Fit',
+    progressKind: 'levels',
+    showStars: true,
+  },
+  {
+    gameId: 'hexa-sort',
+    name: 'Hexa Sort',
+    progressKind: 'levels',
+    showStars: false,
+  },
   { gameId: 'hexa-merge', name: 'Hexa Merge', progressKind: 'high-score' },
 ];

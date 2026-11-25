@@ -11,6 +11,8 @@ export interface MenuVariantEntry {
   readonly gameId: GameId;
   readonly name: string;
   readonly progressKind: ProgressKind;
+  /** Whether level selection shows per-level stars (true for Hexa Fit, false for Sort). */
+  readonly showStars?: boolean;
 }
 
 /** Ready-to-render item for one variant card in the main menu. */

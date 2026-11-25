@@ -1,9 +1,15 @@
+import type { ComponentType } from 'react';
+
 import type { GameResultInput } from '@adapters/presentation/game-result/game-result-view-model';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  createNativeStackNavigator,
+  type NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 
 import { GameResultScreen } from '../screens/GameResultScreen';
 import { HomeScreen } from '../screens/HomeScreen';
+import { LevelSelectionScreen } from '../screens/LevelSelectionScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { VariantPlaceholderScreen } from '../screens/VariantPlaceholderScreen';
 import type { RootStackParamList } from './routes';
@@ -14,12 +20,16 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export interface RootNavigatorProps {
   readonly initialRouteName?: keyof RootStackParamList;
   readonly initialResultParams?: GameResultInput;
+  readonly variantComponent?: ComponentType<
+    NativeStackScreenProps<RootStackParamList, 'Variant'>
+  >;
 }
 
-/** Application stack navigator declaring home, variant, settings and result routes (D-20). */
+/** Application stack navigator declaring home, level selection, variant, settings and result routes (D-20). */
 export function RootNavigator({
   initialRouteName = 'Home',
   initialResultParams,
+  variantComponent = VariantPlaceholderScreen,
 }: RootNavigatorProps = {}) {
   return (
     <NavigationContainer>
@@ -30,8 +40,13 @@ export function RootNavigator({
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="LevelSelection"
+          component={LevelSelectionScreen}
+          options={({ route }) => ({ title: route.params.name })}
+        />
+        <Stack.Screen
           name="Variant"
-          component={VariantPlaceholderScreen}
+          component={variantComponent}
           options={({ route }) => ({ title: route.params.name })}
         />
         <Stack.Screen
