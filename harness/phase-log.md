@@ -57,4 +57,11 @@ details live in the PR.
 | 2026-11-24 | Configurable Lines sessions | #165 | jesusobando32 | 356 / 356 app, 17 / 17 panel | Configurable shape, radius, tray, color and weights with existing defaults |
 | 2026-11-24 | Fit piece edits | #87 | jesusobando32 | 361 / 361 app, 17 / 17 panel | Generic relocate, remove and rotate rules with move accounting and history |
 | 2026-11-23 | Hexa Fit score and stars | #83 | jesusobando32 | 373 / 373 app, 17 / 17 panel | A Fit session with one relocation earned 800 points and saved three stars |
+| 2026-11-23 | Level selection query and view | #90 | jesusobando32 | 380 / 380 app, 17 / 17 panel | CU-08 lists ordered progress with Either errors and a configurable star limit; navigation pending |
+| 2026-11-24 | Generic Fit solution search | #72, #165 | jesusobando32 | 384 / 384 app, 17 / 17 panel | Negative control caught reuse of a piece; non-hex and no-cover cases verified |
+| 2026-11-24 | Typed Lines placement preview | #35 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Exposed clearing cells from simulation without mutation or events |
+| 2026-11-24 | Architecture sections in the client README | #99 | jesusobando32 | 387 / 387 app, 17 / 17 panel | Verified 30 README references and aligned the fifth-variant guide with the current engine |
+| 2026-11-23 | Hexa Sort stacks with cascade transfers | #61 | KeneFu | 430 / 430 app | Top-run transfers until stable; tie to the resolving cell, then geometry order; runs on any cell shape (square-board test); closes #164 docs |
+| 2026-11-23 | Design-for-change rule | #162 | PepeTza | 430 / 430 app (docs only) | Added the design-for-change rule to CONTRIBUTING.md §4 and AGENTS.md §4 (change-scenarios skill removed until teacher approval) |
+| 2026-11-24 | Review and align implementation plan against both repositories | #174, #168 | PepeTza | — (docs only) | Audited 36 findings; updated plan §1–§8 (including decision 23 for iOS web) and architecture.md (`TEvent`, D-06, D-08, D-23, dropped Iterator and `GameServiceFacade`) |
 | 2026-11-24 | AI usage evaluation for layers and extensibility | #68 | jesusobando32 | — | Verified commit traceability with a negative control and cross-checked review examples |

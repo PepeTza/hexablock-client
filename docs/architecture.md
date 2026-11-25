@@ -95,13 +95,18 @@ or in the domain model is listed here; a new port is added here first.
   data and rejects repeated ids, oversized shapes and shapes that are another
   one turned. The hexagonal data and its loader live in `engine/hex/` (D-07).
   Whether a piece fits on the board (RN-02) is decided by the variant rules.
-- **`IGameRules<TCell, TCoord, TMove, TState>`**: `play(board, state, move)` returns a
-  `MoveOutcome`: rejected with a reason, or applied with the new state, its
-  points, the variant's events and the outcome if the game ended. Variants
-  extend **`BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`**, whose
-  `play` is the Template Method: `validate` → `apply` → `resolve` → score →
-  `evaluateEnd` (`engine/game/`).
-- **`GameEngine<TCell, TCoord, TMove, TState>`** (`engine/game/`): the game session. It plays
+- **`IGameRules<TCell, TCoord, TMove, TState, TEvent extends DomainEvent = DomainEvent>`**:
+  `play(board, state, move)` returns a `MoveOutcome<TState, TEvent>`: rejected
+  with a reason, or applied with the new state, its points, the variant's typed
+  events and the outcome if the game ended. Variants extend
+  **`BaseGameRules<TCell, TCoord, TMove, TState, TResolution, TEvent extends DomainEvent = DomainEvent>`**,
+  whose `play` is the Template Method: `validate` → `apply` → `resolve` → score →
+  `evaluateEnd` (`engine/game/`). The optional `TEvent` parameter (client #188)
+  preserves a variant's event types through `MoveOutcome` and `preview(move)` so
+  presentation code reads variant event data without runtime subtype checks or
+  casts.
+- **`GameEngine<TCell, TCoord, TMove, TState, TEvent extends DomainEvent = DomainEvent>`**
+  (`engine/game/`): the game session. It plays
   each move on a copy of the board (`Board.clone`, Prototype) and keeps the
   copy only when the move is applied, so a rejected move or an error changes
   nothing. Its session state (`PlayingState`, `ResolvingState`, `PausedState`,
@@ -129,7 +134,7 @@ or in the domain model is listed here; a new port is added here first.
   (uniform or weighted draws backed by `IRandomSource`); variants with custom
   generation (Hexa Lines rotated spawns, Hexa Sort stacks) implement the same
   interface.
-- **`Snapshot<T extends IPrototype<T>>` and `SourcedGameRules`**
+- **`Snapshot<T extends IPrototype<T>>` and `SourcedGameRules<..., TEvent extends DomainEvent = DomainEvent>`**
   (`engine/state/`, `engine/game/`, #111): keep sources inside the atomicity
   of a move. A variant that draws pieces or randomness during a move keeps
   its source in the state as a `Snapshot` (Memento), which can only fork new
@@ -186,12 +191,11 @@ or in the domain model is listed here; a new port is added here first.
 | Memento | `Snapshot<T>`: a frozen point of a piece or random source kept in the game state, which can only fork copies (#111) |
 | Singleton / single-scope DI | `AudioManager`, `SessionManager` |
 | Decorator | The basis of AOP on use cases (logging, security, retries, cache). Rules decorators (time limit, boosters) are a planned extension point (see [`EXTENSIBILITY.md`](./EXTENSIBILITY.md)) |
-| Adapter / Facade | Wrapping database, network and audio; `GameServiceFacade` |
+| Adapter | Wrapping database, network and audio |
 | Observer | Domain events to UI, audio and analytics |
 | Command | Each move as a command for undo/redo |
 | State | `PlayingState`, `ResolvingState`, `PausedState`, `FinishedState`: the session states inside `GameEngine`, each deciding which actions it allows (D-22). The menu is navigation, not a game state |
 | Template Method | Turn skeleton: validate, apply, resolve, evaluate |
-| Iterator | Traversal by axes, rings and neighbourhood |
 
 A pattern is kept only if the team can justify it; any pattern dropped during
 implementation is removed from this table in the same PR.
@@ -288,8 +292,9 @@ comfort; affinity with the course language (TypeScript).
 | D-02 | Backend stack and database: NestJS + PostgreSQL on Supabase (ADR-01) |
 | D-03 | AI tooling: Claude as the common tool; `AI-Assisted` commit footer; `AGENTS.md` and the harness |
 | D-05 | Test coverage: 80 % in domain and use cases; Pact contract tests between client and backend |
-| D-06 | Client local storage (provisional, 2026-11-11): SQLite behind `IProgressRepository`. A key-value JSON store was the alternative; the question is open with the professor, and changing it only touches the storage adapter |
+| D-06 | Client local storage (provisional, 2026-11-11): SQLite behind `IProgressRepository`. A key-value JSON store was the alternative; infrastructure is decided by the team (2026-11-24), and changing it only touches the storage adapter |
 | D-07 | Piece catalog (2026-11-11): the 15 poly-hex shapes of 1 to 4 cells plus about 6 shapes of 5 cells, kept as data. Hexa Lines gives each shape a spawn weight and may spawn a piece already rotated; the player still cannot rotate it (RN-11). Format (T12, 2026-11-20): `src/domain/engine/hex/hex-pieces.json`, one entry per shape with a stable `id` (`p<cells>-<nn>`) and its axial cells relative to the piece's centre `[0, 0]`, the cell it turns around (the cell closest to all the others). The 5-cell selection is `p5-01`, `p5-07`, `p5-16`, `p5-22`, `p5-26` and `p5-33`; [`piece-catalog.md`](./piece-catalog.md) draws every shape and the 27 alternatives. Spawn weights are not in the catalog: they belong to Hexa Lines |
+| D-08 | Scoring and stars: Hexa Lines and Hexa Fit formulas decided (see "D-08 — Hexa Lines scoring" and "D-08 — Hexa Fit scoring" below; client #129, #181); server plausibility in backend `api-contracts.md` §5 (backend #43); final values of RN-29 (Merge) and RN-40 (Sort) remain pending |
 | D-10 | Backend deployed online on Render (free plan), with the database on Supabase (free plan). Known limits: the service sleeps after 15 minutes idle (first request takes 30–60 s) and Supabase pauses a project after 7 days without use |
 | D-11 | All documentation in English |
 | D-12 | Basic server-side score validation (RN-39); the leaderboard shows the top 50 and the player's position |
@@ -303,6 +308,7 @@ comfort; affinity with the course language (TypeScript).
 | D-20 | Navigation with React Navigation (2026-11-11): screens are declared in code inside `src/frameworks/ui`; Expo Router was not chosen because it derives routes from an `app/` folder outside the layers |
 | D-21 | Pointy-top hexagons with axial coordinates (2026-11-11): the six directions are east, south-east, south-west, west, north-west and north-east (`HexDirection`), and rows run west to east. The renderer and the Hexa Merge swipe use the same orientation. Directions and axes are declared by each geometry, so another cell shape is a new `IBoardGeometry` in its own file |
 | D-22 | State pattern limited to the game session (2026-11-18): `GameEngine` delegates `applyMove`, `undo`, `redo`, `pause`, `resume` and `resolutionDone` to one of four states, `PlayingState`, `ResolvingState` (the RN-06 lock, released by the UI with `resolutionDone` when its animation ends), `PausedState` and `FinishedState` (with `outcome` victory or defeat), and exposes the current one as a `GameStatus` value. Of the six states of the statement, `MenuState` was dropped because the menu is navigation (D-20), and `GameOverState` and `VictoryState` became one state because they allow the same actions. The rules check for the end of the game when the move is applied, so pausing during an animation goes to `PausedState` and `resume` goes straight to `PlayingState` or `FinishedState`. Undo is rejected once the game is finished. Reaching the Hexa Merge target emits `TargetReached` and the game stays in `PlayingState` (HU28). Transition table in `use-cases.md` CU-06 |
+| D-23 | Application use cases via `CommandService<TCommand, TResult, TError>` / `AsyncCommandService` returning `Either<TError, TResult>` (2026-11-23, client #147): replaces `IUseCase` across every app and admin-panel use case (Mark Seemann, *Dependency Injection Principles, Practices, and Patterns*, Ch. 10), so domain and validation failures never throw across the UI boundary and AOP decorators (`Logging`, `ExceptionHandling`) wrap every use case with zero runtime type casts |
 | — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |

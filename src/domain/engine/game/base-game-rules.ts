@@ -6,13 +6,17 @@ import type { GameState } from './game-state';
 import type { IGameRules, MoveOutcome } from './game-rules';
 
 /** What the resolution step returns: the new state and what happened. */
-export interface Resolved<TState extends GameState, TResolution> {
+export interface Resolved<
+  TState extends GameState,
+  TResolution,
+  TEvent extends DomainEvent = DomainEvent,
+> {
   /** The state after resolving, before the points are added. */
   readonly state: TState;
   /** What happened, for the scoring policy. */
   readonly resolution: TResolution;
   /** Events of the variant (for example `LineCleared`), in order. */
-  readonly events?: readonly DomainEvent[];
+  readonly events?: readonly TEvent[];
 }
 
 /**
@@ -39,14 +43,15 @@ export abstract class BaseGameRules<
   TMove,
   TState extends GameState,
   TResolution,
-> implements IGameRules<TCell, TCoord, TMove, TState> {
+  TEvent extends DomainEvent = DomainEvent,
+> implements IGameRules<TCell, TCoord, TMove, TState, TEvent> {
   constructor(private readonly scoring: IScoringPolicy<TResolution>) {}
 
   play(
     board: Board<TCell, TCoord>,
     state: TState,
     move: TMove,
-  ): MoveOutcome<TState> {
+  ): MoveOutcome<TState, TEvent> {
     const reason = this.validate(board, state, move);
     if (reason !== null) {
       return { kind: 'rejected', reason };
@@ -87,7 +92,7 @@ export abstract class BaseGameRules<
     board: Board<TCell, TCoord>,
     state: TState,
     move: TMove,
-  ): Resolved<TState, TResolution>;
+  ): Resolved<TState, TResolution, TEvent>;
 
   /** How the game ended after this move, or `null` when it goes on. */
   protected abstract evaluateEnd(

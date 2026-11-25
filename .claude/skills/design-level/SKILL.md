@@ -36,7 +36,7 @@ of the order (RN-37), so a level must be right before it ships.
 
 - Run the validator of the variant through its test (`aaa-test` skill): Fit
   checks the area and searches for a solution (RN-13); Sort checks free cells,
-  at least one colour and at least one goal.
+  2 to 8 colours and at least one goal.
 - A level that fails validation is not added. Record the reason and fix the
   design.
 - For Fit, look at the solution the validator found and check the level

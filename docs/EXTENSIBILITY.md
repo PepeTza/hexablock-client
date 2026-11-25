@@ -10,12 +10,14 @@ Related: [`architecture.md`](./architecture.md) (layers, patterns),
 
 ## 1. The rule
 
-> A new variant = **new classes + one line in the factory registry**.
-> The engine (`GameEngine`, `BaseGameRules`, `IGameRules`), the use cases and
-> the other variants are not modified.
+A new variant supplies its own types, rules, factory and presentation.
+Register its game ID and wire it in the composition root and menu. The
+shared engine and game use cases keep their existing contracts.
 
-This works because the engine only knows abstractions (subtype polymorphism)
-and every variant plugs in the same way (OCP, DIP).
+The engine calls abstractions supplied by the variant. For example, Fit and
+Lines share the turn sequence and substitute their own validation, resolution
+and end checks. The sections below distinguish extension points implemented
+in the engine from the planned app presentation wiring.
 
 ## 2. Extension points
 
@@ -28,13 +30,13 @@ What a new variant **must** provide, and what it **can reuse**.
 | Cell type (`TCell`) | Yes | `Color`, `ColorStack`, `Tile`, `PieceId` if they fit |
 | Move (`TMove`) | Yes | `PlacePieceMove`, `PlaceStackMove`, `SlideMove`, `FitMove` |
 | State (`TState extends GameState`, or `SourcedState<TSource>` if it draws during a move) | Yes | — |
-| Rules (`extends BaseGameRules<TCell, TCoord, TMove, TState, TResolution>`, or `SourcedGameRules<…, TSource>` if the variant draws pieces or randomness during a move) | Yes | — |
+| Rules (`BaseGameRules`, or `SourcedGameRules` for seeded sources) | Yes | — |
 | Scoring (`IScoringPolicy<TResolution>`) | No | Any existing policy |
-| Progress (`IProgressModel`) | No | `HighScoreProgress`, `LevelStarsProgress`, `LevelProgress` |
+| Progress (`IProgressModel`) | Yes, through the factory | Models such as `FitProgressModel` when their semantics match |
 | Piece source (`IPieceSource<TPiece>`) | No | `RandomPieceSource`, `FixedPieceSource` |
-| Undo (`IUndoable` on the state) | Optional | `CommandHistory`, `ApplyMoveCommand` |
+| Undo policy | Optional | `CommandHistory`, `ApplyMoveCommand` |
 | Levels (`LevelSpec` + `ILevelValidator`) | Only if level-based | `LevelBuilder`, `LevelDefinition` |
-| Factory (`VariantFactory<TCell, TMove, TState>`) | Yes | — |
+| Factory (`IVariantFactory<TMove, TState>`) | Yes | — |
 
 ### Interface adapters (layer 3)
 
@@ -43,32 +45,24 @@ What a new variant **must** provide, and what it **can reuse**.
 | `ICellRenderer<TCell>`: how a cell is drawn | Yes | A renderer of an existing cell type |
 | `IInputMapper<TMove>`: how a gesture becomes a move (drag, tap, swipe) | Yes | Drag mapper (Lines, Fit, Sort) or swipe mapper (Merge) |
 
-They are created by a **presentation factory** (`VariantPresentationFactory`),
-the layer 3 counterpart of `VariantFactory`, registered per `gameId` in a
-`VariantPresentationRegistry`. It lives in layer 3, not in the domain, because
-the domain must never know how cells are drawn (dependency rule). Screens
-therefore never contain a `switch` on `gameId`.
-
-The presentation factory is also the one place where the variant recovers the
-type of its moves: the factory registry hands out an `IGameSession` with that
-type erased, and the factory turns it back with one explicit, commented cast
-(`session as IGameSession<YourMove, YourState>`). Generic screens and use
-cases never cast.
+The architecture proposes a presentation registry so games can register
+their renderer and input mapper together. Keep the concrete move type in the
+variant's presentation wiring. For example, a typed presenter can receive the
+engine returned by its own factory and translate gestures into that variant's
+moves. The generic registry exposes the erased session to generic callers.
 
 ### Registration (layer 4, composition root)
 
-```ts
-registry.register('hexa-lines', new HexaLinesFactory());
-registry.register('hexa-fit',   new HexaFitFactory());
-registry.register('hexa-sort',  new HexaSortFactory());
-registry.register('hexa-merge', new HexaMergeFactory());
-registry.register('hexa-quest', new HexaQuestFactory());
+Add the new ID to the supported game IDs, then register the domain factory.
+For example, after adding `hexa-quest` and implementing its factory:
 
-presentation.register('hexa-quest', new HexaQuestPresentationFactory());
+```ts
+registry.register('hexa-quest', new HexaQuestFactory());
 ```
 
-The two `register` lines for the new variant are the only lines added outside
-its own folders.
+Add its menu entry, navigation and presentation wiring. If the variant syncs
+with the server, coordinate support for its ID in the API and persistence
+layer as a separate contract change.
 
 ## 3. Worked example: Hexa Quest
 
@@ -97,17 +91,17 @@ variants are finished and polished.
 | Board | Map as a free-form `BoardShape` | Reused |
 | `TCell` | `Entity` (hero, enemy, item, wall) | **New** |
 | `TMove` | `SlideMove` (one direction) | **Reused** from Merge |
-| Interaction | `Entity implements IMergeable<Entity>` | Reuses the **bounded generic** of Merge |
+| Interaction | A Quest interaction policy for combat and items | **New**, using the same Strategy idea |
 | `TState` | `QuestState extends GameState`: hero health, turn, `levelId` | **New** |
-| Rules | `HexaQuestRules<TEntity extends IMergeable<TEntity>> extends BaseGameRules<TEntity, HexCoord, SlideMove, QuestState, QuestTurn>` | **New** |
-| Enemy spawns | `RandomPieceSource<Entity>` with the seed | Reused |
+| Rules | `HexaQuestRules extends BaseGameRules<Entity, HexCoord, SlideMove, QuestState, QuestTurn>` | **New** |
+| Enemy spawns | A seeded source injected into Quest rules | Reuses `SourcedGameRules` and `SeededRandom` |
 | Scoring | `QuestScoringPolicy` (e.g. turns, health left, enemies defeated) | **New** |
-| Progress | `LevelStarsProgress` | Reused from Fit |
+| Progress | A Quest progress model | Reuses the `IProgressModel` contract |
 | Levels | `QuestLevelSpec` + `QuestLevelValidator` (the exit is reachable) | **New**, built with the existing `LevelBuilder` |
-| Undo | Not supported (the state does not implement `IUndoable`) | — |
+| Undo | `CommandHistory.disabled()` | Reuses the engine default |
 | Cell renderer | `EntityRenderer implements ICellRenderer<Entity>` | **New** |
 | Input | Swipe mapper | Reused from Merge |
-| Factory | `HexaQuestFactory implements VariantFactory<Entity, SlideMove, QuestState>` | **New** |
+| Factory | `HexaQuestFactory implements IVariantFactory<SlideMove, QuestState>` | **New** |
 | Presentation factory | `HexaQuestPresentationFactory`: `EntityRenderer` + swipe mapper | **New** |
 
 ### How the Template Method steps fit
@@ -116,7 +110,7 @@ variants are finished and polished.
 |---|---|
 | `validate` | The target cell is inside the map and is not a wall |
 | `apply` | Move the hero one step |
-| `resolve` | Resolve the interaction (`mergeWith`), then the enemies' turn |
+| `resolve` | Resolve the interaction, then the enemies' turn |
 | `evaluateEnd` | Victory at the exit; defeat at 0 health |
 
 ### Files
@@ -126,7 +120,7 @@ except the registry line):
 
 | File | Content |
 |---|---|
-| `entity.ts` | `Entity` and its kinds, implementing `IMergeable<Entity>` |
+| `entity.ts` | `Entity` and its kinds |
 | `quest-state.ts` | `QuestState extends GameState` |
 | `hexa-quest-rules.ts` | `HexaQuestRules` |
 | `quest-scoring-policy.ts` | `QuestScoringPolicy` |
@@ -138,13 +132,9 @@ except the registry line):
 | Tests | One test file per class above |
 | Level files | The maps, as JSON |
 
-**Modified:** two lines in the composition root (the two `register(...)`
-calls) and the list of games in the menu configuration.
-
-**Not touched:** `ICoord`, `HexCoord`, `Board`, `HexGeometry`, `GameEngine`,
-`BaseGameRules`, `IGameRules`, `CommandHistory`, every use case
-(`StartGameUseCase`, `ApplyMoveUseCase`, ...), the aspects, the repositories,
-the API and the four existing variants.
+**Integration:** add the supported game ID and wire the factory,
+presentation and menu entry. The engine, board, geometry, history and generic
+use cases are reused.
 
 ### Ideas to explore
 
@@ -167,9 +157,8 @@ the API and the four existing variants.
 
 ## 5. Extensibility diagram
 
-The four variants plug into the same generic engine. The dashed Hexa Quest
-box illustrates the domain and presentation extension points from §2. Both
-factories are registered under the same `gameId` in the composition root.
+The diagram shows the target architecture. The dashed Hexa Quest box
+illustrates the domain and presentation extension points from §2.
 See the [diagram index](./diagrams/README.md) for the editable Mermaid source.
 
 ![Four variants share the generic engine. Hexa Quest shows the extension points and the two factory registrations.](./diagrams/client-extensibility.svg)

@@ -26,10 +26,11 @@ export interface GameEngineConfig<
   TCoord extends ICoord,
   TMove,
   TState extends GameState,
+  TEvent extends DomainEvent = DomainEvent,
 > {
   readonly board: Board<TCell, TCoord>;
   readonly state: TState;
-  readonly rules: IGameRules<TCell, TCoord, TMove, TState>;
+  readonly rules: IGameRules<TCell, TCoord, TMove, TState, TEvent>;
   /** The seed of the game, shown at the end (RN-05); `null` when the variant uses none (Hexa Fit). */
   readonly seed: number | null;
   /** Command history policy for undo and redo (defaults to `CommandHistory.disabled()`). */
@@ -71,12 +72,13 @@ export class GameEngine<
   TCoord extends ICoord,
   TMove,
   TState extends GameState,
+  TEvent extends DomainEvent = DomainEvent,
 > {
   readonly seed: number | null;
   private currentBoard: Board<TCell, TCoord>;
   private currentState: TState;
   private session: SessionState<TMove> = new PlayingState();
-  private readonly rules: IGameRules<TCell, TCoord, TMove, TState>;
+  private readonly rules: IGameRules<TCell, TCoord, TMove, TState, TEvent>;
   private readonly history: CommandHistory<TMove>;
   private readonly listeners = new Set<EventListener>();
   private readonly onListenerError: ListenerErrorHandler | undefined;
@@ -84,7 +86,9 @@ export class GameEngine<
   private readonly outbox: DomainEvent[] = [];
   private readonly context: SessionContext<TMove>;
 
-  private constructor(config: GameEngineConfig<TCell, TCoord, TMove, TState>) {
+  private constructor(
+    config: GameEngineConfig<TCell, TCoord, TMove, TState, TEvent>,
+  ) {
     this.currentBoard = config.board;
     this.currentState = config.state;
     this.rules = config.rules;
@@ -119,9 +123,10 @@ export class GameEngine<
     TCoord extends ICoord,
     TMove,
     TState extends GameState,
+    TEvent extends DomainEvent = DomainEvent,
   >(
-    config: GameEngineConfig<TCell, TCoord, TMove, TState>,
-  ): GameEngine<TCell, TCoord, TMove, TState> {
+    config: GameEngineConfig<TCell, TCoord, TMove, TState, TEvent>,
+  ): GameEngine<TCell, TCoord, TMove, TState, TEvent> {
     const engine = new GameEngine(config);
     engine.act(() => {
       engine.emit({ type: 'GameStarted' });
@@ -199,7 +204,7 @@ export class GameEngine<
    * What `move` would do, without changing the game or emitting events
    * (CU-03). Only while playing: in any other status it is rejected.
    */
-  preview(move: TMove): MoveOutcome<TState> {
+  preview(move: TMove): MoveOutcome<TState, TEvent> {
     if (this.status !== 'playing') {
       return { kind: 'rejected', reason: `the game is ${this.status}` };
     }
