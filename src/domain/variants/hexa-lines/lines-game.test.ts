@@ -1,6 +1,24 @@
+import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import { GameEngine } from '../../engine/game/game-engine';
+import { Axis } from '../../engine/geometry/axis';
 import { HexCoord } from '../../engine/hex/hex-coord';
-import { createLinesGame } from './lines-game';
+import { FixedPieceSource } from '../../engine/pieces/fixed-piece-source';
+import { Piece } from '../../engine/pieces/piece';
+import type { IPieceSource } from '../../engine/pieces/piece-source';
+import {
+  PieceShape,
+  type PieceGeometry,
+} from '../../engine/pieces/piece-shape';
+import { Snapshot } from '../../engine/state/snapshot';
+import {
+  createLinesGame,
+  LinesGameRules,
+  type LinesGameState,
+  type PlacePieceMove,
+} from './lines-game';
+import { LinesScoringPolicy } from './lines-scoring-policy';
+import type { LineCleared } from './resolve-lines';
 
 const MONOMINO_WEIGHTS = new Map([['p1-01', 1_000_000]]);
 const EDGE = [0, 1, 2, 3, 4].map((q) => new HexCoord(q, -4));
@@ -195,4 +213,77 @@ it('should_reject_the_configuration_when_the_tray_cannot_hold_a_piece', () => {
 
   // Assert
   expect(start).toThrow('The Lines tray size must be a positive integer');
+});
+
+it('should_play_and_clear_a_line_when_using_a_non_hexagonal_board_and_geometry', () => {
+  // Arrange
+  const left = { column: 0, key: () => '0' };
+  const right = { column: 1, key: () => '1' };
+  const axis = new Axis('row');
+  const geometry: PieceGeometry<typeof left> = {
+    origin: left,
+    directions: [],
+    axes: [axis],
+    rotationSteps: 1,
+    neighbour: () => {
+      throw new RangeError('No directions');
+    },
+    neighbours: () => [],
+    line: (coord, _axis, isInside) =>
+      isInside(coord) ? [left, right].filter(isInside) : [],
+    ring: (centre, radius) => (radius === 0 ? [centre] : []),
+    translate: (_coord, _from, to) => to,
+    rotate: (coord) => coord,
+  };
+  const unit = Piece.of(PieceShape.of('unit', [left], geometry));
+  const source: IPieceSource<Piece<typeof left>> = new FixedPieceSource([
+    unit,
+    unit,
+    unit,
+    unit,
+  ]);
+  const board = new Board<string, typeof left>(
+    BoardShape.of([left, right]),
+    geometry,
+  );
+  const state: LinesGameState<typeof left> = {
+    moveCount: 0,
+    score: 0,
+    streak: 0,
+    tray: source.draw(2),
+    source: Snapshot.of(source),
+  };
+  const game = GameEngine.start<
+    string,
+    typeof left,
+    PlacePieceMove<typeof left>,
+    LinesGameState<typeof left>,
+    LineCleared<typeof left>
+  >({
+    board,
+    state,
+    rules: new LinesGameRules(new LinesScoringPolicy(), 2, 'teal'),
+    seed: 7,
+  });
+  // Act
+  game.applyMove({ slot: 0, anchor: left });
+  game.resolutionDone();
+  const preview = game.preview({ slot: 1, anchor: right });
+  game.applyMove({ slot: 1, anchor: right });
+  game.resolutionDone();
+
+  // Assert
+  expect(preview.kind).toBe('applied');
+  if (preview.kind === 'applied') {
+    expect(preview.events[0]?.cells.map(({ column }) => column)).toEqual([
+      0, 1,
+    ]);
+  }
+  expect(game.board.isEmpty(left)).toBe(true);
+  expect(game.board.isEmpty(right)).toBe(true);
+  expect(game.state.moveCount).toBe(2);
+  expect(game.state.streak).toBe(1);
+  expect(game.state.score).toBe(12);
+  expect(game.state.tray).toHaveLength(2);
+  expect(game.state.tray.every((piece) => piece !== null)).toBe(true);
 });

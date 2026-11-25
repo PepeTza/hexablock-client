@@ -5,10 +5,11 @@ import {
   SourcedGameRules,
   type SourcedState,
 } from '../../engine/game/sourced-game-rules';
-import type { HexBoard } from '../../engine/hex/hex-board';
+import type { ICoord } from '../../engine/geometry/coord';
 import type { HexCoord } from '../../engine/hex/hex-coord';
 import { HexGeometry } from '../../engine/hex/hex-geometry';
 import type { Piece } from '../../engine/pieces/piece';
+import type { IPieceSource } from '../../engine/pieces/piece-source';
 import { SeededRandom } from '../../engine/random/seeded-random';
 import { Snapshot } from '../../engine/state/snapshot';
 import { createLinesPieceSource } from './lines-piece-source';
@@ -32,28 +33,28 @@ export interface LinesGameOptions {
   readonly weights?: ReadonlyMap<string, number>;
 }
 
-type LinesPieceSource = ReturnType<typeof createLinesPieceSource>;
-
-export interface LinesGameState
-  extends LinesState, SourcedState<LinesPieceSource> {
+export interface LinesGameState<TCoord extends ICoord = HexCoord>
+  extends LinesState, SourcedState<IPieceSource<Piece<TCoord>>> {
   /** Consumed slots stay empty until the entire tray is replaced (RN-08). */
-  readonly tray: readonly (Piece<HexCoord> | null)[];
+  readonly tray: readonly (Piece<TCoord> | null)[];
 }
 
-export interface PlacePieceMove {
+export interface PlacePieceMove<TCoord extends ICoord = HexCoord> {
   readonly slot: number;
-  readonly anchor: HexCoord;
+  readonly anchor: TCoord;
 }
 
 /** Template Method: place the offered piece, resolve lines and consume its slot. */
-class LinesGameRules extends SourcedGameRules<
+export class LinesGameRules<
+  TCoord extends ICoord = HexCoord,
+> extends SourcedGameRules<
   string,
-  HexCoord,
-  PlacePieceMove,
-  LinesGameState,
+  TCoord,
+  PlacePieceMove<TCoord>,
+  LinesGameState<TCoord>,
   LinesResolution,
-  LinesPieceSource,
-  LineCleared<HexCoord>
+  IPieceSource<Piece<TCoord>>,
+  LineCleared<TCoord>
 > {
   constructor(
     scoring: LinesScoringPolicy,
@@ -64,9 +65,9 @@ class LinesGameRules extends SourcedGameRules<
   }
 
   protected validate(
-    board: HexBoard<string>,
-    state: LinesGameState,
-    move: PlacePieceMove,
+    board: Board<string, TCoord>,
+    state: LinesGameState<TCoord>,
+    move: PlacePieceMove<TCoord>,
   ): string | null {
     const piece = state.tray[move.slot];
     if (piece == null) {
@@ -79,9 +80,9 @@ class LinesGameRules extends SourcedGameRules<
   }
 
   protected apply(
-    board: HexBoard<string>,
-    state: LinesGameState,
-    move: PlacePieceMove,
+    board: Board<string, TCoord>,
+    state: LinesGameState<TCoord>,
+    move: PlacePieceMove<TCoord>,
   ): void {
     this.pieceFor(state, move)
       .cellsAt(move.anchor)
@@ -89,10 +90,10 @@ class LinesGameRules extends SourcedGameRules<
   }
 
   protected resolveWith(
-    board: HexBoard<string>,
-    state: LinesGameState,
-    move: PlacePieceMove,
-    source: LinesPieceSource,
+    board: Board<string, TCoord>,
+    state: LinesGameState<TCoord>,
+    move: PlacePieceMove<TCoord>,
+    source: IPieceSource<Piece<TCoord>>,
   ) {
     const resolved = resolveLines(
       board,
@@ -114,9 +115,9 @@ class LinesGameRules extends SourcedGameRules<
   }
 
   private pieceFor(
-    state: LinesGameState,
-    move: PlacePieceMove,
-  ): Piece<HexCoord> {
+    state: LinesGameState<TCoord>,
+    move: PlacePieceMove<TCoord>,
+  ): Piece<TCoord> {
     const piece = state.tray[move.slot];
     if (piece == null) {
       throw new Error('Validated Lines move must have a piece');
@@ -145,7 +146,10 @@ export function createLinesGame(
     boardShape ?? BoardShape.ofRadius(geometry, boardRadius),
     geometry,
   );
-  const source = createLinesPieceSource(new SeededRandom(seed), shapeWeights);
+  const source: IPieceSource<Piece<HexCoord>> = createLinesPieceSource(
+    new SeededRandom(seed),
+    shapeWeights,
+  );
   const state: LinesGameState = {
     moveCount: 0,
     score: 0,
