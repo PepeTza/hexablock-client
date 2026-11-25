@@ -1132,6 +1132,27 @@ One entry per significant use. Copy the template.
   of the gate 1 plan; only the "Design for change" rule remains. Restoring
   them is a revert of that commit.
 
+### 2026-11-24 — Implementation plan review and alignment (issues #174, #168)
+
+- **Tool / model:** Claude Code (claude-opus-5-5) and Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #174 (absorbs #168).
+- **Prompt:** Audit every section of `docs/implementation-plan.md` against both
+  repositories (code, docs, issues, PRs, CI and branch protection) without
+  rewriting the plan, then walk through the 36 findings one decision at a time.
+- **Result:** Audited 36 findings across both repositories and applied the
+  resolutions directly to `docs/implementation-plan.md` §1–§8 (including
+  decision 23 for iOS web build and item 16 in §8) and `docs/architecture.md`
+  (`TEvent` in §3, Iterator and `GameServiceFacade` removed from §4, `D-06`,
+  `D-08` and `D-23` in §10).
+- **Team modifications:** Ronald reviewed and decided each non-mechanical entry
+  individually, kept teammate-track changes as pending proposals, enabled
+  required CI checks in both repos, verified `origin/main` after #169 merged
+  (updating Sort references and dropping already-resolved #164 items from §8),
+  and chose to keep each non-architecture decision in its owning document.
+- **Lessons / limitations:** Checking live commits, PRs and issues (`#169`,
+  `#107`) before proposing each option avoided stale citations and duplicate
+  rules across documents.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
