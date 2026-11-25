@@ -1312,6 +1312,24 @@ One entry per significant use. Copy the template.
   place, enabling undo in Hexa Merge required zero changes to the generic
   engine or `MergeRules`.
 
+### 2026-11-25 — Generic Lines game rules over TCoord (issue #165)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon), cross-reviewed by Codex.
+- **Issue / PR:** #165.
+- **Prompt:** Parameterize `LinesGameRules`, `PlacePieceMove`, and
+  `LinesGameState` over `TCoord extends ICoord` and `IPieceSource`, leaving
+  `HexCoord`/`HexGeometry` in `createLinesGame`, and prove geometry
+  independence with a non-hexagonal board test.
+- **Result:** Exported generic `LinesGameRules<TCoord, TSource>`,
+  `LinesGameState<TCoord, TSource>`, and `PlacePieceMove<TCoord>` with
+  hexagonal defaults so existing callers remain unchanged, removed the
+  `HexBoard` import from rules, and added a non-hexagonal board test verifying
+  placement, line clearing, typed `LineCleared` events, scoring and tray refill.
+- **Team modifications:** Follow-up requested on #165 after #188 merged.
+- **Lessons / limitations:** Default type parameters preserve backwards
+  compatibility with open Lines/Fit UI branches while allowing arbitrary
+  `IBoardGeometry<TCoord>` boards without engine changes.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
