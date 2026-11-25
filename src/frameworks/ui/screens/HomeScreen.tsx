@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import type { MainMenuViewModel } from '@adapters/presentation/main-menu/main-menu-view-model';
+import { MENU_VARIANTS } from '@adapters/presentation/main-menu/menu-variants';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -50,9 +51,20 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   return (
     <MainMenuView
       viewModel={viewModel}
-      onSelectVariant={(gameId, name) =>
-        navigation.navigate('Variant', { gameId, name })
-      }
+      onSelectVariant={(gameId, name) => {
+        const entry = MENU_VARIANTS.find(
+          (variant) => variant.gameId === gameId,
+        );
+        if (entry?.progressKind === 'levels') {
+          navigation.navigate('LevelSelection', {
+            gameId,
+            name,
+            showStars: entry.showStars ?? false,
+          });
+          return;
+        }
+        navigation.navigate('Variant', { gameId, name });
+      }}
       onOpenSettings={() => navigation.navigate('Settings')}
     />
   );

@@ -128,6 +128,9 @@ The admin web panel lives in [`admin/`](./admin): a separate Vite + React app
 application layers through the `@domain` and `@application` aliases (D-19),
 and a lint rule forbids it from importing anything else of the app.
 
+Run `npm install` in the repository root first so Vite can resolve shared
+domain and application imports under `../src`, then install and run the panel:
+
 ```bash
 cd admin
 npm install     # installs the panel's dependencies

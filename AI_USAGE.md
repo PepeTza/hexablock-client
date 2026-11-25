@@ -1330,6 +1330,24 @@ One entry per significant use. Copy the template.
   compatibility with open Lines/Fit UI branches while allowing arbitrary
   `IBoardGeometry<TCoord>` boards without engine changes.
 
+### 2026-11-25 — Navigation flow test and level-selection route (issue #97)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #97 (completes #90 navigation integration and #99 admin README note).
+- **Prompt:** Connect `LevelSelectionView` into `RootNavigator` for
+  level-based variants driven by `MENU_VARIANTS` configuration and add
+  end-to-end navigation flow tests covering Home → level → game → result.
+- **Result:** Added `LevelSelection` route, `LevelSelectionScreen` container
+  with loading/error/retry states, `showStars` declarative config on
+  `MENU_VARIANTS`, injectable `loadLevels` in `createAppServices`, visual
+  polish in `LevelSelectionView`, four full navigation flow tests in
+  `navigation-flow.test.tsx`, and the root `npm install` note in `README.md`.
+- **Team modifications:** Kept `variantComponent` injectable on
+  `RootNavigator` so end-to-end flows test real React Navigation transitions
+  before every variant screen merges to `main`.
+- **Lessons / limitations:** Tested with `@testing-library/react-native`;
+  on-device gesture transitions remain part of physical Android QA.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
