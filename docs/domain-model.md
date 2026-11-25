@@ -52,7 +52,7 @@ variant factory.
 |---|---|
 | Lines | No complete lines after resolving; at most 3 pieces in the tray (RN-08, RN-09) |
 | Fit | No overlaps; pieces inside the figure; every piece either placed or pending (RN-02) |
-| Sort | No possible transfers and no stack with 10 same-colour chips after resolving (RN-21, RN-23) |
+| Sort | No possible transfers and no stack with 10 or more same-colour chips after resolving (RN-21, RN-23) |
 | Merge | Tiles are powers of 2; no double merges; a new tile only after a valid move (RN-27, RN-28) |
 
 **Observer events:** `GameStarted`, `MoveApplied`, `MoveRejected`, `LineCleared`,

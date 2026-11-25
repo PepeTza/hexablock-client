@@ -1,7 +1,4 @@
-import type {
-  LevelDefinition,
-  LevelSpec,
-} from '../../content/level-definition';
+import type { LevelDefinition } from '../../content/level-definition';
 import type {
   ILevelValidator,
   LevelValidationResult,
@@ -47,8 +44,11 @@ export class FitLevelValidator<
     return this.validateSpec(level.spec);
   }
 
-  /** Validate a draft before the server assigns publication metadata. */
-  validateSpec(spec: LevelSpec): Result<TCoord> {
+  /** Validate a Fit v1 spec payload before or after publication (RN-13). */
+  validateSpec(spec: unknown): Result<TCoord> {
+    if (!isObject(spec)) {
+      return invalid('spec', 'Expected a JSON object');
+    }
     if (
       Object.keys(spec).some(
         (key) =>

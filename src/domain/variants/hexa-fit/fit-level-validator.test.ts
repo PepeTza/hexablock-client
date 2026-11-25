@@ -90,6 +90,82 @@ describe('FitLevelValidator', () => {
       errors: [{ field: 'spec.figure' }],
     });
   });
+
+  it.each([null, undefined, [], 'invalid', 42])(
+    'should_report_spec_when_spec_is_not_a_plain_object (%p)',
+    (rawSpec) => {
+      // Arrange / Act
+      const result = validator.validateSpec(rawSpec);
+
+      // Assert
+      expect(result).toMatchObject({
+        valid: false,
+        errors: [{ field: 'spec' }],
+      });
+    },
+  );
+
+  it('should_report_the_figure_when_cells_repeat', () => {
+    // Arrange
+    const candidate = level(
+      [
+        { q: 0, r: 0 },
+        { q: 0, r: 0 },
+      ],
+      ['p1-01', 'p1-01'],
+    );
+
+    // Act
+    const result = validator.validate(candidate);
+
+    // Assert
+    expect(result).toMatchObject({
+      valid: false,
+      errors: [{ field: 'spec.figure' }],
+    });
+  });
+
+  it('should_allow_repeated_piece_ids_when_they_cover_the_figure', () => {
+    // Arrange
+    const candidate = level(
+      [
+        { q: 0, r: 0 },
+        { q: 1, r: 0 },
+      ],
+      ['p1-01', 'p1-01'],
+    );
+
+    // Act
+    const result = validator.validate(candidate);
+
+    // Assert
+    expect(result).toMatchObject({
+      valid: true,
+      solution: [{ pieceIndex: 0 }, { pieceIndex: 1 }],
+    });
+  });
+
+  it.each([
+    { twoStars: 0, threeStars: 100 },
+    { twoStars: 600, threeStars: 600 },
+    { twoStars: 600, threeStars: 500 },
+    { twoStars: 1.5, threeStars: 850 },
+  ])(
+    'should_report_star_thresholds_when_values_are_invalid (%p)',
+    (starThresholds) => {
+      // Arrange
+      const candidate = level([{ q: 0, r: 0 }], ['p1-01'], { starThresholds });
+
+      // Act
+      const result = validator.validate(candidate);
+
+      // Assert
+      expect(result).toMatchObject({
+        valid: false,
+        errors: [{ field: 'spec.starThresholds' }],
+      });
+    },
+  );
 });
 
 it('should_find_a_cover_when_the_geometry_catalog_and_parser_are_injected', () => {

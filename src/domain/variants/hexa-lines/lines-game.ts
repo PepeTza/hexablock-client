@@ -16,7 +16,11 @@ import {
   LinesScoringPolicy,
   type LinesResolution,
 } from './lines-scoring-policy';
-import { resolveLines, type LinesState } from './resolve-lines';
+import {
+  resolveLines,
+  type LineCleared,
+  type LinesState,
+} from './resolve-lines';
 
 export interface LinesGameOptions {
   /** An explicit shape takes precedence over the default or supplied radius. */
@@ -48,7 +52,8 @@ class LinesGameRules extends SourcedGameRules<
   PlacePieceMove,
   LinesGameState,
   LinesResolution,
-  LinesPieceSource
+  LinesPieceSource,
+  LineCleared<HexCoord>
 > {
   constructor(
     scoring: LinesScoringPolicy,

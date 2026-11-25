@@ -26,6 +26,25 @@ release `v1.0.0` on 2026-12-13, defence on 2026-12-14.
 | I4 Freeze + polish | 12-07 → 12-10 | Product quality | Pause and background, audio, two languages, settings, three screen sizes, UI navigation test, bug bash, panel hosting | Feature freeze on 12-10; release candidate `v0.9.0` with no blocking bugs |
 | Buffer | 12-11 → 12-14 | Delivery and defence | Final diagrams, both READMEs, `EXTENSIBILITY.md`, `AI_USAGE.md` critical evaluation, release `v1.0.0` (12-13), rehearsal of "add a fifth variant" | Every deliverable complete; 12-14 free for the defence |
 
+Progress on 2026-11-24: T30 (I3) is done, and parts of HU18 (client #181) and
+T28 (client #184) are merged ahead of I3. Of the level `spec` schema due on
+11-25, the Sort half is merged and the Fit half is in open PR backend #66.
+
+### Carried over to I2
+
+Late on 2026-11-24: the date of the iteration has passed and the issue is open.
+
+| Iteration | Task | Issue | Owner |
+|---|---|---|---|
+| I0 | T08 Skia spike | client #11 | Jesus; measurement by Ronald |
+| I1 | HU14, HU03, HU04, T13 (Hexa Lines) | client #33, #34, #35, #37 | Jesus |
+| I1 | T15 Android APK | client #39 | Kenneth |
+| I1 | HU29 local persistence | client #40 | Kenneth |
+| I1 | T19 diagrams v1 | client #41, backend #21 | All |
+
+The first release, `v0.1.0`, is also pending: no repository has a release or a
+tag.
+
 ### Critical path
 
 1. Decisions due in I0 (Expo, piece catalog D-07)
@@ -38,8 +57,13 @@ release `v1.0.0` on 2026-12-13, defence on 2026-12-14.
 - The level `spec` schema (11-25) joins three tracks: backend levels, admin
   panel and level design. If it slips, all three slip.
 - If the Skia spike fails, the fallback is drawing with SVG (decided by 11-15).
-- The backend is off the critical path while the contract does not change:
-  the client uses fakes of its ports until I3.
+  **Pending on 11-24:** no device measurement exists, and the open Lines and Fit
+  screens (client #189, #190) draw with React Native views. Ronald runs a
+  separate measurement (client #11), apart from the spike in open PR client #130;
+  conclusion due 11-26.
+- The backend is off the critical path of the app while the contract does not
+  change: the app uses fakes of its ports until I3. The admin panel calls the
+  API since T30 (client #148).
 - The APK pipeline is built in I1, so the final release is not a new problem
   on 12-13.
 
@@ -80,7 +104,7 @@ infrastructure.
   random generator whose state can be restored (RN-31), and it uses swipes
   instead of drag.
 - **Track C takes Hexa Sort:** Sort is built in I3, once the backend is done in
-  I1–I2. The cascade rules (HU20) start at the end of I2.
+  I1–I2. The cascade rules (HU20) merged on 11-24 (client #169).
 - **Levels:** the variant owner leads. Fit: Jesus 5, Ronald 5, Kenneth 5.
   Sort: Kenneth 4, Ronald 3, Jesus 3. So the three of us understand both
   level-based variants.
@@ -88,7 +112,8 @@ infrastructure.
 - **Risk — duplicated code across variants:** blocked by the lint rule that
   forbids variants importing each other, and by Ronald reviewing every
   `engine` change.
-- **Risk — load:** Kenneth in I3. If it slips by 12-02, Ronald takes Pact.
+- **Risk — load:** Kenneth in I3, with T15 and HU29 (I1) still open on 11-24.
+  If it slips by 12-02, Ronald takes Pact.
 
 The alternative considered was one variant each with Hexa Lines built by the
 three of us together. It was dropped because nobody could present Lines as
@@ -99,10 +124,14 @@ their own work and it forces a shared schedule in I1.
 - **Engine walkthrough (I1):** the mob sessions planned for `Board`,
   `GameEngine` and `BaseGameRules` were replaced on 2026-11-21: Ronald built
   the engine (HU08) and walks the other two through it once merged, class by
-  class, so each can explain it.
+  class, so each can explain it. **Pending on 11-24:** not held yet, no date
+  set.
 - Every variant is written against the engine, so each owner learns its
   extension points.
 - Pull requests labelled `engine` request a review from the two other members.
+  **Not followed on 11-24:** client #124, #125, #147 and #188 changed the engine
+  without the label. The rule stays; Ronald proposes a `CODEOWNERS` file so
+  GitHub requests the review, pending the team.
 - **Weekly explain-back (30 min):** each member explains a file written by
   someone else, picked at random.
 - **12-11 and 12-12:** each member rehearses "add a fifth variant" alone, in a
@@ -134,14 +163,21 @@ plan and its dependencies are visible. The optional HU34 and T43 are created
 only if I3 is complete on 12-06. Tasks that touch both repositories get one
 issue in each, naming its twin.
 
+- **Follow-ups are not in the table:** fixes, refactors and rule changes found
+  later (47 on 2026-11-24) live only in GitHub: open issues of the
+  [client](https://github.com/PepeTza/hexablock-client/issues?q=is%3Aissue+is%3Aopen)
+  and the
+  [backend](https://github.com/PepeTza/hexablock-backend/issues?q=is%3Aissue+is%3Aopen).
 - **Labels** (`CONTRIBUTING.md` §7): variant `hexa-lines`, `hexa-fit`,
   `hexa-sort`, `hexa-merge`, `engine`; layer `domain`, `application`,
   `adapters`, `frameworks`; type `feature`, `bug`, `docs`, `test`, `chore`;
   plus `panel` (decision 17).
 - **No milestones:** the iteration and its dates are written in each issue.
-- **Dependencies:** each issue has a `Blocked by:` line with the issues it
-  needs. An issue is unblocked when all of them are closed; the
-  `harness-task` skill stops when one is still open.
+- **Dependencies:** the issues of the plan created ahead on 2026-11-20 have a
+  `Blocked by:` line with the issues they need; older ones and some follow-ups
+  do not. An issue is unblocked when all of them are closed; the `harness-task`
+  skill stops when one is still open. A PR may deliver a part that does not need
+  the open blocker.
 - The acceptance criteria of a user story always include those of
   `user-stories.md`; the table adds the concrete ones.
 
@@ -155,7 +191,7 @@ C = Kenneth Fung.
 | T03 | chore: set up Expo app with strict TypeScript, lint, tests and hooks | cl | RNF-11, D-05 | lint, typecheck and test pass; the hook rejects a bad message; the app opens on Android | B | I0 | chore, frameworks |
 | T04 | ci: add client CI with lint, type-check, coverage and commitlint | cl | RNF-05 | Runs on every PR; fails below 80 % in domain and application | B | I0 | chore |
 | T05 | chore: set up the admin panel project importing the domain | cl | D-13, D-16 | `admin/` builds and imports `src/domain`; its own CI job | C | I0 | chore, frameworks, panel |
-| T06 | chore: enforce layer and variant boundaries with lint rules | cl+be | RNF-03, ADR-03 | A forbidden import fails; a fixture proves it | A | I0 | chore, domain |
+| T06 | chore: enforce layer and variant boundaries with lint rules (variants: client only) | cl+be | RNF-03, ADR-03 | A forbidden import fails; a fixture proves it | A | I0 | chore, domain |
 | T07 | feat(engine): add hex coordinates and geometry | cl | RF-01, RN-01 | Neighbours, 3 axes, rings and 60° rotation tested | A | I0 | engine, domain, feature |
 | T08 | chore(ui): spike Skia board rendering and piece drag | cl | RNF-07, RNF-08 | Radius-4 board and a draggable piece at ~60 FPS on a mid-range Android | B | I0 | frameworks, chore |
 | T09 | chore: set up NestJS API with strict TypeScript, lint, tests, hooks and health | be | RF-26 | `GET /api/v1/health` against a local PostgreSQL; Swagger served at `/api/docs` (set up only; the decorators per endpoint come with T17) | C | I0 | chore, frameworks |
@@ -165,7 +201,7 @@ C = Kenneth Fung.
 | HU08 | feat(engine): game engine, rules template and domain events | cl | RF-02, RF-03, RF-06, RN-06 | Works with a test cell; no `if` per variant; emits events; an error leaves the state unchanged | A | I1 | engine, domain, feature |
 | HU09 | feat(engine): interchangeable piece sources, scoring and seeded random | cl | RF-04, RF-05, RN-05 | Changing a policy does not touch the engine; same seed → same sequence | A | I1 | engine, domain, feature |
 | T12 | feat(engine): piece catalog as data | cl | RN-03, D-07 | JSON catalog and loader; connected shapes of 1–5 cells | A | I1 | engine, domain, feature |
-| HU11 | feat(usecases): start, apply and finish game use cases with logging aspect | cl | RNF-04, CU-01, CU-02, CU-07 | The `ApplyMoveUseCase` log appears for every variant | A | I1 | application, feature |
+| HU11 | feat(usecases): start, apply and finish game use cases with logging aspect | cl | RNF-04, CU-01, CU-02, CU-07 | The `ApplyMoveUseCase` log appears for every variant (the aspect is merged; not wired in `composition-root.ts` on 11-24) | A | I1 | application, feature |
 | HU12 | feat(hexa-lines): clear lines on three axes with combos | cl | RN-09, RN-10 | A shared cell is cleared once; score per D-08 | B | I1 | hexa-lines, domain, feature |
 | HU13 | feat(hexa-lines): refill tray after three placements | cl | RN-08 | New tray only when all 3 are used; reproducible | B | I1 | hexa-lines, domain, feature |
 | HU14 | feat(hexa-lines): detect game over and save high score | cl | RN-12, CU-07 | Automatic detection; high score saved | B | I1 | hexa-lines, domain, feature |
@@ -180,7 +216,7 @@ C = Kenneth Fung.
 | T17 | feat(api): error format, validation, logging interceptor and Swagger | be | RF-26, decision 22 | Errors use the contract's body; one log line per request; Swagger decorators on every DTO and controller so `/api/docs` matches the contract; error security of decision 22 (generic `500` with `requestId`, no secrets in logs, Swagger off in production) | C | I1 | adapters, frameworks, feature |
 | HU30-be | feat(api): register, login and refresh with JWT roles | be | RF-22, RN-42, RNF-10 | bcrypt; 90 days; generic 401; 409; 429 | C | I1 | application, adapters, feature |
 | T18 | ci: deploy backend on merge to main | be | D-10 | `/health` answers on the public URL | C | I1 | chore |
-| T19 | docs: diagrams v1 in Lucidchart | cl+be | RNF-12 | Ronald: client classes; Jesus: layers and extensibility; Kenneth: backend | All | I1 | docs |
+| T19 | docs: diagrams v1 in Lucidchart | cl+be | RNF-12 | Ronald: client classes; Jesus: layers and extensibility (merged as Mermaid and SVG in client #141, without Lucidchart links); Kenneth: backend | All | I1 | docs |
 | T20 | feat(engine): command history for undo and redo | cl | RF-07 | Generic undo and redo | A | I2 | engine, domain, feature |
 | HU24 | feat(hexa-merge): slide tiles in six directions | cl | RN-26 | One test per direction | A | I2 | hexa-merge, domain, feature |
 | HU25 | feat(hexa-merge): merge equal tiles | cl | RN-27, RN-29 | No double merge | A | I2 | hexa-merge, domain, feature |
@@ -205,7 +241,7 @@ C = Kenneth Fung.
 | HU21 | feat(hexa-sort): remove stacks of ten same-colour chips as goals | cl | RN-23, RN-40 | Visible goal counter | C | I3 | hexa-sort, domain, feature |
 | HU22 | feat(hexa-sort): win by goals and lose on a full board | cl | RN-24 | Correct result screens | C | I3 | hexa-sort, domain, feature |
 | T27 | feat(ui): Hexa Sort game screen | cl | RF-10 | Visible cascade; input ignored while resolving | C | I3 | hexa-sort, adapters, frameworks, feature |
-| HU18 | feat(hexa-fit): award stars by moves and time | cl | RN-18, D-08 | Stars saved | B | I3 | hexa-fit, domain, feature |
+| HU18 | feat(hexa-fit): award stars by moves and time | cl | RN-18, D-08 | Stars saved (formula and stars merged in client #181; saving across restarts needs HU29) | B | I3 | hexa-fit, domain, feature |
 | HU19 | feat(hexa-fit): 15 progressive levels with unlocking | cl | RN-19 | 15 JSON files validated by tests | B (+A, C) | I3 | hexa-fit, feature |
 | HU23 | feat(hexa-sort): 10 progressive levels | cl | RN-25 | 10 JSON files validated by tests | C (+A, B) | I3 | hexa-sort, feature |
 | T28 | feat(ui): level selection with stars and locks | cl | RF-15, CU-08 | Stars and locks | B | I3 | application, frameworks, feature |
@@ -225,14 +261,14 @@ C = Kenneth Fung.
 | HU05 | feat(ui): settings with sound and music toggles and audio | cl | RF-18, RN-41 | Settings persist; effects and music | B | I4 | adapters, frameworks, feature |
 | HU06 | feat(ui): switch between Spanish and English | cl | RF-19, RN-41 | Changes without restarting | A | I4 | adapters, frameworks, feature |
 | T36 | test(ui): navigation flow test | cl | architecture §11 | Home → level → game → result | B | I4 | test |
-| T37 | chore(panel): host the admin panel | cl | D-13 | Public URL allowed by CORS | B | I4 | chore, panel |
+| T37 | chore(panel): host the admin panel | cl | D-13 | Public URL allowed by CORS (backend support pending: backend #67) | B | I4 | chore, panel |
 | T38 | chore: release candidate v0.9.0 | cl | — | Installable APK; no blocking bugs | B | I4 | chore |
-| T39 | docs: final diagrams in Lucidchart | cl+be | RNF-12 | 5 diagrams with image and link | All | Buffer | docs |
+| T39 | docs: final diagrams in Lucidchart | cl+be | RNF-12 | 5 diagrams with image and link. **Pending on 11-24:** confirm with the professor whether the Lucidchart link is required (Ronald and Jesus understood it differently, client #196); until then RNF-12 stands | All | Buffer | docs |
 | T40 | docs: complete README of both repositories | cl+be | RNF-12 | Every section the statement requires | All | Buffer | docs |
 | T41 | docs: AI usage critical evaluation | cl+be | RNF-12 | `AI_USAGE.md` §3 complete | All | Buffer | docs |
 | T42 | chore: release v1.0.0 with the four variants | cl | S-02 | Release with the APK on 12-13 | B | Buffer | chore |
 | HU34 | feat: resume an interrupted game | cl | CU-16 | State restored | Free | Optional | application, adapters, feature |
-| T43 | feat: Hexa Quest variant | cl | EXTENSIBILITY §3 | Only 2 lines outside its folders | A | Optional | feature |
+| T43 | feat: Hexa Quest variant | cl | EXTENSIBILITY §3 | No change to the engine, the use cases or the other variants; outside its folders, only the integration list of `EXTENSIBILITY.md` §2 | A | Optional | feature |
 
 ## 4. Folder structure
 
@@ -245,24 +281,25 @@ stops an inner layer from importing an outer one.
 hexablock-client/
 ├── src/
 │   ├── domain/                    # layer 1 — plain TypeScript, no external imports
-│   │   ├── engine/                # geometry/ board/ hex/ game/ rules/ commands/ events/ random/ pieces/ state/
-│   │   ├── variants/              # hexa-lines/ hexa-fit/ hexa-sort/ hexa-merge/
+│   │   ├── engine/                # geometry/ board/ hex/ game/ commands/ events/ random/ pieces/ scoring/ state/
+│   │   ├── variants/              # hexa-lines/ hexa-fit/ hexa-merge/ hexa-sort/
 │   │   ├── progress/              # PlayerProgress, progress models
 │   │   └── content/               # LevelDefinition, LevelBuilder, ILevelValidator, SeedConfig
 │   ├── application/               # layer 2
 │   │   ├── ports/                 # IProgressRepository, ILevelRepository, IAuthService, ILogger...
 │   │   ├── use-cases/             # start-game, apply-move, ... (generic, one per use case)
-│   │   └── aspects/               # logging, retry, session-guard (Decorators)
+│   │   ├── aspects/               # logging, exception-handling (Decorators); planned: retry, session-guard
+│   │   └── common/                # Either
 │   ├── adapters/                  # layer 3
-│   │   ├── presentation/          # view models, VariantPresentationFactory and registry
-│   │   │   └── variants/<variant>/   # ICellRenderer, IInputMapper, presentation factory
+│   │   ├── presentation/          # view models, board/ (IBoardProjection), menu and result; planned: presentation factory and registry
+│   │   │   └── <variant>/         # presenter, placement preview; planned: ICellRenderer, IInputMapper
 │   │   ├── persistence/           # local repositories and mappers
-│   │   └── http/                  # remote repositories and DTO mappers
+│   │   └── http/                  # planned: remote repositories and DTO mappers
 │   └── frameworks/                # layer 4
 │       ├── ui/                    # screens, components, Skia
-│       ├── storage/ audio/ i18n/ http-client/
+│       ├── storage/ audio/ i18n/ http-client/   # planned
 │       └── composition-root.ts    # factory registration (the only place with `register`)
-├── levels/                        # hexa-fit/*.json, hexa-sort/*.json (copy bundled with the app)
+├── levels/                        # planned: hexa-fit/*.json, hexa-sort/*.json (copy bundled with the app)
 ├── assets/                        # sounds, fonts, images
 ├── admin/                         # admin panel (Vite + React): own package.json, imports @domain/* and @application/*
 ├── docs/diagrams/
@@ -274,17 +311,20 @@ hexablock-client/
 ```
 hexablock-backend/
 ├── src/
-│   ├── domain/                    # identity/ progress/ leaderboard/ content/ shared/ — no Nest, no Prisma
+│   ├── domain/                    # game/ progress/ score/ user/ — no Nest, no Prisma
 │   ├── application/
 │   │   ├── ports/                 # IUserRepository, IPasswordHasher, ITokenService, IClock...
-│   │   └── use-cases/             # register-user, login, merge-progress, submit-score, publish-level...
+│   │   ├── errors/                # application errors and their messages
+│   │   └── use-cases/             # register-user, login, sync-progress, submit-score...; planned: publish-level
 │   ├── adapters/
-│   │   ├── http/                  # controllers, DTOs (class-validator), mappers
-│   │   └── persistence/           # prisma-*-repository.ts
-│   ├── frameworks/                # Nest modules, PrismaService, guards, interceptors, filters, config
+│   │   ├── http/                  # controllers, DTOs (class-validator), guards
+│   │   ├── persistence/           # prisma-*-repository.ts
+│   │   ├── security/              # bcrypt password hasher, JWT token service
+│   │   └── system-clock.ts
+│   ├── frameworks/                # Nest modules, PrismaService, interceptors, filters, config
 │   └── main.ts
-├── prisma/                        # schema.prisma, migrations/, seed.ts, seed-data/
-├── test/                          # e2e (supertest) and pact/
+├── prisma/                        # schema.prisma, migrations/; planned: seed.ts, seed-data/
+├── test/                          # e2e (supertest); planned: pact/
 └── .claude/skills/
 ```
 
@@ -300,17 +340,19 @@ ESLint's built-in `no-restricted-imports` rule, with one override per folder
 | Folder | Cannot import |
 |---|---|
 | `domain/**` | `application`, `adapters`, `frameworks`, or external packages (`react*`, `expo*`, `@shopify/*`, `@nestjs/*`, `@prisma/*`...) |
-| `application/**` | `adapters`, `frameworks`, or external packages (D-19: the panel imports this layer in a browser) |
+| `application/**` | `adapters`, `frameworks`, or external packages (D-19: the panel imports this layer in a browser). Backend: external packages are not checked by the lint yet (backend #53) |
 | `adapters/**` | `frameworks` |
-| `domain/variants/<variant>/**` | the other variants (only `engine/`) |
-| `admin/**` | anything outside `src/domain` and `src/application` (never `adapters`, `frameworks` or the mobile UI) |
+| `domain/engine/**` except `engine/hex/` (client; tests exempt) | `engine/hex/` |
+| `domain/variants/<variant>/**` | the other variants; the rest of `domain/` is allowed |
+| `admin/src/**` | the app's `adapters` and `frameworks`, relative paths into the app's `src/`, and the mobile UI packages; `domain` and `application` are reached by alias |
 
 - `frameworks/composition-root.ts` is the only file that instantiates
   adapters; other `frameworks/` files may import their types (for example view
   models), and `frameworks/` itself has no import restriction.
 - `no-restricted-imports` has no "any external package" option: the
-  `domain/**` override forbids every bare module specifier with a pattern
-  group and re-allows relative paths and the `@domain/*` alias.
+  `domain/**` override and the client's `application/**` override forbid every
+  bare module specifier with a pattern and re-allow relative paths and the layer
+  aliases; another pattern forbids the aliases of outer layers.
 - Lint runs in the pre-commit hook and in CI, so a violation blocks the PR.
 - A test fixture with a forbidden import proves the rule works, with one
   layer import and one external package import.
@@ -386,7 +428,8 @@ Run in I0, one branch per repository and small commits per tool.
       PR's commits.
     - Backend: a `postgres:16` service, `prisma migrate deploy`, lint, types,
       unit and e2e tests.
-    - The APK (T15) and deployment (T18) workflows come in I1.
+    - T18 is not a workflow: Render deploys `main` after the checks pass
+      (backend #55). The APK workflow (T15) is pending.
 6. **`.vscode/extensions.json`:** in both `dbaeumer.vscode-eslint`,
    `esbenp.prettier-vscode`, `editorconfig.editorconfig`, `orta.vscode-jest`;
    client `expo.vscode-expo-tools`; backend `prisma.prisma`.
@@ -399,25 +442,25 @@ Each one needs the team's approval before it is added (`AGENTS.md`).
 
 | Package | Repo | Purpose | When |
 |---|---|---|---|
-| `expo`, `react`, `react-native`, `typescript` | cl | App base (template) | Setup |
-| `@shopify/react-native-skia` | cl | Draw the board (GPU) | Setup (spike) |
-| `react-native-reanimated` | cl | Animations on the UI thread | Setup (spike) |
-| `react-native-gesture-handler` | cl | Drag and swipe | Setup (spike) |
+| `expo`, `expo-status-bar`, `react`, `react-native`, `typescript` | cl | App base (template) | Setup |
+| `@shopify/react-native-skia` | cl | Draw the board (GPU) | Setup (spike): not installed, in open PR client #130 |
+| `react-native-reanimated` | cl | Animations on the UI thread | Setup (spike): not installed, in open PR client #130 |
+| `react-native-gesture-handler` | cl | Drag and swipe | Setup (spike): not installed, in open PR client #130 |
 | `@react-navigation/native`, `native-stack` (+ `react-native-screens`, `react-native-safe-area-context`) | cl | Navigation between screens | I1 |
-| `expo-sqlite` (or `@react-native-async-storage/async-storage` if D-06 becomes key-value) | cl | Local storage behind `IProgressRepository` (D-06, provisional: SQLite) | I1 |
+| `expo-sqlite` (or `@react-native-async-storage/async-storage` if D-06 becomes key-value) | cl | Local storage behind `IProgressRepository` (D-06, provisional: SQLite) | I1: not installed, waits for HU29 |
 | `expo-localization` | cl | Phone language (RN-41) | I4 |
 | `expo-audio` | cl | Sound effects and music | I4 |
 | `expo-crypto` | cl | `randomUUID` for `sessionId` | I3 |
 | `jest`, `jest-expo`, `@testing-library/react-native`, `@types/jest` | cl | Unit and UI tests | Setup |
-| `vite`, `@vitejs/plugin-react`, `react-dom`, `vitest`, `@testing-library/react` | cl (admin) | Admin panel and its tests | Setup |
+| `vite`, `@vitejs/plugin-react`, `react-dom`, `vitest`, `@vitest/coverage-v8`, `jsdom`, `@testing-library/react` | cl (admin) | Admin panel and its tests | Setup |
 | `@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express`, `reflect-metadata`, `rxjs`, `@nestjs/cli`, `@nestjs/testing` | be | NestJS base (template) | Setup |
 | `@nestjs/config` | be | Read and validate environment variables | Setup |
 | `@nestjs/swagger` | be | OpenAPI at `/api/docs` (RF-26) | Setup |
-| `prisma`, `@prisma/client` | be | ORM and migrations (decided) | Setup |
+| `prisma`, `@prisma/client`, `@prisma/adapter-pg` | be | ORM and migrations (decided) | Setup |
 | `class-validator`, `class-transformer` | be | DTO validation (400 with `details`) | I1 |
 | `@nestjs/jwt` | be | Sign and verify JWTs (own guard, no Passport) | I1 |
 | `bcrypt` | be | Password hashing (its 72-byte limit matches the 8–72 rule) | I1 |
-| `@nestjs/throttler` | be | Rate limits → 429 | I2 |
+| `@nestjs/throttler` | be | Rate limits → 429 | I1 |
 | `jest`, `ts-jest`, `supertest` | be | Unit and e2e tests | Setup |
 | `eslint`, `typescript-eslint`, `eslint-config-prettier`, `prettier` | both | Lint and formatting | Setup |
 | `husky`, `lint-staged`, `@commitlint/cli`, `@commitlint/config-conventional` | both | Git hooks (`CONTRIBUTING.md` §2) | Setup |
@@ -442,6 +485,11 @@ approval per commit, every agent needs its human at each gate of the
   `application` and `adapters/http`. Jesus touches `hexa-lines`, `hexa-fit`,
   `frameworks/ui` and `admin/` except the Sort editor. Kenneth touches
   `hexa-sort`, `adapters/persistence`, the panel's Sort editor and the backend.
+  **Proposed by Ronald on 11-24, pending the team:** each variant's
+  `adapters/presentation/<variant>` and screen belong to its owner; menu, result
+  screens and `domain/progress` to Ronald; `domain/content` to Jesus;
+  `frameworks/storage` to Kenneth. A small change in another folder names its
+  owner in the PR; a change to the engine needs Ronald's approval.
 - **Shared files** (composition root, `package.json`, ESLint config, i18n
   dictionaries, menu configuration): changed only in small, dedicated PRs,
   merged the same day. Rebase on `main` daily.
@@ -452,7 +500,7 @@ approval per commit, every agent needs its human at each gate of the
 |---|---|---|---|
 | `harness-task` | both | Turns an issue into the `task-template.md` prompt and fixes the gate 1 format | At the start of every task |
 | `aaa-test` | both | `should_..._when_...` names, Arrange / Act / Assert, port fakes, fixed seed, file location | When writing any test |
-| `add-variant` | cl | `EXTENSIBILITY.md` §2 checklist: files, interfaces, the two registration lines, tests, lint | For every variant and the defence rehearsal |
+| `add-variant` | cl | `EXTENSIBILITY.md` §2 checklist: files, interfaces, the integration list, tests, lint | For every variant and the defence rehearsal |
 | `design-level` | cl | `spec` format, validator and solver, difficulty curve (RN-19, RN-25), ids, where the JSON goes | When designing the 25 levels |
 | `api-endpoint` | be | From contract to code: DTO → controller → use case → port → Prisma adapter, errors, Swagger, tests and Pact | For every endpoint |
 | `log-ai-usage` | both | `AI_USAGE.md` entry, `phase-log.md` row, footer check | At gate 4 |
@@ -466,47 +514,52 @@ approval per commit, every agent needs its human at each gate of the
 
 ## 7. Pending decisions
 
-Twenty-two decisions, each with a recommendation. The five due on 11-12 block
+Twenty-three decisions, each with a recommendation. The five due on 11-12 block
 the setup. The **Status** column is updated when a decision is taken (the
-record is `architecture.md` §10) or resolved by a pull request.
+record is `architecture.md` §10, or the document named in **Status**) or
+resolved by a pull request.
 
 | # | Decision | Options | Recommendation | Due | Status |
 |---|---|---|---|---|---|
-| 1 | Expo or bare React Native | Expo (managed + prebuild) / bare | **Expo:** Skia, Reanimated and Gesture Handler work; Expo Go lets us test on phones from day one; APK with `expo prebuild` and Gradle in Actions, no EAS account | 11-12 | Taken: D-17 (client #16) |
-| 2 | Admin panel framework | Vite + React / Next.js / React Native Web | **Vite + React + TypeScript** with an SVG grid: same React; Next.js is not needed (no SSR); React Native Web with Skia is complex | 11-12 | Taken: D-18 (client #16) |
-| 3 | How the panel imports the domain | TypeScript + Vite alias / npm workspaces / package | **`@domain` alias:** simplest; no package to publish (D-16) | 11-12 | Taken: D-19 (client #16); see decision 19 for what else the panel may import |
-| 4 | D-06 client local storage | SQLite / file or key-value JSON | **Key-value JSON (AsyncStorage)** behind `IProgressRepository`: little data, no migrations on the phone | 11-15 | Provisional: SQLite recorded in D-06 (client #16), question open with the professor. HU29 starts with SQLite; the dependency table of §5 follows D-06, not this recommendation |
-| 5 | Navigation | React Navigation / Expo Router | **React Navigation:** screens stay in `frameworks/ui` | 11-15 | Taken: D-20 (client #16) |
-| 6 | D-10 backend hosting | Render free / Railway / Fly.io / Koyeb | **Render free + Supabase free.** Risks: ~30–60 s cold start (warm it up before the defence) and Supabase pauses after 7 days without use | 11-15 | Taken: D-10 (client #16) |
-| 7 | D-07 piece catalog | Every shape of 1–5 cells (1+1+3+10+33 without flips) / a selection | **The 15 shapes of 1–4 cells plus ~6 of 5 cells**, with spawn weights in Lines. Still open: whether Lines spawns pieces in a random orientation (RN-11 only forbids the player rotating them) | 11-17 | Taken: D-07 (client #16), including random orientation in Lines |
-| 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 | Lines formula recorded in architecture.md §10 (HU12, #31). Fit formula recorded in architecture.md §10 (HU18, #83). Final server plausibility limits remain open. |
-| 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 | Open |
-| 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`, defined in the backend `api-contracts.md` §6 with a radius 2 board and a tray of one stack, as the statement says (backend #42). Changes the contract: PR to the backend with approval | 11-25 | Sort: Taken. Fit: Open |
-| 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of one stack, as the statement says; generation parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Sort: Taken (#133). Merge: Open |
-| 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 | Taken: minimum stats in the menu — high score (Lines, Merge) and completed levels (Fit, Sort) from `PlayerProgress`, through `LoadProgressSummaryUseCase` (client #36) |
+| 1 | Expo or bare React Native | Expo (managed + prebuild) / bare | **Expo:** Skia, Reanimated and Gesture Handler work; Expo Go lets us test on phones from day one; APK with `expo prebuild` and Gradle in Actions, no EAS account | 11-12 | Taken: D-17 (client #20) |
+| 2 | Admin panel framework | Vite + React / Next.js / React Native Web | **Vite + React + TypeScript** with an SVG grid: same React; Next.js is not needed (no SSR); React Native Web with Skia is complex | 11-12 | Taken: D-18 (client #20) |
+| 3 | How the panel imports the domain | TypeScript + Vite alias / npm workspaces / package | **`@domain` alias:** simplest; no package to publish (D-16) | 11-12 | Taken: D-19 (client #20); see decision 19 for what else the panel may import |
+| 4 | D-06 client local storage | SQLite / file or key-value JSON | **Key-value JSON (AsyncStorage)** behind `IProgressRepository`: little data, no migrations on the phone | 11-15 | Provisional: SQLite recorded in D-06 (client #20), infrastructure is decided by the team, so it does not wait for the professor (Ronald, 11-24); Kenneth confirms it in HU29, which starts with SQLite; the dependency table of §5 follows D-06, not this recommendation |
+| 5 | Navigation | React Navigation / Expo Router | **React Navigation:** screens stay in `frameworks/ui` | 11-15 | Taken: D-20 (client #20) |
+| 6 | D-10 backend hosting | Render free / Railway / Fly.io / Koyeb | **Render free + Supabase free.** Risks: ~30–60 s cold start (warm it up before the defence) and Supabase pauses after 7 days without use | 11-15 | Taken: D-10 (client #20) |
+| 7 | D-07 piece catalog | Every shape of 1–5 cells (1+1+3+10+33 without flips) / a selection | **The 15 shapes of 1–4 cells plus ~6 of 5 cells**, with spawn weights in Lines | 11-17 | Taken: D-07 (client #20), including random orientation in Lines |
+| 8 | D-08 scoring | — | Lines: `cells + 10·L·L·(1 + 0.5·(streak − 1))`, L = lines cleared by the move. Fit: `max(100, 1000 − 20·extra_moves − 2·seconds)`, thresholds in the level file. Merge and Sort already defined (RN-29, RN-40). Plausibility limits derived from these | Lines 11-18; Fit 11-25; plausibility 11-29 | Lines and Fit formulas: taken, recorded in architecture.md §10 (HU12, client #129; HU18, client #181). Plausibility limits: taken in api-contracts.md §5 (backend #43; follow-ups backend #46 and #47). architecture.md still lists the final values of RN-29 and RN-40 (Merge, Sort) as pending in D-08 |
+| 9 | Level ids in the app vs the server | Fixed ids in the app's JSON / export from the server | **Fixed UUIDs in `levels/*.json`, inserted with that id and order by the seed script.** Progress and leaderboard use `levelId` (RN-37), so they must match | 11-25 | Open: the recommendation is proposed by Ronald (11-24), pending Jesus and Kenneth. If taken, api-contracts.md must say that seeded levels keep their id, and the seed script needs the first admin (decision 14) |
+| 10 | `spec` schema for Fit and Sort | — | Fit: `{figure, pieces, starThresholds}`. Sort: `{radius, blocked, initialStacks, colors, tray: {size, minHeight, maxHeight, maxColorsPerStack}, goals}`, defined in the backend `api-contracts.md` §6 with a radius 2 board and a tray of one stack, as the statement says (backend #42). Changes the contract: PR to the backend with approval | 11-25 | Sort: taken in `api-contracts.md` §6 (backend #42; corrections in open PR backend #63). Fit: open, proposed in open PR backend #66, needs the contract approval |
+| 11 | Gaps in the rules | Sort tray and stack generation; Merge starting tiles | Sort: a tray of one stack, as the statement says; generation parameters per level. Merge: 2 starting tiles. New rules from RN-44 | Merge 11-22; Sort 11-25 | Sort: taken in `business-rules.md` (RN-20, RN-23) and `docs/rules/hexa-sort.md` (client #134, #169). Merge: taken by Ronald (11-24): 2 tiles by default, configurable, on random cells that are not on the border, so every direction is available for the first move; more tiles than such cells is a configuration error. RN-44 is written with HU26 (client #70) |
+| 12 | "Statistics" in HU01 | Define a minimum / remove | **Minimum:** high score and completed levels per variant, from `PlayerProgress` | 11-20 | Taken in `use-cases.md` CU-08: minimum stats in the menu — high score (Lines, Merge) and completed levels (Fit, Sort) from `PlayerProgress`, through `LoadProgressSummaryUseCase` (client #108, issue #36) |
 | 13 | Pact file exchange | Pactflow (external account) / file copied to the backend | **Versioned pact file** in the backend's `test/pact/`, copied from the client's CI; no broker | 11-29 | Open |
 | 14 | First admin user | Seed with environment variables / CLI | **Seed script** reading `ADMIN_USERNAME` and `ADMIN_PASSWORD` (hosting secrets) | 11-29 | Open |
 | 15 | Admin panel hosting | GitHub Pages / Netlify / local only | **GitHub Pages** (static, no extra account); CORS allows that origin | 12-01 | Open |
 | 16 | i18n and audio libraries | Own vs i18next; `expo-audio` | Own + `expo-localization`; `expo-audio` | 12-01 | Open |
-| 17 | Extra label | §7 labels only / add `panel` | **Add `panel`:** there is no label for the admin panel today | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #16, backend #9) |
-| 18 | Backend issue ids | — | Same user story id with a `-be` suffix | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #16, backend #9) |
-| 19 | Where the admin panel's use cases live | `admin/` may import `src/application` too / CU-17, CU-18 and the panel's login are panel-local classes in `admin/src` | **Allow `src/application`:** CU-17, CU-18 and CU-11 stay the generic classes of `use-cases.md`; the panel is a layer-4 app that brings its own adapters (HTTP, browser storage for drafts) for the ports; the lint rule of §4 and D-19 change from "only `src/domain`" to "only `src/domain` and `src/application`" | 11-15 | Taken: D-19 extended on 11-18; `src/application` also forbids external packages. Lint change pending (T06 follow-up) |
+| 17 | Extra label | §7 labels only / add `panel` | **Add `panel`:** there is no label for the admin panel today | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #20, backend #14) |
+| 18 | Backend issue ids | — | Same user story id with a `-be` suffix | 11-12 | Taken: `CONTRIBUTING.md` §7 (client #20, backend #14) |
+| 19 | Where the admin panel's use cases live | `admin/` may import `src/application` too / CU-17, CU-18 and the panel's login are panel-local classes in `admin/src` | **Allow `src/application`:** CU-17, CU-18 and CU-11 stay the generic classes of `use-cases.md`; the panel is a layer-4 app that brings its own adapters (HTTP, browser storage for drafts) for the ports; the lint rule of §4 and D-19 change from "only `src/domain`" to "only `src/domain` and `src/application`" | 11-15 | Taken: D-19 extended on 11-18; `src/application` also forbids external packages. Lint change done (client #105) |
 | 20 | State pattern in the engine | Six state classes (`MenuState` … `VictoryState`) / a `GameStatus` value checked by the engine | **`GameStatus` value** plus the RN-06 lock in the engine; the six classes stay only if HU08 shows a real benefit. If dropped, the CU-06 design note and the `architecture.md` §4 row change in the same PR | 11-16 | Taken: D-22, State limited to four session states (`PlayingState`, `ResolvingState`, `PausedState`, `FinishedState`) |
-| 21 | Proposed values of the API contract | Accept the *(proposed)* values (username 3–20, password 8–72, rate limits) / change them | **Accept them** and mark them decided in `api-contracts.md`: HU30-be, T26 and the `bcrypt` row already assume them | 11-16 | Open; owned by Track C (contract values); blocks HU30-be (I1) |
-| 22 | Error security (information disclosure) | Return the server's messages as they are / generic messages with the detail only in the log | **Generic outside, detailed inside.** Backend (T17, Track C): a global filter turns any unmapped error into a generic `500` with a `requestId`; no stack, SQL or Prisma detail in responses; logs never hold `/auth/*` bodies, the `Authorization` header or secrets; Swagger off in production; no `X-Powered-By`. Accepted risks: `409` on register reveals a username exists (mitigated by `429`), `/health` reports the database state. Client (HU30, HU31, T29, HU32, HU33, Track A): the HTTP adapter maps status codes to application errors (`InvalidCredentials`, `RateLimited`, `Offline`, `Unexpected`); the UI shows its own translated text and at most the `requestId`; the local `ILogger` never writes tokens or passwords. The contract (`api-contracts.md` §1) gets the `500` row and an "Error security" subsection, with approval | 11-22 (backend, with T17); I3 (client) | Backend done (backend #18); client part in I3 |
+| 21 | Proposed values of the API contract | Accept the *(proposed)* values (username 3–20, password 8–72, rate limits) / change them | **Accept them** and mark them decided in `api-contracts.md`: HU30-be, T26 and the `bcrypt` row already assume them | 11-16 | Taken: api-contracts.md §1 and §3 (backend #40), password at most 72 bytes |
+| 22 | Error security (information disclosure) | Return the server's messages as they are / generic messages with the detail only in the log | **Generic outside, detailed inside.** Backend (T17, Track C): a global filter turns any unmapped error into a generic `500` with a `requestId`; no stack, SQL or Prisma detail in responses; logs never hold `/auth/*` bodies, the `Authorization` header or secrets; Swagger off in production; no `X-Powered-By`. Accepted risks: `409` on register reveals a username exists (mitigated by `429`), `/health` reports the database state. Client (HU30, HU31, T29, HU32, HU33, Track A): the HTTP adapter maps status codes to application errors (`InvalidCredentials`, `RateLimited`, `Offline`, `Unexpected`); the UI shows its own translated text and at most the `requestId`; the local `ILogger` never writes tokens or passwords. The contract (`api-contracts.md` §1) gets the `500` row and an "Error security" subsection, with approval | 11-22 (backend, with T17); I3 (client) | Backend done in `api-contracts.md` §1 (backend #39; follow-up backend #50); client part in I3 |
+| 23 | Web build (PWA / Expo Web) for iOS | Skia WASM / SVG across platforms / Skia mobile + SVG web / mobile-only (Expo Go for iOS) | Evaluate web rendering and web persistence behind `IProgressRepository` so the game runs on iPhone / Safari without an Apple Developer account (client #107) | 12-06 | Open: proposed by Ronald (11-24, needed because the professor uses iPhone); pending Jesus and Kenneth (client #107) |
 
 ### Possible over-engineering
 
 Items of `architecture.md` to confirm or drop:
 
 - **Singleton** `AudioManager` and `SessionManager`: single-scope dependency
-  injection is enough.
-- **Prototype** and **Iterator**: name them only if there is a real `clone()`
-  and traversal generators (`*ring()`).
-- **`GameServiceFacade`:** not needed alongside the use cases.
+  injection is enough (pending HU05 and HU30).
+- **Prototype:** **confirmed** (`Board.clone()`, `IPrototype<T>`,
+  `IPieceSource.clone()`, `IRandomSource.clone()`, `Snapshot<T>`).
+- **Iterator:** **dropped** (`ring()`, `neighbours()` and `lines()` return
+  arrays, no generators; removed from `architecture.md` §4).
+- **`GameServiceFacade`:** **dropped** (not needed alongside the
+  `CommandService` use cases; removed from `architecture.md` §4).
 - **Pact** with a single consumer and a single provider: the most expensive
   item for three people. D-05 decides it; we propose limiting it to four
-  interactions.
+  interactions (pending T34).
 - Rules decorators and the D-09 generator: document only, or cut.
 
 ## 8. Documentation inconsistencies
@@ -516,11 +569,11 @@ resolved by guessing.
 
 1. `CONTRIBUTING.md` (both repos) still says the backend contains the admin
    panel, and lists the `panel` scope under the backend (contradicts D-16).
-   **Resolved** by client #16 and backend #9.
+   **Resolved** by client #20 and backend #14.
 2. RF-13 says "JSON/YAML"; ADR-07 says JSON. We propose JSON only.
    **Resolved:** RF-13 and `architecture.md` §4 now say JSON, as ADR-07.
 3. `architecture.md` §1 validates Skia "in iteration 2" (old plan); it is the
-   I0 spike now. **Resolved** by client #16.
+   I0 spike now. **Resolved** by client #20.
 4. Backend `data-model.md` §7: the seed script reads "the level files of the
    client repo", a dependency between repositories. Proposal: a copy in the
    backend's `prisma/seed-data/` (decision 9).
@@ -530,11 +583,13 @@ resolved by guessing.
    cover them.
 7. The rules do not define the Sort tray size, the Merge starting tiles or the
    orientation of Lines pieces (decisions 7 and 11). The Sort tray size is
-   **resolved**: one stack, as the statement says (decision 11, client #133).
+   **resolved**: one stack, as the statement says (decision 11, client #133). The
+   orientation in Lines is **resolved** by D-07 (client #20). The Merge starting
+   tiles are decided (decision 11); RN-44 is written with HU26 (client #70).
 8. HU01 mentions "statistics" with no use case or business rule (decision 12).
    **Resolved** by decision 12 (client #36).
 9. The commands section of `AGENTS.md` is still pending; the setup fills it.
-   **Resolved** in the client (#5); pending in the backend until T09 (#4).
+   **Resolved** in the client (#5) and in the backend (#4).
 10. `api-contracts.md` §4 said `stars` is 1–3 for both level games, while
     `data-model.md` and RN-25 say Hexa Sort has no stars. **Resolved:** the
     contract now says `stars` is `null` for `hexa-sort`.
@@ -543,11 +598,24 @@ resolved by guessing.
     **Resolved:** the file lives only in the client; the backend links to it.
 12. The panel may import only `src/domain` (plan §4, D-19), but CU-17, CU-18
     and the panel's login are use cases in `src/application` (decision 19).
-    **Resolved** by the extended D-19: the panel imports `src/application` too.
+    **Resolved** by the extended D-19: the panel imports `src/application` too
+    (lint in client #105).
 13. The State pattern is listed as possible over-engineering, but CU-06 and
     `architecture.md` §4 depend on it (decision 20).
     **Resolved** by D-22: four session states; CU-06 and §4 updated.
 14. `api-contracts.md` marks username, password and rate-limit values as
     proposed, while HU30-be and T26 treat them as decided (decision 21).
+    **Resolved** by backend #40; two rows of its §9 are still to be removed
+    (backend #51).
 15. Ports were named in five documents with no single list; `architecture.md`
-    §2 now has one table. New ports are added there first.
+    §2 now has one table. New ports are added there first. **Not followed:** the
+    backend's `IDatabaseProbe` (backend #15) and `IScoreRepository` (backend #43)
+    are missing (client #166).
+16. Backend `api-contracts.md` §6 says "`id` assigned by the server", which
+    conflicts with fixed UUIDs in `levels/*.json` (decision 9, proposed by
+    Ronald, pending Jesus and Kenneth).
+
+Other open inconsistencies are tracked in GitHub (issue client #107 for
+`requirements.md` §1 vs. web build; PR client #196 for RNF-12 Lucidchart vs.
+Mermaid). The Hexa Sort rule mismatches of client #164 were resolved in
+client #169.

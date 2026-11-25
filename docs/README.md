@@ -13,6 +13,7 @@ model live in the
 | [`user-stories.md`](./user-stories.md) | User stories HU01..HU35 with acceptance criteria | Draft |
 | [`domain-model.md`](./domain-model.md) | Domain layer (Layer 1): entities, value objects, invariants and Observer events | Draft |
 | [`architecture.md`](./architecture.md) | Layers, dependency rule, stack, patterns, AOP, decisions | Draft |
+| [`rules/hexa-sort.md`](./rules/hexa-sort.md) | Hexa Sort cascade: algorithm, tie-break, worked examples and other cell shapes | Draft |
 | [`piece-catalog.md`](./piece-catalog.md) | Every piece shape drawn, the 5-cell alternatives and how to change them (D-07) | Draft |
 | [`EXTENSIBILITY.md`](./EXTENSIBILITY.md) | How to add a fifth variant; worked example (Hexa Quest) | Draft |
 | [`implementation-plan.md`](./implementation-plan.md) | Iterations, work split, issues, setup and pending decisions | Approved |

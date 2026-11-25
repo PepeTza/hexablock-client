@@ -1052,17 +1052,123 @@ One entry per significant use. Copy the template.
   return piece indices [0, 0] instead of [0, 1]. The validator and publication
   flow still need the agreed level contract.
 
-### 2026-11-24 — Fit level validation against the proposed format
+### 2026-11-24 — Typed Lines placement preview
 
 - **Tool / model:** Codex.
-- **Issue / PR:** #72 and #165 (validator).
-- **Prompt:** Connect the validator to the shared solver and check its payload.
+- **Issue / PR:** #35 (preview) and #165 (coordinate independence).
+- **Prompt:** Expose the simulated footprint and cleared cells independently
+  of the Lines screen.
+- **Result:** The engine carries each variant's event type through preview.
+  The Lines adapter maps the typed cells without a runtime subtype check.
+- **Team modifications:** The #159 review requested removing that check.
+- **Lessons / limitations:** Reading the cells failed with TS2339 before the
+  engine retained the event type. Preview leaves live state and listeners
+  untouched. Native drag remains part of the Lines screen verification.
+
+### 2026-11-24 — README generic-engine explanation
+
+- **Tool / model:** Codex.
+- **Issue / PR:** #99 (layers and extensibility).
+- **Prompt:** Replace the generic-engine placeholder with verified examples.
+- **Result:** Explained the engine constraints and linked the domain
+  implementations and tests for coordinate reuse.
+- **Team modifications:** None recorded.
+- **Lessons / limitations:** A link check found 10 valid local paths and
+  failed when one path was replaced in a copy. Final README work remains
+  linked to the release and contributions from the other tracks.
+
+### 2026-11-23 — Hexa Sort stacks and cascade (issue #61)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #61.
+- **Prompt:** Plan and build HU20: place the tray stack on an empty cell and
+  transfer top runs in cascade until the board is stable, with a
+  deterministic tie-break, following the Hexa Lines pattern.
+- **Result:** `ColorStack` value object, seeded `SortStackSource`, the
+  `resolveCascade` queue algorithm, `SortGameRules` on the engine's Template
+  Method, `createSortGame` and `createHexSortGame`, `SortScoringPolicy`, 43
+  tests and `docs/rules/hexa-sort.md`.
+- **Team modifications:** The team chose the transfer semantics (top run,
+  longest run wins, resolving cell first on a tie). A teammate pointed out
+  that the first `createSortGame` built a hexagonal board inside it, breaking
+  OCP; it now receives the geometry and the figure, and a square-board test
+  proves another shape needs no change. RN-22 was reworded without axial
+  coordinates (#164).
+- **Lessons / limitations:** The AI first wrote two `as number` casts, which
+  `AGENTS.md` forbids; they were replaced with explicit `undefined` checks.
+  The tray limits (2-8 colours, heights 1-9) duplicate the API contract.
+
+### 2026-11-23 — Design-for-change rule (issue #162)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #162 (twin: PepeTza/hexablock-backend#48).
+- **Prompt (paraphrase):** after the review of backend #43 found plausibility
+  limits fixed at 19 cells, write the rule "never assume a requirement will
+  not change" into the repositories so every teammate's agent sees it, and add
+  a subagent that asks "what if tomorrow they ask for this?", bounded by the
+  kinds of change the teacher raised in class.
+- **Result:** a "Design for change" rule in `CONTRIBUTING.md` §4 and
+  `AGENTS.md` §4, a review bullet in `CONTRIBUTING.md` §3, the shared
+  `change-scenarios` skill (late change test, catalog of six kinds of change,
+  out-of-bounds list, three verdicts, guard against over-engineering), a
+  read-only Claude Code subagent, and a "Change scenarios" section in the
+  gate 1 plan (template, checklist, `harness-task` skill).
+- **Team modifications:** Ronald supplied the catalog from the teacher's
+  examples in class (cell geometry, 2D to 3D, database swap, multiplayer) and
+  added triangles and frameworks; renamed the measure from a single day before
+  the delivery to a late change of requirements in the last days; and added
+  the "human first" rule, so the planner or reviewer writes their own scenario
+  before the skill, which stays a second opinion. Commits were reordered so
+  the rule never links to a skill that does not exist yet.
+- **Lessons / limitations:** in a dry run on the merged backend #43, with no
+  human scenario given, the subagent reminded the reviewer to add their own,
+  found the 19-cell limits on its own, and also found hand-copied rule values
+  (`FIT_MAX_SCORE = 1000`, the Lines factor `1125`) that the human review had
+  missed. New subagent definitions load only when a Claude Code session
+  starts. Ronald will confirm with the teacher that using this subagent in
+  reviews is acceptable.
+- **Update (same day):** until the teacher approves it, Ronald removed the
+  `change-scenarios` skill, its subagent and the "Change scenarios" section
+  of the gate 1 plan; only the "Design for change" rule remains. Restoring
+  them is a revert of that commit.
+
+### 2026-11-24 — Implementation plan review and alignment (issues #174, #168)
+
+- **Tool / model:** Claude Code (claude-opus-5-5) and Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #174 (absorbs #168).
+- **Prompt:** Audit every section of `docs/implementation-plan.md` against both
+  repositories (code, docs, issues, PRs, CI and branch protection) without
+  rewriting the plan, then walk through the 36 findings one decision at a time.
+- **Result:** Audited 36 findings across both repositories and applied the
+  resolutions directly to `docs/implementation-plan.md` §1–§8 (including
+  decision 23 for iOS web build and item 16 in §8) and `docs/architecture.md`
+  (`TEvent` in §3, Iterator and `GameServiceFacade` removed from §4, `D-06`,
+  `D-08` and `D-23` in §10).
+- **Team modifications:** Ronald reviewed and decided each non-mechanical entry
+  individually, kept teammate-track changes as pending proposals, enabled
+  required CI checks in both repos, verified `origin/main` after #169 merged
+  (updating Sort references and dropping already-resolved #164 items from §8),
+  and chose to keep each non-architecture decision in its owning document.
+- **Lessons / limitations:** Checking live commits, PRs and issues (`#169`,
+  `#107`) before proposing each option avoided stale citations and duplicate
+  rules across documents.
+
+### 2026-11-25 — Fit level validation against the proposed format
+
+- **Tool / model:** Codex and Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #72 and #165 (PR #186).
+- **Prompt:** Connect the validator to the shared solver, check its payload,
+  and guard `validateSpec` against non-object runtime inputs.
 - **Result:** The generic validator accepts injected geometry, catalog and
-  coordinate parser. It rejects unknown spec, cell and threshold fields.
-- **Team modifications:** The #139 review requested injected dependencies.
-- **Lessons / limitations:** The previous validator accepted the three
-  unknown-field fixtures. Those now fail validation, and the valid
-  catalog example still produces a solution. Backend #66 is pending.
+  coordinate parser, rejects unknown spec, cell and threshold fields, and
+  returns a structured `spec` error on `null`, `undefined`, arrays or
+  primitives instead of throwing `TypeError`.
+- **Team modifications:** The #139 review requested injected dependencies;
+  cross-review with Codex caught the missing `isObject(spec)` guard before
+  `Object.keys(spec)`.
+- **Lessons / limitations:** Added 11 contract edge-case tests (non-object
+  specs, duplicate figure cells, repeated catalog IDs, invalid star
+  thresholds). Backend #66 contract freeze remains pending.
 
 ### 2026-11-24 — Local Fit level editor
 
