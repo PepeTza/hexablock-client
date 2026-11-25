@@ -100,10 +100,13 @@ Every task follows [`harness/`](./harness/README.md). In short:
   change, stop and report it.
 - Use `any`, `@ts-ignore` or `eslint-disable` to silence an error without the
   human's approval and a comment explaining why.
-- Use type assertions / casts (`as SomeType`, `<SomeType>value`) in production
-  code to presuppose a concrete subtype or silence `noUncheckedIndexedAccess`;
-  use generics, type guards or narrowing (`typeof`, `instanceof`, explicit
-  `undefined` checks).
+- Use type assertions / casts (`as SomeType`, `<SomeType>value`, except
+  `as const`) or non-null assertions (`value!`) in production code — enforced
+  by ESLint. Use generics, polymorphism, or narrowing (`typeof`, explicit
+  `undefined` checks) instead.
+- Use `instanceof` in production code — enforced by ESLint (existing legacy
+  uses tracked in `#172`); use polymorphism, generics, or discriminated unions
+  instead.
 - Put business rules in UI components, screens or HTTP controllers.
 
 ## 4. Code rules (summary)
@@ -162,6 +165,9 @@ override them.
 | [`add-variant`](./.claude/skills/add-variant/SKILL.md) | Building a variant or rehearsing "add a fifth variant" |
 | [`design-level`](./.claude/skills/design-level/SKILL.md) | Designing or checking a Hexa Fit or Hexa Sort level |
 | [`log-ai-usage`](./.claude/skills/log-ai-usage/SKILL.md) | Gate 4, before opening the pull request |
+| [`review`](./.claude/skills/review/SKILL.md) | Gate 4 or PR review: impartial second-opinion check (architecture, design for change, contracts, tests, scope) |
 
-`harness-task`, `aaa-test` and `log-ai-usage` are shared with the backend
-repository: whoever changes one updates the other copy the same day.
+`harness-task`, `aaa-test`, `log-ai-usage` and `review` (with its read-only
+subagent in [`.claude/agents/review.md`](./.claude/agents/review.md)) are
+shared with the backend repository: whoever changes one updates the other
+copy the same day.
