@@ -66,40 +66,58 @@ export function App({ login }: AppProps) {
   }
 
   return (
-    <main>
-      <h1>HexaBlock Admin</h1>
+    <main className="admin-shell">
+      <header className="admin-topbar">
+        <h1>HexaBlock Admin</h1>
+        {session && (
+          <div className="admin-session">
+            <span className="admin-account">{session.username}</span>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setSession(null)}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
+      </header>
       {session ? (
-        <>
-          <button type="button" onClick={() => setSession(null)}>
-            Sign out
-          </button>
-          <FitLevelEditor accountKey={session.username} />
-        </>
+        <FitLevelEditor accountKey={session.username} />
       ) : (
         <form
+          className="login-card"
           onSubmit={(event) => {
             void signIn(event);
           }}
         >
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            name="username"
-            autoComplete="username"
-            required
-          />
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-          <button type="submit" disabled={submitting}>
+          <div className="field-group">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              name="username"
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="field-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit" className="btn-primary" disabled={submitting}>
             Sign in
           </button>
-          {error && <p role="alert">{error}</p>}
+          {error && (
+            <p role="alert" className="alert-banner">
+              {error}
+            </p>
+          )}
         </form>
       )}
     </main>

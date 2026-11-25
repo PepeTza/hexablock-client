@@ -124,139 +124,181 @@ export function FitLevelEditor({
     );
   }
 
+  const pieceArea = draft.pieces.reduce(
+    (total, id) => total + CATALOG.get(id).size,
+    0,
+  );
+  const areaMatches =
+    draft.cells.length > 0 && draft.cells.length === pieceArea;
+
   return (
-    <section aria-labelledby="fit-editor-heading">
-      <h2 id="fit-editor-heading">Hexa Fit level editor</h2>
-      <fieldset>
-        <legend>Draw the figure</legend>
-        <svg
-          width="340"
-          height="290"
-          viewBox="0 0 340 290"
-          style={{ maxWidth: '100%', height: 'auto' }}
-        >
-          {GRID.map((cell) => {
-            const key = cell.key();
-            const active = draft.cells.includes(key);
-            return (
-              <polygon
-                key={key}
-                points={polygon(cell)}
-                tabIndex={0}
-                role="button"
-                aria-label={'Cell ' + key}
-                aria-pressed={active}
-                fill={active ? '#327a70' : '#edf2f6'}
-                stroke="#415969"
-                onClick={() => toggleCell(key)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    toggleCell(key);
-                  }
-                }}
-              />
-            );
-          })}
-        </svg>
-      </fieldset>
-      <fieldset>
-        <legend>Catalog pieces</legend>
-        <label>
-          Piece{' '}
-          <select
-            value={selectedPiece}
-            onChange={(event) => setSelectedPiece(event.target.value)}
-          >
-            {CATALOG.shapes.map(({ id, size }) => (
-              <option key={id} value={id}>
-                {id} ({size} cells)
-              </option>
-            ))}
-          </select>
-        </label>{' '}
-        <button
-          type="button"
-          disabled={!selectedPiece}
-          onClick={() => update({ pieces: [...draft.pieces, selectedPiece] })}
-        >
-          Add piece
-        </button>
-        <ol>
-          {draft.pieces.map((id, index) => (
-            <li key={index}>
-              {id}{' '}
+    <section className="editor-section" aria-labelledby="fit-editor-heading">
+      <div className="editor-header">
+        <h2 id="fit-editor-heading">Hexa Fit level editor</h2>
+        <div className="editor-metrics">
+          <span>Figure: {draft.cells.length} cells</span>
+          <span className={areaMatches ? 'metric-match' : undefined}>
+            Pieces: {pieceArea} cells
+          </span>
+        </div>
+      </div>
+      <div className="editor-grid">
+        <fieldset className="editor-panel">
+          <legend>Draw the figure</legend>
+          <div className="canvas-frame">
+            <svg
+              width="340"
+              height="290"
+              viewBox="0 0 340 290"
+              style={{ maxWidth: '100%', height: 'auto' }}
+            >
+              {GRID.map((cell) => {
+                const key = cell.key();
+                const active = draft.cells.includes(key);
+                return (
+                  <polygon
+                    key={key}
+                    className="hex-cell-interactive"
+                    points={polygon(cell)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={'Cell ' + key}
+                    aria-pressed={active}
+                    fill={active ? '#327a70' : '#edf2f6'}
+                    stroke="#415969"
+                    onClick={() => toggleCell(key)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleCell(key);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </svg>
+          </div>
+        </fieldset>
+        <div className="editor-controls">
+          <fieldset className="editor-panel">
+            <legend>Catalog pieces</legend>
+            <div className="piece-picker-row">
+              <label>
+                Piece{' '}
+                <select
+                  value={selectedPiece}
+                  onChange={(event) => setSelectedPiece(event.target.value)}
+                >
+                  {CATALOG.shapes.map(({ id, size }) => (
+                    <option key={id} value={id}>
+                      {id} ({size} cells)
+                    </option>
+                  ))}
+                </select>
+              </label>
               <button
                 type="button"
-                aria-label={`Remove ${id} (piece ${index + 1})`}
+                className="btn-secondary"
+                disabled={!selectedPiece}
                 onClick={() =>
-                  update({
-                    pieces: draft.pieces.filter(
-                      (_, current) => current !== index,
-                    ),
-                  })
+                  update({ pieces: [...draft.pieces, selectedPiece] })
                 }
               >
-                Remove
+                Add piece
               </button>
-            </li>
-          ))}
-        </ol>
-      </fieldset>
-      <fieldset>
-        <legend>Star thresholds</legend>
-        <label>
-          Two stars{' '}
-          <input
-            type="number"
-            min="1"
-            value={draft.twoStars}
-            onChange={(event) => update({ twoStars: event.target.value })}
-          />
-        </label>{' '}
-        <label>
-          Three stars{' '}
-          <input
-            type="number"
-            min="1"
-            value={draft.threeStars}
-            onChange={(event) => update({ threeStars: event.target.value })}
-          />
-        </label>
-      </fieldset>
-      <button type="button" onClick={validate}>
-        Validate
-      </button>
-      {saveFailed && <p role="alert">This browser could not save the draft.</p>}
+            </div>
+            <ol className="piece-list">
+              {draft.pieces.map((id, index) => (
+                <li key={index} className="piece-item">
+                  <span>{id}</span>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    aria-label={`Remove ${id} (piece ${index + 1})`}
+                    onClick={() =>
+                      update({
+                        pieces: draft.pieces.filter(
+                          (_, current) => current !== index,
+                        ),
+                      })
+                    }
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </fieldset>
+          <fieldset className="editor-panel">
+            <legend>Star thresholds</legend>
+            <div className="thresholds-row">
+              <label>
+                Two stars{' '}
+                <input
+                  type="number"
+                  min="1"
+                  value={draft.twoStars}
+                  onChange={(event) => update({ twoStars: event.target.value })}
+                />
+              </label>
+              <label>
+                Three stars{' '}
+                <input
+                  type="number"
+                  min="1"
+                  value={draft.threeStars}
+                  onChange={(event) =>
+                    update({ threeStars: event.target.value })
+                  }
+                />
+              </label>
+            </div>
+          </fieldset>
+          <div className="editor-actions">
+            <button type="button" className="btn-primary" onClick={validate}>
+              Validate
+            </button>
+          </div>
+        </div>
+      </div>
+      {saveFailed && (
+        <p role="alert" className="alert-banner">
+          This browser could not save the draft.
+        </p>
+      )}
       {result?.valid === false && (
-        <ul role="alert">
+        <ul role="alert" className="alert-list">
           {result.errors.map(({ field, message }) => (
             <li key={field}>{message}</li>
           ))}
         </ul>
       )}
       {result?.valid === true && (
-        <section aria-label="Validation result">
-          <p role="status">Solution found</p>
-          <svg
-            role="img"
-            aria-label="Fit solution"
-            width="340"
-            height="290"
-            viewBox="0 0 340 290"
-            style={{ maxWidth: '100%', height: 'auto' }}
-          >
-            {result.solution.flatMap(({ pieceIndex, cells }) =>
-              cells.map((cell) => (
-                <polygon
-                  key={cell.key()}
-                  points={polygon(cell)}
-                  stroke="#415969"
-                  fill={PIECE_COLORS[pieceIndex % PIECE_COLORS.length]}
-                />
-              )),
-            )}
-          </svg>
+        <section className="solution-card" aria-label="Validation result">
+          <p role="status" className="solution-status">
+            Solution found
+          </p>
+          <div className="canvas-frame">
+            <svg
+              role="img"
+              aria-label="Fit solution"
+              width="340"
+              height="290"
+              viewBox="0 0 340 290"
+              style={{ maxWidth: '100%', height: 'auto' }}
+            >
+              {result.solution.flatMap(({ pieceIndex, cells }) =>
+                cells.map((cell) => (
+                  <polygon
+                    key={cell.key()}
+                    points={polygon(cell)}
+                    stroke="#415969"
+                    fill={PIECE_COLORS[pieceIndex % PIECE_COLORS.length]}
+                  />
+                )),
+              )}
+            </svg>
+          </div>
         </section>
       )}
     </section>
