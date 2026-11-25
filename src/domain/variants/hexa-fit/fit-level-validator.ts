@@ -38,7 +38,14 @@ export class FitLevelValidator<
       return invalid('schemaVersion', 'Expected version 1');
     }
 
-    const { spec } = level;
+    return this.validateSpec(level.spec);
+  }
+
+  /** Validate a Fit v1 spec payload before or after publication (RN-13). */
+  validateSpec(spec: unknown): Result<TCoord> {
+    if (!isObject(spec)) {
+      return invalid('spec', 'Expected a JSON object');
+    }
     if (
       Object.keys(spec).some(
         (key) =>
