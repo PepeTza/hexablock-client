@@ -7,6 +7,22 @@ const SETUP: HexSortSpec = { tray: TRAY };
 const CENTER = new HexCoord(0, 0);
 const EAST = new HexCoord(1, 0);
 const FAR_EAST = new HexCoord(2, 0);
+const FAR_WEST = new HexCoord(-2, 0);
+const FAR_SOUTH_WEST = new HexCoord(-2, 1);
+
+/** `count` chips of one colour, for tall runs. */
+function run(color: number, count: number): number[] {
+  return Array.from({ length: count }, () => color);
+}
+
+/**
+ * A stack whose top run of `color` is nine, on another colour: any run of
+ * that colour joining it completes a goal, and it always wins the transfer
+ * because a tray run is at most five.
+ */
+function towerOf(color: number): number[] {
+  return [(color + 1) % TRAY.colors, ...run(color, 9)];
+}
 
 /** The first tray stack a seed deals, to build boards around it. */
 function firstTray(seed: number) {
@@ -21,7 +37,7 @@ describe('createHexSortGame', () => {
     // Assert
     expect(game.board.shape.size).toBe(19);
     expect(game.state.tray.height).toBeGreaterThanOrEqual(TRAY.minHeight);
-    expect(game.state).toMatchObject({ score: 0, moveCount: 0 });
+    expect(game.state).toMatchObject({ score: 0, moveCount: 0, goals: 0 });
   });
 
   it('should_build_a_bigger_board_when_the_setup_sets_the_radius', () => {
@@ -138,5 +154,48 @@ describe('createHexSortGame', () => {
 
     // Act / Assert
     expect(play()).toEqual(play());
+  });
+
+  it('should_count_the_goal_and_score_its_chips_when_a_tower_completes', () => {
+    // Arrange: a tower of nine next to the centre, in the tray's top colour.
+    const tray = firstTray(11);
+    const game = createHexSortGame(11, {
+      ...SETUP,
+      initialStacks: [{ cell: EAST, chips: towerOf(tray.top()) }],
+    });
+
+    // Act
+    game.applyMove({ cell: CENTER });
+
+    // Assert: the tower (10 chips plus the tray's run) is gone and scored.
+    expect(game.board.cellAt(EAST)).toBeUndefined();
+    expect(game.state.goals).toBe(1);
+    expect(game.state.score).toBe(10 + tray.topRun());
+  });
+
+  it('should_add_the_goals_of_each_move_to_the_counter', () => {
+    // Arrange: one tower for the first tray stack and one, far from it, for
+    // the second.
+    const first = firstTray(11);
+    const [second] = createHexSortGame(11, SETUP).state.source.fork().draw(1);
+    if (second === undefined) {
+      throw new Error('The tray always deals a next stack');
+    }
+    const game = createHexSortGame(11, {
+      ...SETUP,
+      initialStacks: [
+        { cell: EAST, chips: towerOf(first.top()) },
+        { cell: FAR_SOUTH_WEST, chips: towerOf(second.top()) },
+      ],
+    });
+
+    // Act
+    game.applyMove({ cell: CENTER });
+    game.resolutionDone();
+    game.applyMove({ cell: FAR_WEST });
+
+    // Assert
+    expect(game.board.cellAt(FAR_SOUTH_WEST)).toBeUndefined();
+    expect(game.state.goals).toBe(2);
   });
 });
