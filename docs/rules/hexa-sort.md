@@ -18,7 +18,9 @@ examples. The code is in
 After the tray stack is placed on an empty cell (RN-20), a queue starts with
 that cell:
 
-1. Take a cell from the queue. If it is empty, skip it.
+1. Take a cell from the queue. If it is empty, skip it. If its top run
+   already reaches the goal size, remove it as in step 6 and skip it: a
+   source can expose such a run when the goal size is lower than a stack.
 2. **Group:** the cell itself, then its neighbours in the order the board
    geometry lists them, keeping only those whose top has the same colour.
 3. If the group has only the cell, continue with the next cell.
@@ -26,16 +28,42 @@ that cell:
    the first one in the group wins: the resolving cell, then its neighbours
    in the geometry's order (RN-22).
 5. Every other stack of the group moves its top run onto the target. Each
-   source and then the target go back to the queue, because their tops
-   changed.
-6. Repeat until the queue is empty: the board is stable.
+   source goes back to the queue, because its top changed.
+6. **Goal (RN-23):** once the whole group has moved, if the target's top run
+   is 10 or more (`DEFAULT_CLEAR_AT`), the whole target stack is removed,
+   chips under the run included, and counts as a goal. Otherwise the target
+   goes back to the queue.
+7. Repeat until the queue is empty: the board is stable.
 
 Each transfer emits a `StackMerged` event (`from`, `to`, `color`, `count`)
-for the screen.
+and each goal a `GoalCompleted` event (`at`, `color`, `chips`) for the
+screen.
+
+**Points (RN-40):** every chip of a removed stack is worth 1 point, and a
+cascade that completes k goals multiplies its points by k. The game state
+keeps the goals completed so far (`goals`) for the screen's counter.
+
+**End of the game (RN-24):** after each move, once the cascade is
+resolved, the rules check the end in this order:
+
+1. **Victory** when the goals completed reach the level's `goalTarget`
+   (`>=`, because one cascade can complete several goals).
+2. **Defeat** when no empty cell is left to place the next stack on. Blocked
+   cells are not part of the board's figure, so they never count as empty.
+3. Otherwise the game goes on.
+
+Victory is checked first, so the move that meets the goals always wins. In
+practice both cannot happen at once: a goal removes a stack and frees its
+cell. When the game ends, the engine moves to its finished state and rejects
+every later move. `summarizeSortGame` hands the result (outcome, score,
+moves and seed) to the finish use case, and `SortProgressModel` completes
+the level and unlocks the next one on the first victory (RN-25), with no
+stars; a defeat changes nothing (CU-07 A1).
 
 **Why it always ends:** a transfer joins the source's top run with the
 target's top run, so the total number of runs on the board drops by one with
-every transfer. The number of runs is finite, so the transfers are too.
+every transfer, and a removal takes the removed stack's runs off the board.
+The number of runs is finite, so the steps are too.
 
 ## 3. Worked examples
 
@@ -79,6 +107,35 @@ geometry's order (E, **SE**, SW, **W**, ...), so it is the target and
 receives the centre's red and west's three reds. If the centre had tied too,
 the centre would have won, because the resolving cell always comes first.
 
+### Example 4: a goal
+
+| Cell | Before | After |
+|---|---|---|
+| centre (placed) | `[R, R]` | empty |
+| east | `[B, B, B, R×8]` | empty (goal) |
+
+East has the longer top run (8 against 2), so the centre's two reds move
+onto it. East's top run is now 10, so the whole stack is removed, with its
+three blues: one goal and 13 cleared chips, worth 13 points.
+
+Only the top run counts: `[R×6, B, B, R×4]` holds ten reds, but its top run
+is four, so it stays.
+
+### Example 5: two goals in one cascade
+
+| Cell | Before | After the 1st step | After the 2nd |
+|---|---|---|---|
+| centre (placed) | `[B×9]` | empty (goal) | empty |
+| east | `[G×5, B]` | `[G×5]` | empty (goal) |
+| far east | `[G×5]` | `[G×5]` | empty |
+
+1. East's blue joins the centre's nine: ten blues, so the centre is removed.
+   East now shows five greens.
+2. East and far east tie at five; east is the resolving cell, so it wins and
+   reaches ten greens: removed too.
+
+Two goals and 20 cleared chips in one cascade score 20 × 2 = 40 points.
+
 ## 4. Other cell shapes (OCP)
 
 The rules and the cascade use only `neighbours()` and `key()` of the board
@@ -98,11 +155,12 @@ so RN-22 holds without change.
 
 ## 5. Not yet implemented
 
-- Removing stacks of 10 or more chips of one colour and scoring them
-  (RN-23, RN-40): #73. That issue also decides whether the trigger counts
-  the top run or every chip of the colour in the stack, and which chips of a
-  removed mixed stack score.
-- Victory and defeat (RN-24): #82.
+- A goal size per level: the level spec v1 (API contract §6) has no field
+  for it, so every level uses `DEFAULT_CLEAR_AT`. Adding one changes the
+  contract.
+
+The goal decisions of #73 (top run only, every chip of the stack scores,
+checked after each step) are in RN-23 and RN-40.
 
 ## 6. Known duplication
 
@@ -110,3 +168,8 @@ so RN-22 holds without change.
 heights 1 to 9) with its own constants, as the backend does in
 `plausibility-limits.ts`. If the spec changes those limits, both places must
 change; the API contract (§6) is the source of truth.
+
+The backend's score plausibility check (`plausibility-limits.ts`) assumes
+RN-40's 1 point per chip. `SortScoringPolicy` takes the chip value as
+configuration, so raising it means raising that limit too, or honest scores
+are rejected.
