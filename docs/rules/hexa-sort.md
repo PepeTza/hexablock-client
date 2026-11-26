@@ -18,7 +18,9 @@ examples. The code is in
 After the tray stack is placed on an empty cell (RN-20), a queue starts with
 that cell:
 
-1. Take a cell from the queue. If it is empty, skip it.
+1. Take a cell from the queue. If it is empty, skip it. If its top run
+   already reaches the goal size, remove it as in step 6 and skip it: a
+   source can expose such a run when the goal size is lower than a stack.
 2. **Group:** the cell itself, then its neighbours in the order the board
    geometry lists them, keeping only those whose top has the same colour.
 3. If the group has only the cell, continue with the next cell.
@@ -150,3 +152,8 @@ checked after each step) are in RN-23 and RN-40.
 heights 1 to 9) with its own constants, as the backend does in
 `plausibility-limits.ts`. If the spec changes those limits, both places must
 change; the API contract (§6) is the source of truth.
+
+The backend's score plausibility check (`plausibility-limits.ts`) assumes
+RN-40's 1 point per chip. `SortScoringPolicy` takes the chip value as
+configuration, so raising it means raising that limit too, or honest scores
+are rejected.
