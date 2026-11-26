@@ -18,6 +18,8 @@ import { SortStackSource, type SortTrayConfig } from './sort-stack-source';
 export interface SortGameState extends SourcedState<SortStackSource> {
   /** The stack the player places next (a tray of one stack, #133). */
   readonly tray: ColorStack;
+  /** Goals completed so far (RN-23): the counter the screen shows. */
+  readonly goals: number;
 }
 
 export interface PlaceStackMove<TCoord extends ICoord> {
@@ -53,6 +55,14 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
   SortResolution,
   SortStackSource
 > {
+  constructor(
+    scoring: SortScoringPolicy,
+    /** Top-run length that completes a goal (RN-23). */
+    private readonly clearAt: number,
+  ) {
+    super(scoring);
+  }
+
   protected validate(
     board: Board<ColorStack, TCoord>,
     _state: SortGameState,
@@ -81,9 +91,17 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
     const { resolution, events } = resolveCascade(
       board,
       move.cell,
-      DEFAULT_CLEAR_AT,
+      this.clearAt,
     );
-    return { state: { ...state, tray: source.next() }, resolution, events };
+    return {
+      state: {
+        ...state,
+        tray: source.next(),
+        goals: state.goals + resolution.goals,
+      },
+      resolution,
+      events,
+    };
   }
 
   protected evaluateEnd(): null {
@@ -116,12 +134,13 @@ export function createSortGame<TCoord extends ICoord>(
     moveCount: 0,
     score: 0,
     tray: source.next(),
+    goals: 0,
     source: Snapshot.of(source),
   };
   return GameEngine.start({
     board,
     state,
-    rules: new SortGameRules<TCoord>(new SortScoringPolicy()),
+    rules: new SortGameRules<TCoord>(new SortScoringPolicy(), DEFAULT_CLEAR_AT),
     seed,
   });
 }
