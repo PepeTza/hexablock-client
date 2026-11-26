@@ -53,10 +53,10 @@ Decisions (D-xx) are listed in [`architecture.md`](./architecture.md).
 | RN-20 | Each cell can hold a stack of coloured chips; the player places the stack from the tray on an empty cell. | Statement |
 | RN-21 | After placing, the placed stack and each adjacent stack with the same top colour form a group; every stack of the group moves its top run (the contiguous same-colour chips on top) onto the stack with the longest top run of that colour. Every stack that changed is resolved again, in cascade, until there are no more transfers. See [`rules/hexa-sort.md`](./rules/hexa-sort.md). | Statement |
 | RN-22 | On a tie in top-run length, the stack being resolved wins, then its neighbours in the order the board geometry lists them. The rule uses only the geometry, never the coordinates, so the resolution is reproducible on any cell shape. | Proposal |
-| RN-23 | When a stack gathers 10 or more chips of the same colour, the whole stack is removed from the board and counts as a completed goal. | Statement |
+| RN-23 | When the top run of a stack (its contiguous same-colour chips on top) reaches 10 or more, the whole stack is removed from the board, including the chips under the run, and counts as a completed goal. Chips of that colour buried under other colours do not count. It is checked after each step of the cascade, once the whole group has moved onto its target, so a target receives every run of its group before it is removed. The size 10 is a configurable value. See [`rules/hexa-sort.md`](./rules/hexa-sort.md). | Statement + Proposal |
 | RN-24 | Victory: the level's number of goals is reached. Defeat: after the cascade resolves, the board is full and there is no empty cell to place on. | Statement |
 | RN-25 | There are at least 10 levels of progressive difficulty: difficulty grows with the number of colours, the height and mix of the stacks, and the number of goals. Level n+1 is unlocked by completing level n (Hexa Sort does not use stars). | Statement + Proposal |
-| RN-40 | Each cleared chip is worth 1 point. If the same cascade completes k goals, the points of that cascade are multiplied by k. Values adjustable by configuration. | Proposal |
+| RN-40 | Each cleared chip is worth 1 point; every chip of a removed stack counts, including those under the run. If the same cascade completes k goals, the points of that cascade are multiplied by k. Values adjustable by configuration. | Proposal |
 
 ## Hexa Merge
 

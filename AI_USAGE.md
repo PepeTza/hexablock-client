@@ -1153,6 +1153,27 @@ One entry per significant use. Copy the template.
   `#107`) before proposing each option avoided stale citations and duplicate
   rules across documents.
 
+
+### 2026-11-26 — Hexa Sort goals (issue #73)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #73.
+- **Prompt:** Plan and build HU21: remove stacks of ten or more same-colour
+  chips as goals and score them per RN-40, with a visible goal counter.
+- **Result:** goal removal inside `resolveCascade` with a `GoalCompleted`
+  event, `DEFAULT_CLEAR_AT`, the RN-40 multiplier in `SortScoringPolicy`,
+  the `goals` counter in `SortGameState`, 13 tests, and RN-23, RN-40 and
+  `docs/rules/hexa-sort.md` updated.
+- **Team modifications:** The owner made the three decisions the rules left
+  open (#164): the trigger is the top run, not every chip of the colour;
+  every chip of a removed stack scores; the check runs after each cascade
+  step, once the whole group has moved. The owner also asked for the goal
+  size to be changeable (for example to 12), so it lives in one constant and
+  reaches the cascade as configuration.
+- **Lessons / limitations:** A goal size per level is not possible without a
+  new field in the level spec (API contract §6). The RN-40 values are still a
+  team proposal, which is why they stay configurable.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
