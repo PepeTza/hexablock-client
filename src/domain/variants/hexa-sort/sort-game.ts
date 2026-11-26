@@ -11,6 +11,7 @@ import { SeededRandom } from '../../engine/random/seeded-random';
 import { Snapshot } from '../../engine/state/snapshot';
 import { ColorStack } from './color-stack';
 import { resolveCascade, type SortResolution } from './resolve-cascade';
+import { DEFAULT_CLEAR_AT } from './sort-rules';
 import { SortScoringPolicy } from './sort-scoring-policy';
 import { SortStackSource, type SortTrayConfig } from './sort-stack-source';
 
@@ -77,7 +78,11 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
     move: PlaceStackMove<TCoord>,
     source: SortStackSource,
   ) {
-    const { resolution, events } = resolveCascade(board, move.cell);
+    const { resolution, events } = resolveCascade(
+      board,
+      move.cell,
+      DEFAULT_CLEAR_AT,
+    );
     return { state: { ...state, tray: source.next() }, resolution, events };
   }
 
