@@ -249,6 +249,43 @@ describe('resolveCascade', () => {
       expect(resolution).toEqual({ transfers: 2, goals: 1, chipsCleared: 12 });
     });
 
+    it('should_remove_the_stack_after_its_step_when_later_steps_could_grow_it', () => {
+      // Arrange: the centre reaches ten in the first step. East then gives
+      // its blue to far east and shows three reds, which would join the
+      // centre if the check waited for the end of the cascade.
+      const board = boardWith([
+        [CENTER, run(R, 8)],
+        [EAST, [R, R, R, B, R, R]],
+        [FAR_EAST, [B, B]],
+      ]);
+
+      // Act
+      const { resolution } = resolveCascade(board, CENTER, CLEAR_AT);
+
+      // Assert
+      expect(chipsAt(board, CENTER)).toBeUndefined();
+      expect(chipsAt(board, EAST)).toEqual([R, R, R]);
+      expect(chipsAt(board, FAR_EAST)).toEqual([B, B, B]);
+      expect(resolution).toEqual({ transfers: 2, goals: 1, chipsCleared: 10 });
+    });
+
+    it('should_remove_a_source_when_its_exposed_top_run_reaches_the_size', () => {
+      // Arrange: with a goal size of three, east's blue goes to the centre
+      // (a tie, so the resolving cell wins) and exposes three reds.
+      const board = boardWith([
+        [CENTER, [B]],
+        [EAST, [R, R, R, B]],
+      ]);
+
+      // Act
+      const { resolution } = resolveCascade(board, CENTER, 3);
+
+      // Assert
+      expect(chipsAt(board, EAST)).toBeUndefined();
+      expect(chipsAt(board, CENTER)).toEqual([B, B]);
+      expect(resolution).toEqual({ transfers: 1, goals: 1, chipsCleared: 3 });
+    });
+
     it('should_count_two_goals_when_one_cascade_completes_two_towers', () => {
       // Arrange: the blue completes a tower on the centre and exposes five
       // greens on east, which then complete a tower with the five further
