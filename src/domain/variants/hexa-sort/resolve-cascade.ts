@@ -47,7 +47,9 @@ export interface SortResolution {
  * stack with the longest top run; on a tie, the first one in the group.
  * Every other stack of the group moves its top run onto the target, and
  * every stack that changed goes back to the queue. Once the whole group has
- * moved, a target whose top run reached `clearAt` is removed as a goal.
+ * moved, a target whose top run reached `clearAt` is removed as a goal; so
+ * is any stack taken from the queue, such as a source whose new top run is
+ * long enough, so the board never keeps a completed goal.
  *
  * It always ends: each transfer joins two runs into one and each removal
  * takes runs off the board, so the number of runs drops with every step.
@@ -67,9 +69,27 @@ export function resolveCascade<TCoord extends ICoord>(
   let goals = 0;
   let chipsCleared = 0;
 
+  /** Removes the stack on `cell` if its top run completes a goal (RN-23). */
+  const clearIfGoal = (cell: TCoord): boolean => {
+    const tower = board.cellAt(cell);
+    if (tower === undefined || tower.topRun() < clearAt) {
+      return false;
+    }
+    board.remove(cell);
+    goals += 1;
+    chipsCleared += tower.chips.length;
+    events.push({
+      type: 'GoalCompleted',
+      at: cell,
+      color: tower.top(),
+      chips: tower.chips.length,
+    });
+    return true;
+  };
+
   for (let coord = queue.shift(); coord !== undefined; coord = queue.shift()) {
     const stack = board.cellAt(coord);
-    if (stack === undefined) {
+    if (stack === undefined || clearIfGoal(coord)) {
       continue;
     }
     const color = stack.top();
@@ -97,20 +117,9 @@ export function resolveCascade<TCoord extends ICoord>(
       queue.push(source);
     }
 
-    const tower = board.cellAt(target);
-    if (tower !== undefined && tower.topRun() >= clearAt) {
-      board.remove(target);
-      goals += 1;
-      chipsCleared += tower.chips.length;
-      events.push({
-        type: 'GoalCompleted',
-        at: target,
-        color: tower.top(),
-        chips: tower.chips.length,
-      });
-      continue;
+    if (!clearIfGoal(target)) {
+      queue.push(target);
     }
-    queue.push(target);
   }
 
   return { resolution: { transfers, goals, chipsCleared }, events };
