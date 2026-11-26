@@ -1,5 +1,6 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import type { GameOutcome } from '../../engine/events/domain-event';
 import { GameEngine } from '../../engine/game/game-engine';
 import {
   SourcedGameRules,
@@ -9,14 +10,18 @@ import type { IBoardGeometry } from '../../engine/geometry/board-geometry';
 import type { ICoord } from '../../engine/geometry/coord';
 import { SeededRandom } from '../../engine/random/seeded-random';
 import { Snapshot } from '../../engine/state/snapshot';
+import type { FinishedGameSummary } from '../../progress/progress-model';
 import { ColorStack } from './color-stack';
 import { resolveCascade, type SortResolution } from './resolve-cascade';
+import { DEFAULT_CLEAR_AT } from './sort-rules';
 import { SortScoringPolicy } from './sort-scoring-policy';
 import { SortStackSource, type SortTrayConfig } from './sort-stack-source';
 
 export interface SortGameState extends SourcedState<SortStackSource> {
   /** The stack the player places next (a tray of one stack, #133). */
   readonly tray: ColorStack;
+  /** Goals completed so far (RN-23): the counter the screen shows. */
+  readonly goals: number;
 }
 
 export interface PlaceStackMove<TCoord extends ICoord> {
@@ -37,6 +42,8 @@ export interface SortSetup<TCoord extends ICoord> {
     readonly chips: readonly number[];
   }>;
   readonly tray: SortTrayConfig;
+  /** Goals needed to win (RN-24): the level's `goals` in the level spec. */
+  readonly goalTarget: number;
 }
 
 /**
@@ -52,6 +59,16 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
   SortResolution,
   SortStackSource
 > {
+  constructor(
+    scoring: SortScoringPolicy,
+    /** Top-run length that completes a goal (RN-23). */
+    private readonly clearAt: number,
+    /** Goals needed to win (RN-24). */
+    private readonly goalTarget: number,
+  ) {
+    super(scoring);
+  }
+
   protected validate(
     board: Board<ColorStack, TCoord>,
     _state: SortGameState,
@@ -77,13 +94,36 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
     move: PlaceStackMove<TCoord>,
     source: SortStackSource,
   ) {
-    const { resolution, events } = resolveCascade(board, move.cell);
-    return { state: { ...state, tray: source.next() }, resolution, events };
+    const { resolution, events } = resolveCascade(
+      board,
+      move.cell,
+      this.clearAt,
+    );
+    return {
+      state: {
+        ...state,
+        tray: source.next(),
+        goals: state.goals + resolution.goals,
+      },
+      resolution,
+      events,
+    };
   }
 
-  protected evaluateEnd(): null {
-    // Victory and defeat are implemented in HU22 (#82).
-    return null;
+  /**
+   * RN-24: victory once the goals reach the target; defeat when, after the
+   * cascade, no empty cell is left to place on. Victory is checked first, so
+   * the move that meets the goals always wins.
+   */
+  protected evaluateEnd(
+    board: Board<ColorStack, TCoord>,
+    state: SortGameState,
+  ): GameOutcome | null {
+    if (state.goals >= this.goalTarget) {
+      return 'victory';
+    }
+    const full = board.shape.coords.every((cell) => !board.isEmpty(cell));
+    return full ? 'defeat' : null;
   }
 }
 
@@ -96,6 +136,11 @@ export function createSortGame<TCoord extends ICoord>(
   seed: number,
   setup: SortSetup<TCoord>,
 ) {
+  if (!Number.isInteger(setup.goalTarget) || setup.goalTarget < 1) {
+    throw new RangeError(
+      `The goal target must be an integer >= 1: ${setup.goalTarget}`,
+    );
+  }
   const blocked = new Set((setup.blocked ?? []).map((cell) => cell.key()));
   const cells = setup.shape.coords.filter((cell) => !blocked.has(cell.key()));
   const board = new Board<ColorStack, TCoord>(
@@ -111,12 +156,45 @@ export function createSortGame<TCoord extends ICoord>(
     moveCount: 0,
     score: 0,
     tray: source.next(),
+    goals: 0,
     source: Snapshot.of(source),
   };
   return GameEngine.start({
     board,
     state,
-    rules: new SortGameRules<TCoord>(new SortScoringPolicy()),
+    rules: new SortGameRules<TCoord>(
+      new SortScoringPolicy(),
+      DEFAULT_CLEAR_AT,
+      setup.goalTarget,
+    ),
     seed,
   });
+}
+
+/**
+ * The facts of a finished Hexa Sort game for `FinishGameUseCase` (CU-07):
+ * the outcome, the score (RN-40), the moves and the seed the result screen
+ * shows (RF-16). `null` while the game is still being played.
+ */
+export function summarizeSortGame(
+  game: {
+    readonly state: SortGameState;
+    readonly outcome: GameOutcome | null;
+    readonly seed: number | null;
+  },
+  levelId: string,
+  durationMs: number,
+): FinishedGameSummary | null {
+  if (game.outcome === null) return null;
+
+  const { score, moveCount } = game.state;
+  return {
+    gameId: 'hexa-sort',
+    levelId,
+    reason: game.outcome,
+    score,
+    moveCount,
+    durationMs,
+    seed: game.seed,
+  };
 }

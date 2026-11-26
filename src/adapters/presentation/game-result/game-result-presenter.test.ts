@@ -75,6 +75,39 @@ describe('GameResultPresenter', () => {
     expect(viewModel.nextLevelId).toBe('fit-02');
   });
 
+  it('should_format_a_sort_victory_without_stars_with_seed_and_next_level', () => {
+    // Arrange: Hexa Sort has levels and a seed, but no stars (RN-25).
+    const presenter = new GameResultPresenter();
+
+    // Act
+    const viewModel = presenter.present({
+      gameId: 'hexa-sort',
+      variantName: 'Hexa Sort',
+      levelId: 'sort-01',
+      result: createFinishOutput({
+        score: 120,
+        seed: 7,
+        reason: 'victory',
+        isNewRecord: true,
+        stars: null,
+        unlockedLevelId: 'sort-02',
+      }),
+    });
+
+    // Assert
+    expect(viewModel).toEqual({
+      outcome: 'victory',
+      title: 'Victory!',
+      variantName: 'Hexa Sort',
+      scoreLabel: 'Score: 120',
+      newRecordLabel: 'New record!',
+      starsLabel: null,
+      seedLabel: 'Seed: 7',
+      warningLabel: null,
+      nextLevelId: 'sort-02',
+    });
+  });
+
   it('should_hide_seed_when_result_seed_is_null', () => {
     // Arrange
     const presenter = new GameResultPresenter();
