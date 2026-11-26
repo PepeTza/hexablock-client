@@ -4,11 +4,9 @@ import type {
   LoginResult,
 } from '@application/ports/auth-service';
 import type { AsyncCommandService } from '@application/use-cases/use-case';
-import { BoardShape } from '@domain/engine/board/board-shape';
-import { HexGeometry } from '@domain/engine/hex/hex-geometry';
 import { type FormEvent, useState } from 'react';
 
-const LINES_BOARD_RADIUS = 4;
+import { FitLevelEditor } from './FitLevelEditor';
 const LOGIN_ERRORS = {
   'invalid-input': 'Check the username and password format.',
   'invalid-credentials': 'Invalid username or password.',
@@ -68,44 +66,58 @@ export function App({ login }: AppProps) {
   }
 
   return (
-    <main>
-      <h1>HexaBlock Admin</h1>
+    <main className="admin-shell">
+      <header className="admin-topbar">
+        <h1>HexaBlock Admin</h1>
+        {session && (
+          <div className="admin-session">
+            <span className="admin-account">{session.username}</span>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setSession(null)}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
+      </header>
       {session ? (
-        <>
-          <button type="button" onClick={() => setSession(null)}>
-            Sign out
-          </button>
-          <p>
-            A radius-{LINES_BOARD_RADIUS} board has{' '}
-            {BoardShape.ofRadius(new HexGeometry(), LINES_BOARD_RADIUS).size}{' '}
-            cells.
-          </p>
-        </>
+        <FitLevelEditor accountKey={session.username} />
       ) : (
         <form
+          className="login-card"
           onSubmit={(event) => {
             void signIn(event);
           }}
         >
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            name="username"
-            autoComplete="username"
-            required
-          />
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-          <button type="submit" disabled={submitting}>
+          <div className="field-group">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              name="username"
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="field-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit" className="btn-primary" disabled={submitting}>
             Sign in
           </button>
-          {error && <p role="alert">{error}</p>}
+          {error && (
+            <p role="alert" className="alert-banner">
+              {error}
+            </p>
+          )}
         </form>
       )}
     </main>

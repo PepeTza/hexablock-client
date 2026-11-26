@@ -55,7 +55,7 @@ describe('App', () => {
     expect(request).not.toHaveBeenCalled();
   });
 
-  it('should_show_the_cell_count_of_a_radius_4_board_when_rendered_for_an_admin', async () => {
+  it('should_show_the_fit_editor_when_an_admin_signs_in', async () => {
     // Arrange
     const request = renderPanel(
       vi.fn<typeof fetch>().mockResolvedValue(loginResponse('admin')),
@@ -63,10 +63,12 @@ describe('App', () => {
 
     // Act
     submit();
-    const text = await screen.findByText(/cells/);
+    const editor = await screen.findByRole('heading', {
+      name: 'Hexa Fit level editor',
+    });
 
     // Assert
-    expect(text.textContent).toBe('A radius-4 board has 61 cells.');
+    expect(editor).toBeTruthy();
     expect(request).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/auth/login',
       expect.objectContaining({

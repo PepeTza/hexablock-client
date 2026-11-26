@@ -9,9 +9,12 @@ import type { PieceCatalog } from '../../engine/pieces/piece-catalog';
 import { Piece } from '../../engine/pieces/piece';
 import { solveFitFigure, type FitSolutionPlacement } from './fit-solver';
 
-type Result<TCoord extends ICoord> = LevelValidationResult<
-  readonly FitSolutionPlacement<TCoord>[]
->;
+type Result<TCoord extends ICoord> =
+  | {
+      readonly valid: true;
+      readonly solution: readonly FitSolutionPlacement<TCoord>[];
+    }
+  | Extract<LevelValidationResult, { readonly valid: false }>;
 
 function invalid(field: string, message: string) {
   return { valid: false as const, errors: [{ field, message }] };

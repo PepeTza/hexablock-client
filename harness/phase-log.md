@@ -67,3 +67,4 @@ details live in the PR.
 | 2026-11-25 | Hexa Sort goals: remove stacks of ten | #73 | KeneFu | 443 / 443 app | Top run of 10+ removes the whole stack after each cascade step; every chip scores, times the goals of the cascade (RN-40); goal size in `DEFAULT_CLEAR_AT`; goals counter in state |
 | 2026-11-26 | Hexa Sort victory and defeat | #82 | KeneFu | 464 / 464 app | Victory at `goalTarget` goals (`>=`, checked first), defeat when no empty cell is left after the cascade; `summarizeSortGame` and `SortProgressModel` (unlock, no stars); screen wiring left to #88 |
 | 2026-11-25 | Fit level validation | #72 | jesusobando32 | 448 / 448 app, 17 / 17 panel | Injected geometry and catalog; unknown fields and non-object specs rejected via `validateSpec`; contract approval pending |
+| 2026-11-24 | Local Fit level editor | #92 | jesusobando32 | 448 / 448 app, 20 / 20 panel | SVG editing, validation and browser draft recovery verified; publication pending |
