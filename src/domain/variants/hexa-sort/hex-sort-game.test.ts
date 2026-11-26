@@ -2,13 +2,15 @@ import { HexCoord } from '../../engine/hex/hex-coord';
 import { createHexSortGame, type HexSortSpec } from './hex-sort-game';
 
 const TRAY = { colors: 4, minHeight: 2, maxHeight: 5, maxColorsPerStack: 2 };
-const SETUP: HexSortSpec = { tray: TRAY };
+// High enough that the tests about moves never end the game by goals.
+const SETUP: HexSortSpec = { tray: TRAY, goalTarget: 99 };
 
 const CENTER = new HexCoord(0, 0);
 const EAST = new HexCoord(1, 0);
 const FAR_EAST = new HexCoord(2, 0);
 const FAR_WEST = new HexCoord(-2, 0);
 const FAR_SOUTH_WEST = new HexCoord(-2, 1);
+const WEST = new HexCoord(-1, 0);
 
 /** `count` chips of one colour, for tall runs. */
 function run(color: number, count: number): number[] {
@@ -27,6 +29,32 @@ function towerOf(color: number): number[] {
 /** The first tray stack a seed deals, to build boards around it. */
 function firstTray(seed: number) {
   return createHexSortGame(seed, SETUP).state.tray;
+}
+
+/** The first seed whose first tray stack has two colours. */
+function seedWithTwoColourTray(): number {
+  for (let seed = 1; seed < 1000; seed++) {
+    const tray = firstTray(seed);
+    if (tray.withoutTopRun() !== null) return seed;
+  }
+  throw new Error('No seed deals a two-colour stack first');
+}
+
+/**
+ * A stack on every cell of the radius-2 board but `free` and `skip`, each
+ * topped by a colour other than `trayTop`, so placing the tray on `free`
+ * moves nothing.
+ */
+function fillAllBut(
+  trayTop: number,
+  free: HexCoord,
+  skip: readonly HexCoord[] = [],
+) {
+  const other = (trayTop + 1) % TRAY.colors;
+  const left = [free, ...skip].map((cell) => cell.key());
+  return createHexSortGame(1, SETUP)
+    .board.shape.coords.filter((cell) => !left.includes(cell.key()))
+    .map((cell) => ({ cell, chips: [other] }));
 }
 
 describe('createHexSortGame', () => {
@@ -197,5 +225,148 @@ describe('createHexSortGame', () => {
     // Assert
     expect(game.board.cellAt(FAR_SOUTH_WEST)).toBeUndefined();
     expect(game.state.goals).toBe(2);
+  });
+
+  describe('end of the game (RN-24)', () => {
+    it('should_win_when_a_cascade_reaches_the_goal_target', () => {
+      // Arrange
+      const tray = firstTray(11);
+      const game = createHexSortGame(11, {
+        ...SETUP,
+        goalTarget: 1,
+        initialStacks: [{ cell: EAST, chips: towerOf(tray.top()) }],
+      });
+
+      // Act
+      const result = game.applyMove({ cell: CENTER });
+      game.resolutionDone();
+
+      // Assert
+      expect(result).toMatchObject({ pendingOutcome: 'victory' });
+      expect(game.status).toBe('finished');
+      expect(game.outcome).toBe('victory');
+    });
+
+    it('should_win_when_one_cascade_passes_the_goal_target', () => {
+      // Arrange: the tray's top run completes the tower on east; what is
+      // left of the tray then completes the tower on west. Two goals for a
+      // target of one.
+      const seed = seedWithTwoColourTray();
+      const tray = firstTray(seed);
+      const rest = tray.withoutTopRun();
+      if (rest === null) throw new Error('The tray has two colours');
+      const game = createHexSortGame(seed, {
+        ...SETUP,
+        goalTarget: 1,
+        initialStacks: [
+          { cell: EAST, chips: towerOf(tray.top()) },
+          {
+            cell: WEST,
+            chips: [
+              (rest.top() + 1) % TRAY.colors,
+              ...run(rest.top(), 10 - rest.topRun()),
+            ],
+          },
+        ],
+      });
+
+      // Act
+      game.applyMove({ cell: CENTER });
+      game.resolutionDone();
+
+      // Assert
+      expect(game.state.goals).toBe(2);
+      expect(game.outcome).toBe('victory');
+    });
+
+    it('should_keep_playing_when_goals_are_below_the_target', () => {
+      // Arrange
+      const tray = firstTray(11);
+      const game = createHexSortGame(11, {
+        ...SETUP,
+        goalTarget: 2,
+        initialStacks: [{ cell: EAST, chips: towerOf(tray.top()) }],
+      });
+
+      // Act
+      const result = game.applyMove({ cell: CENTER });
+      game.resolutionDone();
+
+      // Assert
+      expect(game.state.goals).toBe(1);
+      expect(result).toMatchObject({ pendingOutcome: null });
+      expect(game.status).toBe('playing');
+    });
+
+    it('should_lose_and_reject_moves_when_the_board_is_full_after_the_cascade', () => {
+      // Arrange: every cell but the centre holds a stack the tray ignores.
+      const tray = firstTray(11);
+      const game = createHexSortGame(11, {
+        ...SETUP,
+        initialStacks: fillAllBut(tray.top(), CENTER),
+      });
+
+      // Act
+      const result = game.applyMove({ cell: CENTER });
+      game.resolutionDone();
+      const next = game.applyMove({ cell: EAST });
+
+      // Assert
+      expect(result).toMatchObject({ pendingOutcome: 'defeat' });
+      expect(game.outcome).toBe('defeat');
+      expect(next).toEqual({ kind: 'rejected', reason: 'the game is over' });
+    });
+
+    it('should_keep_playing_when_the_cascade_frees_the_last_filled_cell', () => {
+      // Arrange: the centre is the last free cell, but east is a tower the
+      // tray completes, so the cascade frees east.
+      const tray = firstTray(11);
+      const game = createHexSortGame(11, {
+        ...SETUP,
+        initialStacks: [
+          ...fillAllBut(tray.top(), CENTER, [EAST]),
+          { cell: EAST, chips: towerOf(tray.top()) },
+        ],
+      });
+
+      // Act
+      const result = game.applyMove({ cell: CENTER });
+      game.resolutionDone();
+
+      // Assert
+      expect(game.board.isEmpty(EAST)).toBe(true);
+      expect(result).toMatchObject({ pendingOutcome: null });
+      expect(game.status).toBe('playing');
+    });
+
+    it('should_not_count_blocked_cells_as_empty_when_the_board_fills', () => {
+      // Arrange: far east is blocked and left without a stack.
+      const tray = firstTray(11);
+      const game = createHexSortGame(11, {
+        ...SETUP,
+        blocked: [FAR_EAST],
+        initialStacks: fillAllBut(tray.top(), CENTER, [FAR_EAST]),
+      });
+
+      // Act
+      game.applyMove({ cell: CENTER });
+      game.resolutionDone();
+
+      // Assert
+      expect(game.outcome).toBe('defeat');
+    });
+
+    it.each([0, -1, 1.5])(
+      'should_throw_when_goal_target_is_not_a_positive_integer (%p)',
+      (goalTarget) => {
+        // Act
+        const act = () => createHexSortGame(1, { ...SETUP, goalTarget });
+
+        // Assert
+        expect(act).toThrow(
+          `The goal target must be an integer >= 1: ${goalTarget}`,
+        );
+      },
+    );
   });
 });

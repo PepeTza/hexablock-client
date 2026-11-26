@@ -80,6 +80,7 @@ function squareSetup(
     geometry: new SquareGeometry(),
     shape: squareBoard(),
     tray: TRAY,
+    goalTarget: 99,
     ...extra,
   };
 }
