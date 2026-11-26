@@ -1,5 +1,6 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import type { GameOutcome } from '../../engine/events/domain-event';
 import { GameEngine } from '../../engine/game/game-engine';
 import {
   SourcedGameRules,
@@ -40,6 +41,8 @@ export interface SortSetup<TCoord extends ICoord> {
     readonly chips: readonly number[];
   }>;
   readonly tray: SortTrayConfig;
+  /** Goals needed to win (RN-24): the level's `goals` in the level spec. */
+  readonly goalTarget: number;
 }
 
 /**
@@ -59,6 +62,8 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
     scoring: SortScoringPolicy,
     /** Top-run length that completes a goal (RN-23). */
     private readonly clearAt: number,
+    /** Goals needed to win (RN-24). */
+    private readonly goalTarget: number,
   ) {
     super(scoring);
   }
@@ -104,9 +109,20 @@ class SortGameRules<TCoord extends ICoord> extends SourcedGameRules<
     };
   }
 
-  protected evaluateEnd(): null {
-    // Victory and defeat are implemented in HU22 (#82).
-    return null;
+  /**
+   * RN-24: victory once the goals reach the target; defeat when, after the
+   * cascade, no empty cell is left to place on. Victory is checked first, so
+   * the move that meets the goals always wins.
+   */
+  protected evaluateEnd(
+    board: Board<ColorStack, TCoord>,
+    state: SortGameState,
+  ): GameOutcome | null {
+    if (state.goals >= this.goalTarget) {
+      return 'victory';
+    }
+    const full = board.shape.coords.every((cell) => !board.isEmpty(cell));
+    return full ? 'defeat' : null;
   }
 }
 
@@ -119,6 +135,11 @@ export function createSortGame<TCoord extends ICoord>(
   seed: number,
   setup: SortSetup<TCoord>,
 ) {
+  if (!Number.isInteger(setup.goalTarget) || setup.goalTarget < 1) {
+    throw new RangeError(
+      `The goal target must be an integer >= 1: ${setup.goalTarget}`,
+    );
+  }
   const blocked = new Set((setup.blocked ?? []).map((cell) => cell.key()));
   const cells = setup.shape.coords.filter((cell) => !blocked.has(cell.key()));
   const board = new Board<ColorStack, TCoord>(
@@ -140,7 +161,11 @@ export function createSortGame<TCoord extends ICoord>(
   return GameEngine.start({
     board,
     state,
-    rules: new SortGameRules<TCoord>(new SortScoringPolicy(), DEFAULT_CLEAR_AT),
+    rules: new SortGameRules<TCoord>(
+      new SortScoringPolicy(),
+      DEFAULT_CLEAR_AT,
+      setup.goalTarget,
+    ),
     seed,
   });
 }
