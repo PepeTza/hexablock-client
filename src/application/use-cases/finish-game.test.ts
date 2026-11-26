@@ -10,6 +10,7 @@ import type {
   IProgressModel,
   ProgressEvaluation,
 } from '@domain/progress/progress-model';
+import { SortProgressModel } from '@domain/variants/hexa-sort/sort-progress-model';
 
 import type { Either } from '../common/either';
 import type { IEventBus } from '../ports/event-bus';
@@ -77,6 +78,14 @@ function createHarness(options: {
       evaluate: () => options.evaluation,
     }),
   );
+  // The real Hexa Sort model, so the Sort tests cover CU-07 end to end.
+  factories.register(
+    'hexa-sort',
+    createFactoryWithProgressModel(
+      'hexa-sort',
+      new SortProgressModel((id) => (id === 'sort-01' ? 'sort-02' : null)),
+    ),
+  );
 
   const progress: IProgressRepository = {
     findByGame: () => Promise.resolve(null),
@@ -141,6 +150,28 @@ function createHarness(options: {
     warnings,
   };
 }
+
+/** A finished Hexa Sort game on level `sort-01`. */
+function sortGame(reason: 'victory' | 'defeat'): FinishedGameSummary {
+  return {
+    gameId: 'hexa-sort',
+    levelId: 'sort-01',
+    reason,
+    score: 120,
+    moveCount: 14,
+    durationMs: 90_000,
+    seed: 7,
+  };
+}
+
+/** Any evaluation: the Hexa Sort tests use the real model instead. */
+const UNUSED_EVALUATION: ProgressEvaluation = {
+  progress: null,
+  isNewRecord: false,
+  stars: null,
+  unlockedLevelId: null,
+  shouldSubmitScore: false,
+};
 
 /** A finished Hexa Lines game lost with `score` points. */
 function linesDefeat(score: number): FinishedGameSummary {
@@ -355,6 +386,78 @@ describe('FinishGameUseCase', () => {
         gameId: 'hexa-fit',
         levelId: 'fit-01',
         stars: 3,
+      },
+    ]);
+  });
+
+  it('should_publish_level_completed_without_stars_when_a_sort_level_is_won', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: UNUSED_EVALUATION,
+      activeSession: true,
+    });
+
+    // Act
+    const result = expectRight(
+      await harness.useCase.execute(sortGame('victory')),
+    );
+
+    // Assert
+    expect(result).toEqual({
+      score: 120,
+      seed: 7,
+      reason: 'victory',
+      isNewRecord: true,
+      stars: null,
+      unlockedLevelId: 'sort-02',
+      saveFailed: false,
+    });
+    expect(harness.saved).toEqual([
+      {
+        gameId: 'hexa-sort',
+        highScore: 0,
+        levels: { 'sort-01': { completed: true, bestScore: 120, stars: 0 } },
+      },
+    ]);
+    expect(harness.submittedScores).toEqual([sortGame('victory')]);
+    expect(harness.publishedEvents).toEqual([
+      {
+        type: 'LevelCompleted',
+        gameId: 'hexa-sort',
+        levelId: 'sort-01',
+        stars: null,
+      },
+    ]);
+  });
+
+  it('should_keep_progress_and_send_no_score_when_a_sort_level_is_lost', async () => {
+    // Arrange
+    const harness = createHarness({
+      evaluation: UNUSED_EVALUATION,
+      activeSession: true,
+    });
+
+    // Act
+    const result = expectRight(
+      await harness.useCase.execute(sortGame('defeat')),
+    );
+
+    // Assert: CU-07 A1.
+    expect(result).toMatchObject({
+      reason: 'defeat',
+      seed: 7,
+      unlockedLevelId: null,
+    });
+    expect(harness.saved).toEqual([]);
+    expect(harness.syncedGames).toEqual([]);
+    expect(harness.submittedScores).toEqual([]);
+    expect(harness.publishedEvents).toEqual([
+      {
+        type: 'GameFinished',
+        gameId: 'hexa-sort',
+        reason: 'defeat',
+        score: 120,
+        isNewRecord: false,
       },
     ]);
   });
