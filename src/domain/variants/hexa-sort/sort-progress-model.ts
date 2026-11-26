@@ -18,6 +18,8 @@ const NO_CHANGE: ProgressEvaluation = {
  * its best score and unlocks the next level the first time (RN-25); Hexa
  * Sort has no stars, so they are saved as `0` and reported as `null`. A
  * defeat or a quit changes nothing and sends no score (CU-07 A1).
+ * The API expects `stars: null` for Hexa Sort and rejects a value (API
+ * contract, `PUT /progress`), so the progress sync must send `null`.
  */
 export class SortProgressModel implements IProgressModel {
   constructor(

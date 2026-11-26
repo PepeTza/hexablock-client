@@ -43,6 +43,23 @@ screen.
 cascade that completes k goals multiplies its points by k. The game state
 keeps the goals completed so far (`goals`) for the screen's counter.
 
+**End of the game (RN-24):** after each move, once the cascade is
+resolved, the rules check the end in this order:
+
+1. **Victory** when the goals completed reach the level's `goalTarget`
+   (`>=`, because one cascade can complete several goals).
+2. **Defeat** when no empty cell is left to place the next stack on. Blocked
+   cells are not part of the board's figure, so they never count as empty.
+3. Otherwise the game goes on.
+
+Victory is checked first, so the move that meets the goals always wins. In
+practice both cannot happen at once: a goal removes a stack and frees its
+cell. When the game ends, the engine moves to its finished state and rejects
+every later move. `summarizeSortGame` hands the result (outcome, score,
+moves and seed) to the finish use case, and `SortProgressModel` completes
+the level and unlocks the next one on the first victory (RN-25), with no
+stars; a defeat changes nothing (CU-07 A1).
+
 **Why it always ends:** a transfer joins the source's top run with the
 target's top run, so the total number of runs on the board drops by one with
 every transfer, and a removal takes the removed stack's runs off the board.
@@ -138,7 +155,6 @@ so RN-22 holds without change.
 
 ## 5. Not yet implemented
 
-- Victory and defeat (RN-24): #82.
 - A goal size per level: the level spec v1 (API contract §6) has no field
   for it, so every level uses `DEFAULT_CLEAR_AT`. Adding one changes the
   contract.
