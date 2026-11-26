@@ -1153,8 +1153,7 @@ One entry per significant use. Copy the template.
   `#107`) before proposing each option avoided stale citations and duplicate
   rules across documents.
 
-
-### 2026-11-26 — Hexa Sort goals (issue #73)
+### 2026-11-25 — Hexa Sort goals (issue #73)
 
 - **Tool / model:** Claude Code (claude-opus-5-5).
 - **Issue / PR:** #73.
@@ -1162,7 +1161,8 @@ One entry per significant use. Copy the template.
   chips as goals and score them per RN-40, with a visible goal counter.
 - **Result:** goal removal inside `resolveCascade` with a `GoalCompleted`
   event, `DEFAULT_CLEAR_AT`, the RN-40 multiplier in `SortScoringPolicy`,
-  the `goals` counter in `SortGameState`, 13 tests, and RN-23, RN-40 and
+  the `goals` counter in `SortGameState`, 15 tests (2 of them replace older
+  scoring tests), and RN-23, RN-40 and
   `docs/rules/hexa-sort.md` updated.
 - **Team modifications:** The owner made the three decisions the rules left
   open (#164): the trigger is the top run, not every chip of the colour;
@@ -1172,7 +1172,10 @@ One entry per significant use. Copy the template.
   reaches the cascade as configuration.
 - **Lessons / limitations:** A goal size per level is not possible without a
   new field in the level spec (API contract §6). The RN-40 values are still a
-  team proposal, which is why they stay configurable.
+  team proposal, which is why they stay configurable. The gate 4 review found
+  that a goal size below a stack's height left completed goals on the board
+  and that no test told "after each step" apart from "at the end of the
+  cascade"; both were fixed before the PR.
 
 ## 3. Critical evaluation
 
