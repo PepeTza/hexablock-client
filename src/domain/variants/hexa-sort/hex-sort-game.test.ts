@@ -1,5 +1,6 @@
 import { HexCoord } from '../../engine/hex/hex-coord';
 import { createHexSortGame, type HexSortSpec } from './hex-sort-game';
+import { summarizeSortGame } from './sort-game';
 
 const TRAY = { colors: 4, minHeight: 2, maxHeight: 5, maxColorsPerStack: 2 };
 // High enough that the tests about moves never end the game by goals.
@@ -368,5 +369,61 @@ describe('createHexSortGame', () => {
         );
       },
     );
+  });
+});
+
+describe('summarizeSortGame', () => {
+  it('should_summarize_a_victory_with_score_moves_and_seed', () => {
+    // Arrange
+    const tray = firstTray(11);
+    const game = createHexSortGame(11, {
+      ...SETUP,
+      goalTarget: 1,
+      initialStacks: [{ cell: EAST, chips: towerOf(tray.top()) }],
+    });
+    game.applyMove({ cell: CENTER });
+    game.resolutionDone();
+
+    // Act
+    const summary = summarizeSortGame(game, 'sort-01', 42_000);
+
+    // Assert: the seed is shown at the end (RF-16).
+    expect(summary).toEqual({
+      gameId: 'hexa-sort',
+      levelId: 'sort-01',
+      reason: 'victory',
+      score: 10 + tray.topRun(),
+      moveCount: 1,
+      durationMs: 42_000,
+      seed: 11,
+    });
+  });
+
+  it('should_summarize_a_defeat_with_its_score', () => {
+    // Arrange
+    const tray = firstTray(11);
+    const game = createHexSortGame(11, {
+      ...SETUP,
+      initialStacks: fillAllBut(tray.top(), CENTER),
+    });
+    game.applyMove({ cell: CENTER });
+    game.resolutionDone();
+
+    // Act
+    const summary = summarizeSortGame(game, 'sort-01', 5_000);
+
+    // Assert
+    expect(summary).toMatchObject({ reason: 'defeat', score: 0, seed: 11 });
+  });
+
+  it('should_return_no_summary_when_the_game_is_still_playing', () => {
+    // Arrange
+    const game = createHexSortGame(11, SETUP);
+
+    // Act
+    const summary = summarizeSortGame(game, 'sort-01', 1_000);
+
+    // Assert
+    expect(summary).toBeNull();
   });
 });

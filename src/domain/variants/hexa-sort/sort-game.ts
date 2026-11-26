@@ -10,6 +10,7 @@ import type { IBoardGeometry } from '../../engine/geometry/board-geometry';
 import type { ICoord } from '../../engine/geometry/coord';
 import { SeededRandom } from '../../engine/random/seeded-random';
 import { Snapshot } from '../../engine/state/snapshot';
+import type { FinishedGameSummary } from '../../progress/progress-model';
 import { ColorStack } from './color-stack';
 import { resolveCascade, type SortResolution } from './resolve-cascade';
 import { DEFAULT_CLEAR_AT } from './sort-rules';
@@ -168,4 +169,32 @@ export function createSortGame<TCoord extends ICoord>(
     ),
     seed,
   });
+}
+
+/**
+ * The facts of a finished Hexa Sort game for `FinishGameUseCase` (CU-07):
+ * the outcome, the score (RN-40), the moves and the seed the result screen
+ * shows (RF-16). `null` while the game is still being played.
+ */
+export function summarizeSortGame(
+  game: {
+    readonly state: SortGameState;
+    readonly outcome: GameOutcome | null;
+    readonly seed: number | null;
+  },
+  levelId: string,
+  durationMs: number,
+): FinishedGameSummary | null {
+  if (game.outcome === null) return null;
+
+  const { score, moveCount } = game.state;
+  return {
+    gameId: 'hexa-sort',
+    levelId,
+    reason: game.outcome,
+    score,
+    moveCount,
+    durationMs,
+    seed: game.seed,
+  };
 }
