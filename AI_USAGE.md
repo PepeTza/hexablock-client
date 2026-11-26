@@ -1177,6 +1177,36 @@ One entry per significant use. Copy the template.
   and that no test told "after each step" apart from "at the end of the
   cascade"; both were fixed before the PR.
 
+### 2026-11-26 — Hexa Sort victory and defeat (issue #82)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #82.
+- **Prompt:** Start #82 (HU22): win by meeting the goals, lose when the
+  board fills up, with correct result screens; explain every commit for a
+  beginner.
+- **Result:** `goalTarget` in `SortSetup` and `evaluateEnd` in the Sort
+  rules, `summarizeSortGame`, `SortProgressModel`, 18 tests (domain, the
+  finish use case with the real model, and the result presenter) and
+  `docs/rules/hexa-sort.md` updated.
+- **Team modifications:** The owner chose the scope (domain, summary and
+  progress model here; screen wiring in #88), that victory wins when both
+  ends happen, and the name `goalTarget` over the API's `goals`, which the
+  state already uses for the completed counter. The owner asked to confirm
+  the rules hard-code no board size and accept any number of colours. A
+  commit header over 72 characters was shortened before committing.
+  The gate 4 review by a separate agent found two summary tests without
+  `_when_` and no test for a repeat win with an equal score; both were
+  fixed in their own commit.
+- **Lessons / limitations:** Victory and defeat in one move cannot happen,
+  since a goal frees a cell, so that order has no test. No variant has a
+  game screen yet, so the result screen is reached only from #88. The
+  tests build boards from the stack each seed deals, so they hold for any
+  tray colours.
+  - The review found that Sort progress saves `stars: 0` while the API
+    contract expects `null` for Hexa Sort and rejects a value. Nothing
+    syncs progress yet; the future sync (CU-12) must send `null`, as the
+    `SortProgressModel` comment says.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
