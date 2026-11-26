@@ -373,7 +373,7 @@ describe('createHexSortGame', () => {
 });
 
 describe('summarizeSortGame', () => {
-  it('should_summarize_a_victory_with_score_moves_and_seed', () => {
+  it('should_summarize_score_moves_and_seed_when_the_game_is_won', () => {
     // Arrange
     const tray = firstTray(11);
     const game = createHexSortGame(11, {
@@ -399,7 +399,7 @@ describe('summarizeSortGame', () => {
     });
   });
 
-  it('should_summarize_a_defeat_with_its_score', () => {
+  it('should_summarize_the_score_when_the_game_is_lost', () => {
     // Arrange
     const tray = firstTray(11);
     const game = createHexSortGame(11, {

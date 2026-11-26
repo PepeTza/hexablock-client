@@ -62,6 +62,16 @@ describe('SortProgressModel', () => {
     });
   });
 
+  it('should_change_nothing_when_won_again_with_an_equal_score', () => {
+    // Act
+    const result = model.evaluate(completedWith(120), summary);
+
+    // Assert: an equal score is not a new record.
+    expect(result.progress).toBeNull();
+    expect(result.isNewRecord).toBe(false);
+    expect(result.shouldSubmitScore).toBe(false);
+  });
+
   it('should_submit_the_score_when_it_is_a_new_record', () => {
     // Act
     const result = model.evaluate(completedWith(100), summary);
