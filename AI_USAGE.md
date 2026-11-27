@@ -1237,6 +1237,34 @@ One entry per significant use. Copy the template.
   `MergeRules` directly, as Lines and Sort do. A first mutation for "edge
   first" broke a different rule and was redone.
 
+### 2026-11-27 — Hexa Merge tile spawning (issue #70)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #70.
+- **Prompt (paraphrase):** Start issue #70 (HU26, RN-28 and RN-44) following the
+  four-gate harness after confirming #70 unblocks #79: move `MergeRules` onto
+  `SourcedGameRules`, spawn a 2 (90 %) or 4 (10 %) on a random empty cell
+  after valid moves, place configurable starting tiles on non-border cells,
+  document RN-44, and cite Gabriele Cirulli's 2048.
+- **Result:** `spawn-tile.ts` (`DEFAULT_MERGE_SPAWN_WEIGHTS`,
+  `DEFAULT_MERGE_INITIAL_TILE_COUNT`, `TileSpawned`, `interiorCells`,
+  `spawnTile`, `spawnInitialTiles`), `MergeRules` migrated to
+  `SourcedGameRules` with `Snapshot<IRandomSource>`, `startMergeGame(seed,
+  options)`, 14 new tests (`spawn-tile.test.ts`, `merge-game.test.ts`,
+  `merge-rules.test.ts`), `RN-44` in `docs/business-rules.md`, and the updated
+  2048 reference in `README.md`.
+- **Team modifications:** The owner chose to use the same configurable 90/10
+  2-or-4 pool for starting tiles (RN-44) as for post-move spawns (RN-28) and
+  required citing Gabriele Cirulli's 2048. The gate 4 review by a separate
+  agent caught two combined AAA test comments, which were split into explicit
+  Arrange / Act / Assert blocks.
+- **Lessons / limitations:** `GameEngine.subscribe` types listeners as
+  `(event: DomainEvent) => void`, so tests inspecting `TileSpawned` narrow
+  the event via a type guard without casts. Running `prettier --write` while
+  files were open in the IDE triggered dirty-buffer save conflicts; closing
+  `README.md` reverted its unstaged edit and had to be re-checked with
+  `git status` before committing.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
