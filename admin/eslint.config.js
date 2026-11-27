@@ -42,6 +42,18 @@ export default tseslint.config(
             'Do not use instanceof in production code; use polymorphism, generics, or discriminated unions (AGENTS.md §3).',
         },
       ],
+      // AGENTS.md §4, RF-05, RN-05: randomness goes through an injected,
+      // seedable source (IRandomSource, ISeedGenerator), so games replay from
+      // their seed. Also catches `const { random } = Math`.
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message:
+            'Do not call Math.random in production code; inject IRandomSource or ISeedGenerator (AGENTS.md §4).',
+        },
+      ],
     },
   },
   adminBoundaries,
