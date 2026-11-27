@@ -6,6 +6,8 @@ import type { HexBoard } from '../../engine/hex/hex-board';
 import type { HexCoord } from '../../engine/hex/hex-coord';
 import { HexGeometry } from '../../engine/hex/hex-geometry';
 import { MergeRules } from './merge-rules';
+import { MergeScoringPolicy } from './merge-scoring-policy';
+import type { TileMerged } from './merge-tiles';
 import type { SlideMove } from './slide-tiles';
 import type { Tile } from './tile';
 
@@ -46,12 +48,11 @@ export function createMergeBoard(
 export function startMergeGame(
   initialTiles: readonly InitialMergeTile[] = [],
   options: MergeGameOptions = {},
-): GameEngine<Tile, HexCoord, SlideMove, GameState> {
+): GameEngine<Tile, HexCoord, SlideMove, GameState, TileMerged<HexCoord>> {
   return GameEngine.start({
     board: createMergeBoard(initialTiles, options),
     state: { score: 0, moveCount: 0 },
-    // Sliding alone adds no points; merge scoring arrives in HU25 (#69).
-    rules: new MergeRules<HexCoord>({ pointsFor: () => 0 }),
+    rules: new MergeRules<HexCoord>(new MergeScoringPolicy<HexCoord>()),
     seed: null,
   });
 }

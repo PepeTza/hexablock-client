@@ -33,7 +33,11 @@ export function slideTiles<
   return moved;
 }
 
-function raysInDirection<
+/**
+ * The lines of cells of `board` along `direction`, each ordered from the
+ * target edge backwards, so index 0 is the cell a tile reaches first.
+ */
+export function raysInDirection<
   TCell extends NonNullable<unknown>,
   TCoord extends ICoord,
 >(board: Board<TCell, TCoord>, direction: Direction): TCoord[][] {

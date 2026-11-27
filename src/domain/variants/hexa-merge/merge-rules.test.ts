@@ -132,4 +132,20 @@ describe('MergeRules on a square board (RNF-14)', () => {
     });
     expect(game.state.moveCount).toBe(0);
   });
+
+  it('should_merge_equal_tiles_on_a_square_board_when_merge_rules_play_on_it', () => {
+    // Arrange
+    const game = startSquareGame([
+      [at(0, 0), new Tile(2)],
+      [at(2, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied' });
+    expect(game.board.cellAt(at(0, 0))).toBeUndefined();
+    expect(game.board.cellAt(at(2, 0))?.value).toBe(4);
+  });
 });

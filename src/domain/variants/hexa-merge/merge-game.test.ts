@@ -3,6 +3,8 @@ import type { HexBoard } from '../../engine/hex/hex-board';
 import { HexCoord } from '../../engine/hex/hex-coord';
 import { HexDirection } from '../../engine/hex/hex-geometry';
 import { createMergeBoard, startMergeGame } from './merge-game';
+import { MergeRules } from './merge-rules';
+import { MergeScoringPolicy } from './merge-scoring-policy';
 import { slideTiles } from './slide-tiles';
 import { Tile } from './tile';
 
@@ -260,5 +262,160 @@ describe('Hexa Merge board size (#161)', () => {
     // Assert
     expect(result).toMatchObject({ kind: 'applied' });
     expect(occupiedSnapshot(game.board)).toEqual({ '3,0': 2 });
+  });
+});
+
+describe('Hexa Merge merge (HU25)', () => {
+  it('should_merge_two_equal_tiles_into_one_of_double_value_when_they_collide', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(-2, 0), new Tile(2)],
+      [coord(0, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied' });
+    expect(occupiedSnapshot(game.board)).toEqual({ '2,0': 4 });
+  });
+
+  it('should_add_the_merged_value_to_the_score_when_two_tiles_merge', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(-2, 0), new Tile(2)],
+      [coord(0, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 4 });
+    expect(game.state.score).toBe(4);
+  });
+
+  it('should_add_every_merged_value_when_several_merges_happen_in_one_move', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(-2, 0), new Tile(2)],
+      [coord(0, 0), new Tile(2)],
+      [coord(-1, -1), new Tile(4)],
+      [coord(1, -1), new Tile(4)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 12 });
+    expect(occupiedSnapshot(game.board)).toEqual({ '2,0': 4, '2,-1': 8 });
+    expect(game.state.score).toBe(12);
+  });
+
+  it('should_not_merge_a_tile_twice_when_a_merged_tile_meets_an_equal_one', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(2, 0), new Tile(2)],
+      [coord(1, 0), new Tile(2)],
+      [coord(0, 0), new Tile(4)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 4 });
+    expect(occupiedSnapshot(game.board)).toEqual({ '2,0': 4, '1,0': 4 });
+  });
+
+  it('should_merge_the_tiles_closest_to_the_edge_first_when_three_equal_tiles_share_a_line', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(-2, 0), new Tile(2)],
+      [coord(0, 0), new Tile(2)],
+      [coord(1, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 4 });
+    expect(occupiedSnapshot(game.board)).toEqual({ '2,0': 4, '1,0': 2 });
+  });
+
+  it('should_merge_into_two_tiles_when_four_equal_tiles_share_a_line', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(-2, 0), new Tile(2)],
+      [coord(-1, 0), new Tile(2)],
+      [coord(0, 0), new Tile(2)],
+      [coord(1, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 8 });
+    expect(occupiedSnapshot(game.board)).toEqual({ '2,0': 4, '1,0': 4 });
+  });
+
+  it('should_accept_the_move_when_tiles_only_merge_without_sliding', () => {
+    // Arrange
+    const game = startMergeGame([
+      [coord(2, 0), new Tile(2)],
+      [coord(1, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 4 });
+    expect(occupiedSnapshot(game.board)).toEqual({ '2,0': 4 });
+    expect(game.state.moveCount).toBe(1);
+  });
+
+  it('should_emit_a_tile_merged_event_with_cell_and_value_when_tiles_merge', () => {
+    // Arrange
+    const rules = new MergeRules<HexCoord>(new MergeScoringPolicy<HexCoord>());
+    const board = createMergeBoard([
+      [coord(-2, 0), new Tile(2)],
+      [coord(0, 0), new Tile(2)],
+    ]);
+
+    // Act
+    const outcome = rules.play(
+      board,
+      { score: 0, moveCount: 0 },
+      { direction: HexDirection.EAST },
+    );
+
+    // Assert
+    expect(outcome).toMatchObject({
+      kind: 'applied',
+      events: [{ type: 'TileMerged', cell: coord(2, 0), value: 4 }],
+    });
+  });
+
+  it('should_merge_equal_tiles_on_a_radius_three_board_when_the_board_has_radius_three', () => {
+    // Arrange
+    const game = startMergeGame(
+      [
+        [coord(-3, 0), new Tile(2)],
+        [coord(0, 0), new Tile(2)],
+      ],
+      { boardRadius: 3 },
+    );
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 4 });
+    expect(occupiedSnapshot(game.board)).toEqual({ '3,0': 4 });
   });
 });
