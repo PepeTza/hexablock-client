@@ -8,7 +8,7 @@ import type { ICoord } from '../../engine/geometry/coord';
 import { Direction } from '../../engine/geometry/direction';
 import { SeededRandom } from '../../engine/random/seeded-random';
 import { Snapshot } from '../../engine/state/snapshot';
-import { MergeRules } from './merge-rules';
+import { MergeRules, type TargetReached } from './merge-rules';
 import type { TileSpawned } from './spawn-tile';
 import { Tile } from './tile';
 
@@ -18,6 +18,14 @@ function isTileSpawned(event: DomainEvent): event is TileSpawned<SquareCoord> {
     'cell' in event &&
     'value' in event &&
     typeof event.value === 'number'
+  );
+}
+
+function isTargetReached(event: DomainEvent): event is TargetReached {
+  return (
+    event.type === 'TargetReached' &&
+    'target' in event &&
+    typeof event.target === 'number'
   );
 }
 
@@ -78,7 +86,11 @@ class SquareGeometry implements IBoardGeometry<SquareCoord> {
 const at = (x: number, y: number) => new SquareCoord(x, y);
 
 /** Starts a game on a 3 x 3 square board (x and y from 0 to 2). */
-function startSquareGame(tiles: ReadonlyArray<readonly [SquareCoord, Tile]>) {
+function startSquareGame(
+  tiles: ReadonlyArray<readonly [SquareCoord, Tile]>,
+  spawnWeights?: readonly { readonly item: Tile; readonly weight: number }[],
+  targetTile?: number,
+) {
   const cells: SquareCoord[] = [];
   for (let y = 0; y < 3; y++) {
     for (let x = 0; x < 3; x++) {
@@ -97,9 +109,14 @@ function startSquareGame(tiles: ReadonlyArray<readonly [SquareCoord, Tile]>) {
     state: {
       score: 0,
       moveCount: 0,
+      targetReached: false,
       source: Snapshot.of(new SeededRandom(1)),
     },
-    rules: new MergeRules<SquareCoord>({ pointsFor: () => 0 }),
+    rules: new MergeRules<SquareCoord>(
+      { pointsFor: () => 0 },
+      spawnWeights,
+      targetTile,
+    ),
     seed: 1,
   });
 }
@@ -205,5 +222,40 @@ describe('MergeRules on a square board (RNF-14)', () => {
       expect([2, 4]).toContain(spawned.value);
       expect(game.board.cellAt(spawned.cell)?.value).toBe(spawned.value);
     }
+  });
+
+  it('should_emit_target_reached_and_detect_defeat_when_merge_rules_play_on_a_square_board', () => {
+    // Arrange
+    const game = startSquareGame(
+      [
+        [at(0, 0), new Tile(2)],
+        [at(1, 0), new Tile(16)],
+        [at(2, 0), new Tile(16)],
+        [at(0, 1), new Tile(4)],
+        [at(1, 1), new Tile(8)],
+        [at(2, 1), new Tile(64)],
+        [at(0, 2), new Tile(128)],
+        [at(1, 2), new Tile(256)],
+        [at(2, 2), new Tile(1024)],
+      ],
+      [{ item: new Tile(512), weight: 1 }],
+      32,
+    );
+    const targetEvents: TargetReached[] = [];
+    game.subscribe((event) => {
+      if (isTargetReached(event)) {
+        targetEvents.push(event);
+      }
+    });
+
+    // Act
+    const result = game.applyMove({ direction: EAST });
+    game.resolutionDone();
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied' });
+    expect(targetEvents).toEqual([{ type: 'TargetReached', target: 32 }]);
+    expect(game.status).toBe('finished');
+    expect(game.outcome).toBe('defeat');
   });
 });
