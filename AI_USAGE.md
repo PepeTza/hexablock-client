@@ -1207,6 +1207,36 @@ One entry per significant use. Copy the template.
     syncs progress yet; the future sync (CU-12) must send `null`, as the
     `SortProgressModel` comment says.
 
+### 2026-11-26 — Hexa Merge merges equal tiles (issue #69)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #69.
+- **Prompt:** Gate 1 of #69 (HU25, RN-27 and RN-29), including a merge on a
+  radius-3 board as commented on #69; walk through the current Merge code
+  class by class before the design, and offer each real decision with its
+  options.
+- **Result:** `merge-tiles.ts` (`mergeTiles`, `MergeResolution`,
+  `TileMerged`), `MergeScoringPolicy`, the merge step in `MergeRules`
+  (`resolve`, and `validate` accepting a move that only merges),
+  `Tile.doubled()`, 13 tests and the 2048 row in README → References.
+- **Team modifications:** The owner chose each design option: merging in
+  `resolve` instead of in the slide, a resolution with the cell and value
+  of each merge scored by its own Strategy, and emitting `TileMerged`
+  although the issue does not ask for it. The owner checked that the board
+  geometry is chosen in one place only, so a square Merge would need new
+  geometry and assembly files and no change to the rules; after comparing
+  it with the planned folder structure, he weighed renaming the assembly
+  files and kept the current names. The gate 4 review by a
+  separate agent suggested `Tile.doubled()`; the owner accepted it in its
+  own commit.
+- **Lessons / limitations:** The first draft of `mergeTiles` recorded the
+  cell of a merge before closing the gaps, so in a line like `[2,2,4,4]`
+  the event would name a cell the new tile does not end on; it was
+  rewritten to rebuild each line at once before any commit. The engine's
+  `MoveResult` does not carry variant events, so the event test plays
+  `MergeRules` directly, as Lines and Sort do. A first mutation for "edge
+  first" broke a different rule and was redone.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
