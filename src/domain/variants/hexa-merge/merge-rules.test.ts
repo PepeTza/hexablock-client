@@ -1,12 +1,25 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import type { DomainEvent } from '../../engine/events/domain-event';
 import { GameEngine } from '../../engine/game/game-engine';
 import { Axis } from '../../engine/geometry/axis';
 import type { IBoardGeometry } from '../../engine/geometry/board-geometry';
 import type { ICoord } from '../../engine/geometry/coord';
 import { Direction } from '../../engine/geometry/direction';
+import { SeededRandom } from '../../engine/random/seeded-random';
+import { Snapshot } from '../../engine/state/snapshot';
 import { MergeRules } from './merge-rules';
+import type { TileSpawned } from './spawn-tile';
 import { Tile } from './tile';
+
+function isTileSpawned(event: DomainEvent): event is TileSpawned<SquareCoord> {
+  return (
+    event.type === 'TileSpawned' &&
+    'cell' in event &&
+    'value' in event &&
+    typeof event.value === 'number'
+  );
+}
 
 /**
  * A square cell for the OCP check (RNF-14): `MergeRules` must run on it
@@ -81,9 +94,13 @@ function startSquareGame(tiles: ReadonlyArray<readonly [SquareCoord, Tile]>) {
   }
   return GameEngine.start({
     board,
-    state: { score: 0, moveCount: 0 },
+    state: {
+      score: 0,
+      moveCount: 0,
+      source: Snapshot.of(new SeededRandom(1)),
+    },
     rules: new MergeRules<SquareCoord>({ pointsFor: () => 0 }),
-    seed: null,
+    seed: 1,
   });
 }
 
@@ -91,14 +108,22 @@ describe('MergeRules on a square board (RNF-14)', () => {
   it('should_slide_the_tile_to_the_far_edge_when_merge_rules_play_on_a_square_board', () => {
     // Arrange
     const game = startSquareGame([[at(0, 0), new Tile(2)]]);
+    let spawned: TileSpawned<SquareCoord> | undefined;
+    game.subscribe((event) => {
+      if (isTileSpawned(event)) {
+        spawned = event;
+      }
+    });
 
     // Act
     const result = game.applyMove({ direction: EAST });
 
     // Assert
     expect(result).toMatchObject({ kind: 'applied' });
-    expect(game.board.cellAt(at(0, 0))).toBeUndefined();
     expect(game.board.cellAt(at(2, 0))?.value).toBe(2);
+    if (spawned?.cell.key() !== at(0, 0).key()) {
+      expect(game.board.cellAt(at(0, 0))).toBeUndefined();
+    }
     expect(game.state.moveCount).toBe(1);
   });
 
@@ -139,13 +164,46 @@ describe('MergeRules on a square board (RNF-14)', () => {
       [at(0, 0), new Tile(2)],
       [at(2, 0), new Tile(2)],
     ]);
+    let spawned: TileSpawned<SquareCoord> | undefined;
+    game.subscribe((event) => {
+      if (isTileSpawned(event)) {
+        spawned = event;
+      }
+    });
 
     // Act
     const result = game.applyMove({ direction: EAST });
 
     // Assert
     expect(result).toMatchObject({ kind: 'applied' });
-    expect(game.board.cellAt(at(0, 0))).toBeUndefined();
     expect(game.board.cellAt(at(2, 0))?.value).toBe(4);
+    if (spawned?.cell.key() !== at(0, 0).key()) {
+      expect(game.board.cellAt(at(0, 0))).toBeUndefined();
+    }
+  });
+
+  it('should_spawn_a_tile_on_an_empty_cell_when_merge_rules_play_on_a_square_board', () => {
+    // Arrange
+    const game = startSquareGame([[at(0, 0), new Tile(2)]]);
+    const spawnedEvents: TileSpawned<SquareCoord>[] = [];
+    game.subscribe((event) => {
+      if (isTileSpawned(event)) {
+        spawnedEvents.push(event);
+      }
+    });
+
+    // Act
+    const result = game.applyMove({ direction: EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied' });
+    expect(spawnedEvents).toHaveLength(1);
+    const [spawned] = spawnedEvents;
+    expect(spawned).toBeDefined();
+    if (spawned !== undefined) {
+      expect(spawned.cell.key()).not.toBe(at(2, 0).key());
+      expect([2, 4]).toContain(spawned.value);
+      expect(game.board.cellAt(spawned.cell)?.value).toBe(spawned.value);
+    }
   });
 });

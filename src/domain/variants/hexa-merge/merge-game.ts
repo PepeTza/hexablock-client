@@ -1,14 +1,21 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
 import { GameEngine } from '../../engine/game/game-engine';
-import type { GameState } from '../../engine/game/game-state';
 import type { HexBoard } from '../../engine/hex/hex-board';
 import type { HexCoord } from '../../engine/hex/hex-coord';
 import { HexGeometry } from '../../engine/hex/hex-geometry';
-import { MergeRules } from './merge-rules';
+import type { WeightedEntry } from '../../engine/random/random-source';
+import { SeededRandom } from '../../engine/random/seeded-random';
+import { Snapshot } from '../../engine/state/snapshot';
+import { MergeRules, type MergeEvent, type MergeState } from './merge-rules';
 import { MergeScoringPolicy } from './merge-scoring-policy';
-import type { TileMerged } from './merge-tiles';
 import type { SlideMove } from './slide-tiles';
+import {
+  DEFAULT_MERGE_INITIAL_TILE_COUNT,
+  DEFAULT_MERGE_SPAWN_WEIGHTS,
+  spawnInitialTiles,
+  validateSpawnWeights,
+} from './spawn-tile';
 import type { Tile } from './tile';
 
 /**
@@ -18,17 +25,21 @@ import type { Tile } from './tile';
  */
 export const DEFAULT_MERGE_BOARD_RADIUS = 2;
 
+export type InitialMergeTile = readonly [HexCoord, Tile];
+
 /** Parameter Object: what can be configured when a Hexa Merge game starts. */
 export interface MergeGameOptions {
   readonly boardRadius?: number;
+  readonly initialTileCount?: number;
+  readonly spawnWeights?: readonly WeightedEntry<Tile>[];
+  /** Explicit starting tiles for deterministic setups; skips random placement. */
+  readonly initialTiles?: readonly InitialMergeTile[];
 }
-
-export type InitialMergeTile = readonly [HexCoord, Tile];
 
 /** Builds the hexagonal board of the configured radius used by Hexa Merge. */
 export function createMergeBoard(
   initialTiles: readonly InitialMergeTile[] = [],
-  options: MergeGameOptions = {},
+  options: Pick<MergeGameOptions, 'boardRadius'> = {},
 ): HexBoard<Tile> {
   const geometry = new HexGeometry();
   const board = new Board<Tile, HexCoord>(
@@ -44,15 +55,40 @@ export function createMergeBoard(
   return board;
 }
 
-/** Starts a Hexa Merge session with optional starting tiles placed on the board. */
+/**
+ * Starts a seeded Hexa Merge session (RN-05, RN-28, RN-44). When
+ * `options.initialTiles` is omitted, places `initialTileCount` (default 2)
+ * starting tiles on random non-border cells.
+ */
 export function startMergeGame(
-  initialTiles: readonly InitialMergeTile[] = [],
+  seed: number,
   options: MergeGameOptions = {},
-): GameEngine<Tile, HexCoord, SlideMove, GameState, TileMerged<HexCoord>> {
+): GameEngine<Tile, HexCoord, SlideMove, MergeState, MergeEvent<HexCoord>> {
+  const spawnWeights = validateSpawnWeights(
+    options.spawnWeights ?? DEFAULT_MERGE_SPAWN_WEIGHTS,
+  );
+  const random = new SeededRandom(seed);
+  const board = createMergeBoard(options.initialTiles ?? [], options);
+  if (options.initialTiles === undefined) {
+    spawnInitialTiles(
+      board,
+      random,
+      options.initialTileCount ?? DEFAULT_MERGE_INITIAL_TILE_COUNT,
+      spawnWeights,
+    );
+  }
+  const state: MergeState = {
+    score: 0,
+    moveCount: 0,
+    source: Snapshot.of(random),
+  };
   return GameEngine.start({
-    board: createMergeBoard(initialTiles, options),
-    state: { score: 0, moveCount: 0 },
-    rules: new MergeRules<HexCoord>(new MergeScoringPolicy<HexCoord>()),
-    seed: null,
+    board,
+    state,
+    rules: new MergeRules<HexCoord>(
+      new MergeScoringPolicy<HexCoord>(),
+      spawnWeights,
+    ),
+    seed,
   });
 }
