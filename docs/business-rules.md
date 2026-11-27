@@ -68,6 +68,7 @@ Decisions (D-xx) are listed in [`architecture.md`](./architecture.md).
 | RN-29 | Score = sum of the values produced by each merge. | Statement |
 | RN-30 | Victory: the target tile appears (configurable, 2048 by default) and the player is offered to keep playing to improve the score. Defeat: no move changes the board. | Statement + Proposal |
 | RN-31 | A single move can be undone, restoring board, score and the random generator state. The move that causes the defeat cannot be undone. | Statement + Proposal |
+| RN-44 | A Hexa Merge game starts with 2 tiles by default (configurable), drawn with the same configurable 90 % twos / 10 % fours pool as RN-28 and placed on random non-border cells so every direction is available for the first move. Asking for more starting tiles than non-border cells is a configuration error. | Proposal |
 
 ## Account, progress and leaderboard
 
