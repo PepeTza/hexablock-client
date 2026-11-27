@@ -599,11 +599,14 @@ describe('Hexa Merge spawn (HU26)', () => {
   });
 
   it('should_expose_the_seed_on_the_game_engine_when_started', () => {
-    // Arrange & Act
-    const game = startMergeGame(31415);
+    // Arrange
+    const seed = 31415;
+
+    // Act
+    const game = startMergeGame(seed);
 
     // Assert
-    expect(game.seed).toBe(31415);
+    expect(game.seed).toBe(seed);
   });
 
   it('should_respect_custom_spawn_weights_when_configured_in_game_options', () => {
