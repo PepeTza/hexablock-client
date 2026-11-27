@@ -17,6 +17,11 @@ export class Tile {
   equals(other: Tile): boolean {
     return this.value === other.value;
   }
+
+  /** The new tile that two equal tiles merge into (RN-27). */
+  doubled(): Tile {
+    return new Tile(this.value * 2);
+  }
 }
 
 function isPowerOfTwo(value: number): boolean {

@@ -23,6 +23,18 @@ describe('Tile', () => {
     expect(twoA.equals(four)).toBe(false);
   });
 
+  it('should_return_a_new_tile_of_double_value_when_doubled', () => {
+    // Arrange
+    const four = new Tile(4);
+
+    // Act
+    const eight = four.doubled();
+
+    // Assert
+    expect(eight.value).toBe(8);
+    expect(four.value).toBe(4);
+  });
+
   it.each([
     0,
     1,
