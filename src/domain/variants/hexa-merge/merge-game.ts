@@ -1,5 +1,6 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
+import { CommandHistory } from '../../engine/commands/command-history';
 import { GameEngine } from '../../engine/game/game-engine';
 import type { HexBoard } from '../../engine/hex/hex-board';
 import type { HexCoord } from '../../engine/hex/hex-coord';
@@ -30,6 +31,9 @@ import { Tile } from './tile';
  */
 export const DEFAULT_MERGE_BOARD_RADIUS = 2;
 
+/** Default undo steps allowed per applied move in Hexa Merge (RN-31). */
+export const DEFAULT_MERGE_UNDO_ALLOWANCE = 1;
+
 export type InitialMergeTile = readonly [HexCoord, Tile];
 
 /** Parameter Object: what can be configured when a Hexa Merge game starts. */
@@ -38,6 +42,7 @@ export interface MergeGameOptions {
   readonly initialTileCount?: number;
   readonly spawnWeights?: readonly WeightedEntry<Tile>[];
   readonly targetTile?: number;
+  readonly undoAllowance?: number;
   /** Explicit starting tiles for deterministic setups; skips random placement. */
   readonly initialTiles?: readonly InitialMergeTile[];
 }
@@ -95,6 +100,10 @@ export function startMergeGame(
     targetReached,
     source: Snapshot.of(random),
   };
+  const history = new CommandHistory<SlideMove>({
+    allowancePerMove: options.undoAllowance ?? DEFAULT_MERGE_UNDO_ALLOWANCE,
+    allowRedo: false,
+  });
   return GameEngine.start({
     board,
     state,
@@ -104,5 +113,6 @@ export function startMergeGame(
       targetTile,
     ),
     seed,
+    history,
   });
 }
