@@ -797,3 +797,159 @@ describe('Hexa Merge target and defeat (HU28)', () => {
     expect(game.outcome).toBeNull();
   });
 });
+
+describe('Hexa Merge undo (HU27)', () => {
+  it('should_restore_board_score_and_move_count_when_undoing_the_last_move', () => {
+    // Arrange
+    const game = startMergeGame(42, {
+      initialTiles: [
+        [coord(-2, 0), new Tile(2)],
+        [coord(0, 0), new Tile(2)],
+      ],
+    });
+    const boardBefore = occupiedSnapshot(game.board);
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    const undone = game.undo();
+
+    // Assert
+    expect(undone).toBe(true);
+    expect(occupiedSnapshot(game.board)).toEqual(boardBefore);
+    expect(game.state.score).toBe(0);
+    expect(game.state.moveCount).toBe(0);
+  });
+
+  it('should_restore_the_random_generator_state_when_undoing_the_last_move', () => {
+    // Arrange
+    const game = startMergeGame(99, {
+      initialTiles: [
+        [coord(-2, 0), new Tile(2)],
+        [coord(0, 0), new Tile(4)],
+      ],
+    });
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    const afterFirstMove = occupiedSnapshot(game.board);
+    game.undo();
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    const afterRepeatedMove = occupiedSnapshot(game.board);
+
+    // Assert
+    expect(afterRepeatedMove).toEqual(afterFirstMove);
+  });
+
+  it('should_allow_only_one_undo_per_move_and_disallow_redo_when_playing_hexa_merge', () => {
+    // Arrange
+    const game = startMergeGame(7, {
+      initialTiles: [[coord(-2, 0), new Tile(2)]],
+    });
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    game.applyMove({ direction: HexDirection.NORTH_WEST });
+    game.resolutionDone();
+    const firstUndo = game.undo();
+    const secondUndo = game.undo();
+    const redoAttempt = game.redo();
+    game.applyMove({ direction: HexDirection.WEST });
+    game.resolutionDone();
+    const undoAfterNewMove = game.undo();
+
+    // Assert
+    expect(firstUndo).toBe(true);
+    expect(secondUndo).toBe(false);
+    expect(redoAttempt).toBe(false);
+    expect(undoAfterNewMove).toBe(true);
+    expect(game.state.moveCount).toBe(1);
+  });
+
+  it('should_allow_the_configured_number_of_undos_when_undo_allowance_is_set', () => {
+    // Arrange
+    const game = startMergeGame(7, {
+      undoAllowance: 2,
+      initialTiles: [[coord(-2, 0), new Tile(2)]],
+    });
+    const initialBoard = occupiedSnapshot(game.board);
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    game.applyMove({ direction: HexDirection.NORTH_WEST });
+    game.resolutionDone();
+    const firstUndo = game.undo();
+    const secondUndo = game.undo();
+    const thirdUndo = game.undo();
+
+    // Assert
+    expect(firstUndo).toBe(true);
+    expect(secondUndo).toBe(true);
+    expect(thirdUndo).toBe(false);
+    expect(occupiedSnapshot(game.board)).toEqual(initialBoard);
+    expect(game.state.moveCount).toBe(0);
+  });
+
+  it('should_reject_undo_when_the_last_move_caused_defeat', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      boardRadius: 1,
+      spawnWeights: [{ item: new Tile(128), weight: 1 }],
+      initialTiles: [
+        [coord(0, -1), new Tile(2)],
+        [coord(1, -1), new Tile(4)],
+        [coord(-1, 0), new Tile(8)],
+        [coord(0, 0), new Tile(16)],
+        [coord(1, 0), new Tile(16)],
+        [coord(-1, 1), new Tile(32)],
+        [coord(0, 1), new Tile(64)],
+      ],
+    });
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    const boardAtDefeat = occupiedSnapshot(game.board);
+    const undone = game.undo();
+
+    // Assert
+    expect(game.status).toBe('finished');
+    expect(game.outcome).toBe('defeat');
+    expect(undone).toBe(false);
+    expect(occupiedSnapshot(game.board)).toEqual(boardAtDefeat);
+  });
+
+  it('should_restore_target_reached_flag_when_undoing_the_move_that_reached_the_target', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      targetTile: 8,
+      initialTiles: [
+        [coord(-2, 0), new Tile(4)],
+        [coord(0, 0), new Tile(4)],
+      ],
+    });
+    const targetEvents: TargetReached[] = [];
+    game.subscribe((event) => {
+      if (isTargetReached(event)) {
+        targetEvents.push(event);
+      }
+    });
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    game.undo();
+    const targetReachedAfterUndo = game.state.targetReached;
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+
+    // Assert
+    expect(targetReachedAfterUndo).toBe(false);
+    expect(targetEvents).toHaveLength(2);
+    expect(game.state.targetReached).toBe(true);
+  });
+});
