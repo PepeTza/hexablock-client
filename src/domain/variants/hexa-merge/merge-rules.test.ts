@@ -1,0 +1,135 @@
+import { Board } from '../../engine/board/board';
+import { BoardShape } from '../../engine/board/board-shape';
+import { GameEngine } from '../../engine/game/game-engine';
+import { Axis } from '../../engine/geometry/axis';
+import type { IBoardGeometry } from '../../engine/geometry/board-geometry';
+import type { ICoord } from '../../engine/geometry/coord';
+import { Direction } from '../../engine/geometry/direction';
+import { MergeRules } from './merge-rules';
+import { Tile } from './tile';
+
+/**
+ * A square cell for the OCP check (RNF-14): `MergeRules` must run on it
+ * without any change in its own code.
+ */
+class SquareCoord implements ICoord {
+  constructor(
+    readonly x: number,
+    readonly y: number,
+  ) {}
+
+  key(): string {
+    return `${this.x},${this.y}`;
+  }
+}
+
+const EAST = new Direction('EAST');
+const SOUTH = new Direction('SOUTH');
+const WEST = new Direction('WEST');
+const NORTH = new Direction('NORTH');
+const STEP = new Map([
+  [EAST, [1, 0]],
+  [SOUTH, [0, 1]],
+  [WEST, [-1, 0]],
+  [NORTH, [0, -1]],
+]);
+
+/** Test double: a square grid where each cell has four neighbours. */
+class SquareGeometry implements IBoardGeometry<SquareCoord> {
+  readonly origin = new SquareCoord(0, 0);
+  readonly directions = [EAST, SOUTH, WEST, NORTH];
+  readonly axes = [new Axis('ROW')];
+
+  neighbour(coord: SquareCoord, direction: Direction): SquareCoord {
+    const [dx = 0, dy = 0] = STEP.get(direction) ?? [];
+    return new SquareCoord(coord.x + dx, coord.y + dy);
+  }
+
+  neighbours(coord: SquareCoord): SquareCoord[] {
+    return this.directions.map((direction) => this.neighbour(coord, direction));
+  }
+
+  line(): SquareCoord[] {
+    return [];
+  }
+
+  ring(): SquareCoord[] {
+    return [];
+  }
+
+  translate(coord: SquareCoord): SquareCoord {
+    return coord;
+  }
+}
+
+const at = (x: number, y: number) => new SquareCoord(x, y);
+
+/** Starts a game on a 3 x 3 square board (x and y from 0 to 2). */
+function startSquareGame(tiles: ReadonlyArray<readonly [SquareCoord, Tile]>) {
+  const cells: SquareCoord[] = [];
+  for (let y = 0; y < 3; y++) {
+    for (let x = 0; x < 3; x++) {
+      cells.push(at(x, y));
+    }
+  }
+  const board = new Board<Tile, SquareCoord>(
+    BoardShape.of(cells),
+    new SquareGeometry(),
+  );
+  for (const [coord, tile] of tiles) {
+    board.place(coord, tile);
+  }
+  return GameEngine.start({
+    board,
+    state: { score: 0, moveCount: 0 },
+    rules: new MergeRules<SquareCoord>({ pointsFor: () => 0 }),
+    seed: null,
+  });
+}
+
+describe('MergeRules on a square board (RNF-14)', () => {
+  it('should_slide_the_tile_to_the_far_edge_when_merge_rules_play_on_a_square_board', () => {
+    // Arrange
+    const game = startSquareGame([[at(0, 0), new Tile(2)]]);
+
+    // Act
+    const result = game.applyMove({ direction: EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied' });
+    expect(game.board.cellAt(at(0, 0))).toBeUndefined();
+    expect(game.board.cellAt(at(2, 0))?.value).toBe(2);
+    expect(game.state.moveCount).toBe(1);
+  });
+
+  it('should_reject_the_move_when_no_tile_can_slide_on_a_square_board', () => {
+    // Arrange
+    const game = startSquareGame([[at(2, 0), new Tile(2)]]);
+
+    // Act
+    const result = game.applyMove({ direction: EAST });
+
+    // Assert
+    expect(result).toEqual({
+      kind: 'rejected',
+      reason: 'Slide does not move any tile',
+    });
+    expect(game.state.moveCount).toBe(0);
+  });
+
+  it('should_reject_the_move_when_the_direction_is_not_square', () => {
+    // Arrange
+    const game = startSquareGame([[at(0, 0), new Tile(2)]]);
+    const northEast = new Direction('NORTH_EAST');
+
+    // Act
+    const result = game.applyMove({ direction: northEast });
+
+    // Assert
+    expect(result).toEqual({
+      kind: 'rejected',
+      reason: 'Slide direction does not belong to the board geometry',
+    });
+    expect(game.state.moveCount).toBe(0);
+  });
+});

@@ -36,7 +36,7 @@ export function startMergeGame(
     board: createMergeBoard(initialTiles),
     state: { score: 0, moveCount: 0 },
     // Sliding alone adds no points; merge scoring arrives in HU25 (#69).
-    rules: new MergeRules({ pointsFor: () => 0 }),
+    rules: new MergeRules<HexCoord>({ pointsFor: () => 0 }),
     seed: null,
   });
 }
