@@ -1207,6 +1207,23 @@ One entry per significant use. Copy the template.
     syncs progress yet; the future sync (CU-12) must send `null`, as the
     `SortProgressModel` comment says.
 
+### 2026-11-25 — Fit level validation against the proposed format
+
+- **Tool / model:** Codex and Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #72 and #165 (PR #186).
+- **Prompt:** Connect the validator to the shared solver, check its payload,
+  and guard `validateSpec` against non-object runtime inputs.
+- **Result:** The generic validator accepts injected geometry, catalog and
+  coordinate parser, rejects unknown spec, cell and threshold fields, and
+  returns a structured `spec` error on `null`, `undefined`, arrays or
+  primitives instead of throwing `TypeError`.
+- **Team modifications:** The #139 review requested injected dependencies;
+  cross-review with Codex caught the missing `isObject(spec)` guard before
+  `Object.keys(spec)`.
+- **Lessons / limitations:** Added 11 contract edge-case tests (non-object
+  specs, duplicate figure cells, repeated catalog IDs, invalid star
+  thresholds). Backend #66 contract freeze remains pending.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
