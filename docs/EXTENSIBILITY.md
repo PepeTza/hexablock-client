@@ -153,6 +153,7 @@ use cases are reused.
 | A new piece shape | A new entry in the piece catalog (data) | All code |
 | Another 2D cell shape or 3D grid (e.g. squares or cubes) | New `ICoord` + `IBoardGeometry<TCoord>` implementations, plus an `IBoardProjection` adapter in presentation (plus `IPlanarRotation` for a 2D grid that rotates pieces; a 3D grid that needs rotation gets its own interface with an axis) | `Board`, `BoardShape`, `GameEngine`, and rules that keep coordinates opaque |
 | Another scoring or progress model | A new `IScoringPolicy` / `IProgressModel`, selected by the factory | The engine and the use cases |
+| A different board size for an endless variant (Merge) | `boardRadius` in `MergeGameOptions`; the default lives in one named constant (`DEFAULT_MERGE_BOARD_RADIUS`). Who passes it: first the Merge variant factory once it is registered (one line of configuration); the target is a value of the server configuration, edited from the admin panel, downloaded with the content refresh and cached locally for offline play, like the seed config. The server must derive its plausibility limits from the same value, not a fixed cell count (backend #47) | Merge rules, the engine, `BoardShape` |
 | Another database | See the backend [`data-model.md` §8](https://github.com/PepeTza/hexablock-backend/blob/main/docs/data-model.md) | Domain and use cases |
 
 ## 5. Extensibility diagram
