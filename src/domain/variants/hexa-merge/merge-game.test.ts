@@ -11,7 +11,7 @@ import {
   type InitialMergeTile,
   type MergeGameOptions,
 } from './merge-game';
-import { MergeRules } from './merge-rules';
+import { MergeRules, type TargetReached } from './merge-rules';
 import { MergeScoringPolicy } from './merge-scoring-policy';
 import { slideTiles } from './slide-tiles';
 import type { TileSpawned } from './spawn-tile';
@@ -25,6 +25,14 @@ function isTileSpawned(event: DomainEvent): event is TileSpawned<HexCoord> {
     'cell' in event &&
     'value' in event &&
     typeof event.value === 'number'
+  );
+}
+
+function isTargetReached(event: DomainEvent): event is TargetReached {
+  return (
+    event.type === 'TargetReached' &&
+    'target' in event &&
+    typeof event.target === 'number'
   );
 }
 
@@ -485,7 +493,12 @@ describe('Hexa Merge merge (HU25)', () => {
     // Act
     const outcome = rules.play(
       board,
-      { score: 0, moveCount: 0, source: Snapshot.of(new SeededRandom(1)) },
+      {
+        score: 0,
+        moveCount: 0,
+        targetReached: false,
+        source: Snapshot.of(new SeededRandom(1)),
+      },
       { direction: HexDirection.EAST },
     );
 
@@ -628,5 +641,158 @@ describe('Hexa Merge spawn (HU26)', () => {
     // Assert
     expect(initialValues).toEqual([4, 4]);
     expect(spawnedValues).toEqual([4]);
+  });
+});
+
+describe('Hexa Merge target and defeat (HU28)', () => {
+  it('should_emit_target_reached_and_keep_playing_when_a_merge_reaches_the_target_tile', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      initialTiles: [
+        [coord(-2, 0), new Tile(1024)],
+        [coord(0, 0), new Tile(1024)],
+      ],
+    });
+    const targetEvents: TargetReached[] = [];
+    game.subscribe((event) => {
+      if (isTargetReached(event)) {
+        targetEvents.push(event);
+      }
+    });
+
+    // Act
+    const first = game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    const statusAfterFirst = game.status;
+    const second = game.applyMove({ direction: HexDirection.WEST });
+
+    // Assert
+    expect(first).toMatchObject({ kind: 'applied', points: 2048 });
+    expect(targetEvents).toEqual([{ type: 'TargetReached', target: 2048 }]);
+    expect(game.state.targetReached).toBe(true);
+    expect(statusAfterFirst).toBe('playing');
+    expect(game.outcome).toBeNull();
+    expect(second).toMatchObject({ kind: 'applied' });
+  });
+
+  it('should_emit_target_reached_only_once_when_subsequent_moves_exceed_the_target', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      initialTiles: [
+        [coord(-2, 0), new Tile(1024)],
+        [coord(0, 0), new Tile(1024)],
+        [coord(-1, -1), new Tile(1024)],
+        [coord(1, -1), new Tile(1024)],
+      ],
+    });
+    const targetEvents: TargetReached[] = [];
+    game.subscribe((event) => {
+      if (isTargetReached(event)) {
+        targetEvents.push(event);
+      }
+    });
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+    game.applyMove({ direction: HexDirection.SOUTH_EAST });
+    game.resolutionDone();
+
+    // Assert
+    expect(targetEvents).toHaveLength(1);
+    expect(game.state.targetReached).toBe(true);
+  });
+
+  it('should_respect_a_custom_target_tile_when_configured_in_game_options', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      targetTile: 8,
+      initialTiles: [
+        [coord(-2, 0), new Tile(4)],
+        [coord(0, 0), new Tile(4)],
+      ],
+    });
+    const targetEvents: TargetReached[] = [];
+    game.subscribe((event) => {
+      if (isTargetReached(event)) {
+        targetEvents.push(event);
+      }
+    });
+
+    // Act
+    game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+
+    // Assert
+    expect(targetEvents).toEqual([{ type: 'TargetReached', target: 8 }]);
+    expect(game.status).toBe('playing');
+  });
+
+  it('should_throw_range_error_when_target_tile_is_not_a_valid_tile_value', () => {
+    // Arrange
+    const nonPowerOfTwo = 3;
+    const zeroTarget = 0;
+
+    // Act
+    const startWithThree = () =>
+      startMergeGame(1, { targetTile: nonPowerOfTwo });
+    const startWithZero = () => startMergeGame(1, { targetTile: zeroTarget });
+
+    // Assert
+    expect(startWithThree).toThrow(RangeError);
+    expect(startWithZero).toThrow(RangeError);
+  });
+
+  it('should_end_the_game_as_defeat_when_no_move_can_change_the_board', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      boardRadius: 1,
+      spawnWeights: [{ item: new Tile(128), weight: 1 }],
+      initialTiles: [
+        [coord(0, -1), new Tile(2)],
+        [coord(1, -1), new Tile(4)],
+        [coord(-1, 0), new Tile(8)],
+        [coord(0, 0), new Tile(16)],
+        [coord(1, 0), new Tile(16)],
+        [coord(-1, 1), new Tile(32)],
+        [coord(0, 1), new Tile(64)],
+      ],
+    });
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 32 });
+    expect(game.status).toBe('finished');
+    expect(game.outcome).toBe('defeat');
+  });
+
+  it('should_not_end_as_defeat_when_the_board_is_full_but_adjacent_tiles_can_merge', () => {
+    // Arrange
+    const game = startMergeGame(1, {
+      boardRadius: 1,
+      spawnWeights: [{ item: new Tile(8), weight: 1 }],
+      initialTiles: [
+        [coord(0, -1), new Tile(2)],
+        [coord(1, -1), new Tile(4)],
+        [coord(-1, 0), new Tile(8)],
+        [coord(0, 0), new Tile(16)],
+        [coord(1, 0), new Tile(16)],
+        [coord(-1, 1), new Tile(32)],
+        [coord(0, 1), new Tile(64)],
+      ],
+    });
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+    game.resolutionDone();
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied', points: 32 });
+    expect(Object.keys(occupiedSnapshot(game.board))).toHaveLength(7);
+    expect(game.status).toBe('playing');
+    expect(game.outcome).toBeNull();
   });
 });

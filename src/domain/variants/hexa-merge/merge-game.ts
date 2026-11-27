@@ -7,7 +7,12 @@ import { HexGeometry } from '../../engine/hex/hex-geometry';
 import type { WeightedEntry } from '../../engine/random/random-source';
 import { SeededRandom } from '../../engine/random/seeded-random';
 import { Snapshot } from '../../engine/state/snapshot';
-import { MergeRules, type MergeEvent, type MergeState } from './merge-rules';
+import {
+  DEFAULT_MERGE_TARGET_TILE,
+  MergeRules,
+  type MergeEvent,
+  type MergeState,
+} from './merge-rules';
 import { MergeScoringPolicy } from './merge-scoring-policy';
 import type { SlideMove } from './slide-tiles';
 import {
@@ -16,7 +21,7 @@ import {
   spawnInitialTiles,
   validateSpawnWeights,
 } from './spawn-tile';
-import type { Tile } from './tile';
+import { Tile } from './tile';
 
 /**
  * The board radius used when the game options give none. The size is data
@@ -32,6 +37,7 @@ export interface MergeGameOptions {
   readonly boardRadius?: number;
   readonly initialTileCount?: number;
   readonly spawnWeights?: readonly WeightedEntry<Tile>[];
+  readonly targetTile?: number;
   /** Explicit starting tiles for deterministic setups; skips random placement. */
   readonly initialTiles?: readonly InitialMergeTile[];
 }
@@ -56,7 +62,7 @@ export function createMergeBoard(
 }
 
 /**
- * Starts a seeded Hexa Merge session (RN-05, RN-28, RN-44). When
+ * Starts a seeded Hexa Merge session (RN-05, RN-28, RN-30, RN-44). When
  * `options.initialTiles` is omitted, places `initialTileCount` (default 2)
  * starting tiles on random non-border cells.
  */
@@ -67,6 +73,8 @@ export function startMergeGame(
   const spawnWeights = validateSpawnWeights(
     options.spawnWeights ?? DEFAULT_MERGE_SPAWN_WEIGHTS,
   );
+  const targetTile = new Tile(options.targetTile ?? DEFAULT_MERGE_TARGET_TILE)
+    .value;
   const random = new SeededRandom(seed);
   const board = createMergeBoard(options.initialTiles ?? [], options);
   if (options.initialTiles === undefined) {
@@ -77,9 +85,14 @@ export function startMergeGame(
       spawnWeights,
     );
   }
+  const targetReached = board.shape.coords.some((cell) => {
+    const tile = board.cellAt(cell);
+    return tile !== undefined && tile.value >= targetTile;
+  });
   const state: MergeState = {
     score: 0,
     moveCount: 0,
+    targetReached,
     source: Snapshot.of(random),
   };
   return GameEngine.start({
@@ -88,6 +101,7 @@ export function startMergeGame(
     rules: new MergeRules<HexCoord>(
       new MergeScoringPolicy<HexCoord>(),
       spawnWeights,
+      targetTile,
     ),
     seed,
   });
