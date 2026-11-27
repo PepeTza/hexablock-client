@@ -224,3 +224,41 @@ describe('Hexa Merge slide (HU24)', () => {
     expect(slide).toThrow(RangeError);
   });
 });
+
+describe('Hexa Merge board size (#161)', () => {
+  it('should_build_a_radius_two_board_when_no_radius_is_given', () => {
+    // Arrange
+    const options = {};
+
+    // Act
+    const board = createMergeBoard([], options);
+
+    // Assert
+    expect(board.shape.coords).toHaveLength(19);
+  });
+
+  it('should_build_a_board_of_the_given_radius_when_a_radius_is_given', () => {
+    // Arrange
+    const options = { boardRadius: 3 };
+
+    // Act
+    const board = createMergeBoard([], options);
+
+    // Assert
+    expect(board.shape.coords).toHaveLength(37);
+  });
+
+  it('should_slide_tiles_to_the_radius_three_edge_when_the_board_has_radius_three', () => {
+    // Arrange
+    const game = startMergeGame([[coord(-3, 0), new Tile(2)]], {
+      boardRadius: 3,
+    });
+
+    // Act
+    const result = game.applyMove({ direction: HexDirection.EAST });
+
+    // Assert
+    expect(result).toMatchObject({ kind: 'applied' });
+    expect(occupiedSnapshot(game.board)).toEqual({ '3,0': 2 });
+  });
+});
