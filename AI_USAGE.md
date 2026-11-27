@@ -1265,6 +1265,31 @@ One entry per significant use. Copy the template.
   `README.md` reverted its unstaged edit and had to be re-checked with
   `git status` before committing.
 
+### 2026-11-27 — Hexa Merge target tile and defeat detection (issue #79)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #79.
+- **Prompt (paraphrase):** Plan and implement #79 (HU28, RN-30, D-22) through
+  the four-gate harness after #70 unblocked it: emit `TargetReached` once when
+  reaching the configurable target tile while keeping the game playable, and
+  end the game as a defeat when no move can change the board.
+- **Result:** `DEFAULT_MERGE_TARGET_TILE = 2048`, `TargetReached`,
+  `MergeState.targetReached`, geometry-agnostic short-circuit `hasValidMove`
+  in `MergeRules.evaluateEnd`, `targetTile` option in `startMergeGame`, and 7
+  new tests (`merge-game.test.ts` and `merge-rules.test.ts`).
+- **Team modifications:** In gate 1, the owner checked whether running
+  `evaluateEnd` on every move (returning `null` on most turns) was a design
+  smell; the check confirmed it matches `BaseGameRules`'s contract across all
+  four variants and that `hasValidMove` short-circuits on the first available
+  move without cloning the board, only scanning every cell when the board is
+  full.
+- **Lessons / limitations:** The first draft of the HU28 tests expected
+  `outcome` on `MoveResult` instead of `game.outcome`, missed calling
+  `game.resolutionDone()` before checking `PlayingState` (D-22 `ResolvingState`
+  lock), and placed an initial `2048` tile in the "emit only once" test (which
+  correctly initialized `targetReached = true`). All three were fixed before
+  committing.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
