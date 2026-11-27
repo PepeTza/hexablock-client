@@ -695,10 +695,11 @@ describe('Hexa Merge target and defeat (HU28)', () => {
     // Act
     game.applyMove({ direction: HexDirection.EAST });
     game.resolutionDone();
-    game.applyMove({ direction: HexDirection.SOUTH_EAST });
+    const second = game.applyMove({ direction: HexDirection.SOUTH_EAST });
     game.resolutionDone();
 
     // Assert
+    expect(second).toMatchObject({ kind: 'applied', points: 4096 });
     expect(targetEvents).toHaveLength(1);
     expect(game.state.targetReached).toBe(true);
   });
