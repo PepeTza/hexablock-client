@@ -67,6 +67,10 @@ export function SeedSettings({ load, save }: SeedSettingsServices) {
     };
   }, [gameId, load]);
 
+  const currentEntry = entries.find(
+    (entry) => entry.levelId === (gameId === 'hexa-sort' ? levelId : null),
+  );
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (loading || saving || entries.length === 0) return;
@@ -102,36 +106,51 @@ export function SeedSettings({ load, save }: SeedSettingsServices) {
   }
 
   return (
-    <section aria-labelledby="seed-settings-heading">
-      <h2 id="seed-settings-heading">Seed settings</h2>
-      <label>
-        Game{' '}
-        <select
-          value={gameId}
-          disabled={saving}
-          onChange={(event) => {
-            const next = event.target.value;
-            if (
-              next !== 'hexa-lines' &&
-              next !== 'hexa-merge' &&
-              next !== 'hexa-sort'
-            )
-              return;
-            setEntries([]);
-            setLoading(true);
-            setError('');
-            setStatus('');
-            setGameId(next);
-          }}
-        >
-          <option value="hexa-lines">Hexa Lines</option>
-          <option value="hexa-merge">Hexa Merge</option>
-          <option value="hexa-sort">Hexa Sort</option>
-        </select>
-      </label>
-      {loading && <p role="status">Loading seed settings…</p>}
+    <section className="seed-card" aria-labelledby="seed-settings-heading">
+      <div className="seed-header">
+        <h2 id="seed-settings-heading">Seed settings</h2>
+        {currentEntry && (
+          <span className="seed-badge">
+            {currentEntry.config.mode === 'fixed'
+              ? `Fixed · ${currentEntry.config.value}`
+              : 'Random'}
+          </span>
+        )}
+      </div>
+      <div className="field-group">
+        <label>
+          Game
+          <select
+            value={gameId}
+            disabled={saving}
+            onChange={(event) => {
+              const next = event.target.value;
+              if (
+                next !== 'hexa-lines' &&
+                next !== 'hexa-merge' &&
+                next !== 'hexa-sort'
+              )
+                return;
+              setEntries([]);
+              setLoading(true);
+              setError('');
+              setStatus('');
+              setGameId(next);
+            }}
+          >
+            <option value="hexa-lines">Hexa Lines</option>
+            <option value="hexa-merge">Hexa Merge</option>
+            <option value="hexa-sort">Hexa Sort</option>
+          </select>
+        </label>
+      </div>
+      {loading && (
+        <p role="status" className="status-muted">
+          Loading seed settings…
+        </p>
+      )}
       {!loading && !error && entries.length === 0 && (
-        <p>No seed configurations available.</p>
+        <p className="status-muted">No seed configurations available.</p>
       )}
       {entries.length > 0 && (
         <form
@@ -139,69 +158,90 @@ export function SeedSettings({ load, save }: SeedSettingsServices) {
             void submit(event);
           }}
         >
-          <fieldset disabled={saving}>
+          <fieldset className="seed-fieldset" disabled={saving}>
             <legend>Seed configuration</legend>
-            {gameId === 'hexa-sort' && (
+            <div className="seed-fields">
+              {gameId === 'hexa-sort' && (
+                <label>
+                  Level
+                  <select
+                    value={levelId}
+                    onChange={(event) => {
+                      select(
+                        entries.find(
+                          (entry) => entry.levelId === event.target.value,
+                        ),
+                      );
+                      setError('');
+                      setStatus('');
+                    }}
+                  >
+                    {entries.map((entry) => (
+                      <option key={entry.levelId} value={entry.levelId ?? ''}>
+                        {entry.levelId}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label>
-                Level{' '}
+                Mode
                 <select
-                  value={levelId}
+                  value={mode}
                   onChange={(event) => {
-                    select(
-                      entries.find(
-                        (entry) => entry.levelId === event.target.value,
-                      ),
+                    setMode(
+                      event.target.value === 'fixed' ? 'fixed' : 'random',
                     );
                     setError('');
                     setStatus('');
                   }}
                 >
-                  {entries.map((entry) => (
-                    <option key={entry.levelId} value={entry.levelId ?? ''}>
-                      {entry.levelId}
-                    </option>
-                  ))}
+                  <option value="random">Random</option>
+                  <option value="fixed">Fixed</option>
                 </select>
               </label>
-            )}{' '}
-            <label>
-              Mode{' '}
-              <select
-                value={mode}
-                onChange={(event) => {
-                  setMode(event.target.value === 'fixed' ? 'fixed' : 'random');
-                  setError('');
-                  setStatus('');
-                }}
-              >
-                <option value="random">Random</option>
-                <option value="fixed">Fixed</option>
-              </select>
-            </label>{' '}
+              {mode === 'fixed' && (
+                <label>
+                  Fixed seed
+                  <input
+                    type="number"
+                    min="0"
+                    max="4294967295"
+                    step="1"
+                    required
+                    value={value}
+                    onChange={(event) => {
+                      setValue(event.target.value);
+                      setError('');
+                      setStatus('');
+                    }}
+                  />
+                </label>
+              )}
+            </div>
             {mode === 'fixed' && (
-              <label>
-                Fixed seed{' '}
-                <input
-                  type="number"
-                  min="0"
-                  max="4294967295"
-                  step="1"
-                  required
-                  value={value}
-                  onChange={(event) => {
-                    setValue(event.target.value);
-                    setError('');
-                    setStatus('');
-                  }}
-                />
-              </label>
-            )}{' '}
-            <button type="submit">Save seed</button>
+              <p className="seed-hint">
+                Unsigned 32-bit integer from 0 to 4294967295.
+              </p>
+            )}
+            <div className="seed-actions">
+              <button type="submit" className="btn-primary">
+                Save seed
+              </button>
+            </div>
           </fieldset>
         </form>
       )}
-      {error && <p role="alert">{error}</p>}
-      {status && <p role="status">{status}</p>}
+      {error && (
+        <p role="alert" className="alert-banner">
+          {error}
+        </p>
+      )}
+      {status && (
+        <p role="status" className="status-banner">
+          {status}
+        </p>
+      )}
     </section>
   );
 }
