@@ -82,11 +82,17 @@ describe('Hexa Merge tile spawning (HU26)', () => {
       { item: new Tile(2), weight: Number.POSITIVE_INFINITY },
     ];
 
-    // Act & Assert
-    expect(() => validateSpawnWeights(empty)).toThrow(RangeError);
-    expect(() => validateSpawnWeights(zeroWeight)).toThrow(RangeError);
-    expect(() => validateSpawnWeights(negativeWeight)).toThrow(RangeError);
-    expect(() => validateSpawnWeights(infiniteWeight)).toThrow(RangeError);
+    // Act
+    const validateEmpty = () => validateSpawnWeights(empty);
+    const validateZero = () => validateSpawnWeights(zeroWeight);
+    const validateNegative = () => validateSpawnWeights(negativeWeight);
+    const validateInfinite = () => validateSpawnWeights(infiniteWeight);
+
+    // Assert
+    expect(validateEmpty).toThrow(RangeError);
+    expect(validateZero).toThrow(RangeError);
+    expect(validateNegative).toThrow(RangeError);
+    expect(validateInfinite).toThrow(RangeError);
   });
 
   it('should_place_two_tiles_on_non_border_cells_when_spawning_initial_tiles_with_defaults', () => {
