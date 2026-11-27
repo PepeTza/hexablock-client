@@ -3,7 +3,7 @@ import type { DomainEvent } from '../../engine/events/domain-event';
 import type { ICoord } from '../../engine/geometry/coord';
 import type { Direction } from '../../engine/geometry/direction';
 import { raysInDirection } from './slide-tiles';
-import { Tile } from './tile';
+import type { Tile } from './tile';
 
 /** One merge of a move: the cell of the new tile and its value. */
 export interface MergedTile<TCoord extends ICoord> {
@@ -68,7 +68,7 @@ function mergeRay<TCoord extends ICoord>(
     }
     const behind = tiles[index + 1];
     if (behind !== undefined && front.equals(behind)) {
-      const merged = new Tile(front.value * 2);
+      const merged = front.doubled();
       board.place(cell, merged);
       merges.push({ cell, value: merged.value });
       index += 2;
