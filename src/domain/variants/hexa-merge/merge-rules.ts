@@ -1,26 +1,28 @@
+import type { Board } from '../../engine/board/board';
 import {
   BaseGameRules,
   type Resolved,
 } from '../../engine/game/base-game-rules';
 import type { GameState } from '../../engine/game/game-state';
-import type { HexBoard } from '../../engine/hex/hex-board';
-import type { HexCoord } from '../../engine/hex/hex-coord';
+import type { ICoord } from '../../engine/geometry/coord';
 import { slideTiles, type SlideMove } from './slide-tiles';
 import type { Tile } from './tile';
 
 /**
- * Template Method: slide tiles in one of the six hex directions (RN-26, RN-28).
+ * Template Method: slide tiles in one of the board geometry's directions
+ * (RN-26, RN-28). Generic over the coordinate (RNF-14): only the place that
+ * assembles the game (`merge-game.ts`) chooses the hexagonal geometry.
  * Merging, tile spawning and victory/defeat detection follow in #69, #70 and #79.
  */
-export class MergeRules extends BaseGameRules<
+export class MergeRules<TCoord extends ICoord> extends BaseGameRules<
   Tile,
-  HexCoord,
+  TCoord,
   SlideMove,
   GameState,
   void
 > {
   protected validate(
-    board: HexBoard<Tile>,
+    board: Board<Tile, TCoord>,
     _state: GameState,
     move: SlideMove,
   ): string | null {
@@ -34,7 +36,7 @@ export class MergeRules extends BaseGameRules<
   }
 
   protected apply(
-    board: HexBoard<Tile>,
+    board: Board<Tile, TCoord>,
     _state: GameState,
     move: SlideMove,
   ): void {
@@ -42,7 +44,7 @@ export class MergeRules extends BaseGameRules<
   }
 
   protected resolve(
-    _board: HexBoard<Tile>,
+    _board: Board<Tile, TCoord>,
     state: GameState,
   ): Resolved<GameState, void> {
     return { state, resolution: undefined };
