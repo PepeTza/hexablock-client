@@ -1290,6 +1290,28 @@ One entry per significant use. Copy the template.
   correctly initialized `targetReached = true`). All three were fixed before
   committing.
 
+### 2026-11-27 — Hexa Merge single undo (issue #78)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #78.
+- **Prompt (paraphrase):** Plan and implement #78 (HU27, RN-31) through the
+  four-gate harness: enable one level of undo in Hexa Merge restoring board,
+  score, `targetReached` and the seeded random generator state, while keeping
+  the undo allowance configurable as data.
+- **Result:** `DEFAULT_MERGE_UNDO_ALLOWANCE = 1` and `undoAllowance?: number`
+  in `MergeGameOptions`, `CommandHistory` wired in `startMergeGame` with
+  `allowRedo: false`, and 6 new tests in `merge-game.test.ts`.
+- **Team modifications:** The AI first proposed injecting a `CommandHistory`
+  object via `MergeGameOptions.history`. The owner checked whether the number
+  of undos should stay configurable as plain data (consistent with
+  `boardRadius`, `initialTileCount`, `spawnWeights` and `targetTile`), and
+  chose `undoAllowance?: number` with `DEFAULT_MERGE_UNDO_ALLOWANCE = 1`.
+- **Lessons / limitations:** Because `#58` (`CommandHistory`), `#111`
+  (`Snapshot<IRandomSource>` in `SourcedGameRules`) and `#79`
+  (`MergeState.targetReached` and `FinishedState` defeat) were already in
+  place, enabling undo in Hexa Merge required zero changes to the generic
+  engine or `MergeRules`.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
