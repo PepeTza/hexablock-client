@@ -148,7 +148,7 @@ export class GameEngine<
 
   /** How the game ended, or `null` while it goes on. */
   get outcome(): GameOutcome | null {
-    return this.session instanceof FinishedState ? this.session.outcome : null;
+    return this.session.outcome;
   }
 
   /** Whether `undo()` can currently revert a move (playing and permitted). */
@@ -318,7 +318,8 @@ export class GameEngine<
    * https://dom.spec.whatwg.org/#concept-event-listener-inner-invoke).
    */
   private deliver(): void {
-    let firstError: Error | null = null;
+    // Kept as thrown (`unknown`): the first one is rethrown unchanged.
+    const errors: unknown[] = [];
     for (
       let event = this.outbox.shift();
       event !== undefined;
@@ -331,17 +332,13 @@ export class GameEngine<
           if (this.onListenerError !== undefined) {
             this.onListenerError(error, event);
           } else {
-            firstError ??= toError(error);
+            errors.push(error);
           }
         }
       }
     }
-    if (firstError !== null) {
-      throw firstError;
+    if (errors.length > 0) {
+      throw errors[0];
     }
   }
-}
-
-function toError(error: unknown): Error {
-  return error instanceof Error ? error : new Error(String(error));
 }

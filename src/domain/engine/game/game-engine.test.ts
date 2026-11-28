@@ -469,6 +469,26 @@ describe('GameEngine', () => {
       expect(engine.state.moveCount).toBe(1);
       expect(engine.status).toBe('resolving');
     });
+
+    it('should_rethrow_the_original_error_when_a_listener_throws_without_handler', () => {
+      // Arrange
+      const { engine } = numberGame();
+      const original = new RangeError('listener bug');
+      engine.subscribe(() => {
+        throw original;
+      });
+
+      // Act
+      let rethrown: unknown = null;
+      try {
+        engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      } catch (error) {
+        rethrown = error;
+      }
+
+      // Assert
+      expect(rethrown).toBe(original);
+    });
   });
 
   describe('session states (D-22)', () => {
@@ -621,6 +641,27 @@ describe('GameEngine', () => {
         expect(types()).toHaveLength(eventsBefore);
       },
     );
+
+    it('should_report_null_outcome_until_finished_when_session_state_changes', () => {
+      // Arrange
+      const { engine } = numberGame({ radius: 0 });
+      const whilePlaying = engine.outcome;
+
+      // Act
+      engine.applyMove({ cell: HexCoord.ORIGIN, value: 4 });
+      const whileResolving = engine.outcome;
+      engine.pause();
+      const whilePaused = engine.outcome;
+      engine.resume();
+      const onceFinished = engine.outcome;
+
+      // Assert
+      expect(whilePlaying).toBeNull();
+      expect(whileResolving).toBeNull();
+      expect(whilePaused).toBeNull();
+      expect(engine.status).toBe('finished');
+      expect(onceFinished).toBe('victory');
+    });
   });
 
   describe('undo and redo (T20)', () => {

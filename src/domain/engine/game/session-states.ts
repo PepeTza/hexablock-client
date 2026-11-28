@@ -50,6 +50,11 @@ export interface SessionContext<TMove> {
 export abstract class SessionState<TMove> {
   abstract readonly status: GameStatus;
 
+  /** How the game ended: `null` unless a state says otherwise. */
+  get outcome(): GameOutcome | null {
+    return null;
+  }
+
   /** Plays or rejects `move`, and says which (CU-02). */
   abstract applyMove(context: SessionContext<TMove>, move: TMove): MoveResult;
 
@@ -156,8 +161,12 @@ export class PausedState<TMove> extends SessionState<TMove> {
 export class FinishedState<TMove> extends SessionState<TMove> {
   readonly status = 'finished';
 
-  constructor(readonly outcome: GameOutcome) {
+  constructor(private readonly finalOutcome: GameOutcome) {
     super();
+  }
+
+  get outcome(): GameOutcome {
+    return this.finalOutcome;
   }
 
   applyMove(context: SessionContext<TMove>, move: TMove): MoveResult {
