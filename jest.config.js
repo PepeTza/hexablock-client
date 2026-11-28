@@ -29,8 +29,8 @@ module.exports = {
   // Skip React Native runtime mocks: tests target pure domain, application and
   // presentation logic (no UI component tests), keeping feedback fast.
   setupFiles: [],
-  roots: ['<rootDir>/test'],
-  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}'],
+  roots: ['<rootDir>/src', '<rootDir>/test'],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}'],
   coverageThreshold,
   moduleNameMapper,
   // `admin/` is a separate web app tested with Vitest (D-18).

@@ -33,6 +33,13 @@ const MOBILE_UI_PATTERN = {
     'The admin panel is a web app: it cannot import the mobile UI packages.',
 };
 
+/** Clean Architecture Ch. 28 (The Test Boundary): production code never imports test/. */
+const TEST_BOUNDARY_PATTERN = {
+  regex: '^(@test|(\\.\\./)+test)(/|$)',
+  message:
+    'The admin panel cannot import from test/ or @test/* (The Test Boundary, Clean Architecture Ch. 28).',
+};
+
 /** @type {import('eslint').Linter.Config} */
 export const adminBoundaries = {
   files: ['src/**/*.{ts,tsx}'],
@@ -40,7 +47,12 @@ export const adminBoundaries = {
     'no-restricted-imports': [
       'error',
       {
-        patterns: [APP_LAYER_PATTERN, RELATIVE_SRC_PATTERN, MOBILE_UI_PATTERN],
+        patterns: [
+          APP_LAYER_PATTERN,
+          RELATIVE_SRC_PATTERN,
+          MOBILE_UI_PATTERN,
+          TEST_BOUNDARY_PATTERN,
+        ],
       },
     ],
   },
