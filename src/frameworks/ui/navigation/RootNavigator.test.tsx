@@ -50,11 +50,11 @@ describe('RootNavigator', () => {
 
     // Act
     await fireEvent.press(
-      await screen.findByRole('button', { name: 'Hexa Sort' }),
+      await screen.findByRole('button', { name: 'Hexa Merge' }),
     );
 
     // Assert
-    expect(await screen.findByText('Hexa Sort is coming soon.')).toBeTruthy();
+    expect(await screen.findByText('Hexa Merge is coming soon.')).toBeTruthy();
   });
 
   it('should_fit_the_touch_targets_when_the_lines_tray_has_four_slots', async () => {

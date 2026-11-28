@@ -1,8 +1,11 @@
+import type { BoardProjectionFactory } from '@adapters/presentation/board/board-projection';
+import { HexBoardProjection } from '@adapters/presentation/board/hex-board-projection';
 import { LinesGamePresenter } from '@adapters/presentation/hexa-lines/lines-game-presenter';
 import { AsyncExceptionHandlingCommandServiceDecorator } from '@application/aspects/exception-handling-decorator';
 import { AsyncLoggingCommandServiceDecorator } from '@application/aspects/logging-use-case-decorator';
 import { FinishGameUseCase } from '@application/use-cases/finish-game';
 import { VariantFactoryRegistry } from '@domain/engine/game/variant-factory';
+import type { HexCoord } from '@domain/engine/hex/hex-coord';
 import { createLinesGame } from '@domain/variants/hexa-lines/lines-game';
 import { LinesVariantFactory } from '@domain/variants/hexa-lines/lines-variant-factory';
 import { InMemoryProgressRepository } from '@adapters/persistence/in-memory-progress-repository';
@@ -24,7 +27,8 @@ export interface AppServices {
   readonly mainMenu: MainMenuPresenter;
   readonly gameResult: GameResultPresenter;
   readonly loadLevels?: AsyncCommandService<LoadLevelsInput, LevelSelection>;
-  readonly startLines: () => LinesGamePresenter;
+  readonly createBoardProjection: BoardProjectionFactory<HexCoord>;
+  readonly startLines: () => LinesGamePresenter<HexCoord>;
 }
 
 /** Optional overrides used in integration and navigation tests. */
@@ -76,11 +80,21 @@ export function createAppServices(
       output: ({ saveFailed }) => ({ saveFailed }),
     },
   );
+  const createBoardProjection: BoardProjectionFactory<HexCoord> = (
+    origin,
+    size,
+  ) => new HexBoardProjection(origin, size);
   const startLines = () =>
     new LinesGamePresenter(
       createLinesGame(Date.now() >>> 0),
       finishGame,
       Date.now,
     );
-  return { mainMenu, gameResult, loadLevels, startLines };
+  return {
+    mainMenu,
+    gameResult,
+    loadLevels,
+    createBoardProjection,
+    startLines,
+  };
 }
