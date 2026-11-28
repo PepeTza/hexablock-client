@@ -234,7 +234,9 @@ UI boundary:
     usernames), because the message is always logged (decision 22).
 - **Exception handling (`ExceptionHandlingCommandServiceDecorator`, `AsyncExceptionHandlingCommandServiceDecorator`):**
   catches unexpected rejections/throws from infrastructure ports and turns them
-  into `Either.left(Error)`.
+  into `Either.left(new UnexpectedError(error))`: the message is
+  `String(error)` and the original value stays in `cause`, so nothing thrown
+  is inspected with `instanceof` (#172).
 - **Other planned aspects:** retries on sync; security / authorization
   (session check before CU-12, CU-13, CU-14 per RN-35); short-lived cache on
   the leaderboard (CU-14); profiling of the Hexa Sort cascade.

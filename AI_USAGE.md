@@ -1405,6 +1405,35 @@ One entry per significant use. Copy the template.
   seed update with simulated API replies. The deployed endpoint and the
   next-game effect are pending backend #28.
 
+### 2026-11-27 — Remove instanceof from production code (issue #172)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #172.
+- **Prompt (paraphrase):** plan #172 again from `main` through the harness
+  (an earlier uncommitted attempt existed in the working tree), remove every
+  `instanceof` from production code and the temporary ESLint exceptions.
+- **Result:** `UnexpectedError` in `src/application/common/` used by both
+  exception-handling aspects, `LoadLevelsUseCase` and
+  `LoadProgressSummaryUseCase`; `String(error)` in the logging aspect's throw
+  path and in `FinishGameUseCase`; `SessionState.outcome` with a `FinishedState`
+  override so `GameEngine.outcome` delegates; `deliver()` rethrowing the
+  original listener error; `HexCoord.equals(other: HexCoord)`; the #172 block
+  removed from `eslint.config.mjs` and the legacy note from `AGENTS.md` §3;
+  7 new tests and 10 updated assertions (`547 / 547` app, `28 / 28` panel).
+- **Team modifications:** the owner had the earlier attempt saved as a patch
+  and the task replanned from `main` instead of reusing it. When the planned
+  `String(error)` changed the logged text of `Either.left` failures, he chose
+  to keep `outcome.value.message` there, since the left value is already typed
+  `Error`, and to use `String(error)` only for thrown `unknown` values. He
+  checked that this rule still holds once #214 drops the `TError` generic.
+- **Lessons / limitations:** `String(error)` on an `Error` adds its type
+  (`"Error: disk full"`), which changed logged text and needed a decision;
+  unexpected failures now carry that prefix and expected ones do not. The
+  first commit header was rejected by commitlint (`application` is not a
+  scope; header over 72 characters) and was fixed to `usecases`. Mutation
+  checks: dropping `cause`, the `FinishedState` override, the original-error
+  rethrow or the `HexCoord` parameter type each made a test or `tsc` fail.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
