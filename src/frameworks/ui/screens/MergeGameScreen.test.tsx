@@ -278,4 +278,20 @@ describe('MergeGameScreen', () => {
     expect(await screen.findByText('Score: 0')).toBeTruthy();
     expect(startMerge).toHaveBeenCalledWith(1234);
   });
+
+  it('should_start_with_random_seed_when_load_merge_seed_rejects', async () => {
+    // Arrange
+    const base = createAppServices();
+    const startMerge = jest.fn((seed?: number) => base.startMerge(seed));
+
+    // Act
+    await renderMergeScreen({
+      startMerge,
+      loadMergeSeed: () => Promise.reject(new Error('network offline')),
+    });
+
+    // Assert
+    expect(await screen.findByText('Score: 0')).toBeTruthy();
+    expect(startMerge).toHaveBeenCalledWith(undefined);
+  });
 });
