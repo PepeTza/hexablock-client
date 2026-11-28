@@ -25,7 +25,11 @@ what it protects. The team approves the list before you write the tests.
 - Test observable behaviour at the aggregate/session (`GameEngine`,
   `LevelBuilder`), use-case, aspect, and presenter levels rather than isolated
   value objects.
-- Backend: `*.spec.ts`.
+- Backend: `*.spec.ts` under `test/` outside `src/`, mirroring the layer
+  (`test/application/use-cases/login.use-case.spec.ts`,
+  `test/architecture/eslint-boundaries.spec.ts`); shared fakes and builders in
+  `test/builders/` (`auth-test-builder.ts`, `port-fakes.ts`). End-to-end tests
+  stay in `test/*.e2e-spec.ts`.
 
 ## Shape of a test
 
