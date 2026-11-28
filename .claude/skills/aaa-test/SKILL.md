@@ -13,12 +13,19 @@ In the gate 1 plan, list every case as
 `should_<expected result>_when_<condition>` with one plain-language line saying
 what it protects. The team approves the list before you write the tests.
 
-## Where the test goes
+## Where the test goes (The Test Boundary)
 
-- Client: `*.test.ts` next to the file it tests
-  (`src/domain/engine/hex/hex-geometry.ts` →
-  `src/domain/engine/hex/hex-geometry.test.ts`).
-- Backend: `*.spec.ts` next to the file it tests.
+- Client: under `test/` outside `src/`, mirroring the layer
+  (`test/domain/variants/hexa-merge/hexa-merge-game.test.ts`,
+  `test/application/use-cases/...`, `test/adapters/presentation/...`).
+- Shared builders and port fakes live in `test/builders/` (`@test/builders/...`).
+  Production code in `src/` never imports `test/` (enforced by ESLint).
+- Do not write React Native UI component tests; test presentation logic
+  through pure presenters in `test/adapters/presentation/`.
+- Test observable behaviour at the aggregate/session (`GameEngine`,
+  `LevelBuilder`), use-case, aspect, and presenter levels rather than isolated
+  value objects.
+- Backend: `*.spec.ts`.
 
 ## Shape of a test
 

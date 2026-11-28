@@ -248,12 +248,22 @@ belong to. Do not squash other people's commits.
 
 ## 5. Tests
 
-- Test names: `should_<expected result>_when_<condition>`.
-- Structure: **Arrange / Act / Assert**, one behaviour per test.
-- File names: `*.test.ts` in the client, `*.spec.ts` in the backend, next to the
-  file they test.
-- Domain and use-case tests run **without UI, network or database**. Use fakes
-  for repositories and a **fixed seed** for anything random.
+- **The Test Boundary (Clean Architecture Ch. 28):** tests and the Testing API
+  live outside `src/`, under `test/` in the client (`*.test.ts`) and `test/`
+  or `*.spec.ts` in the backend. Production code under `src/` never imports
+  from `test/` or `@test/*` — enforced by ESLint.
+- **Test behavior, not implementation (Khorikov Ch. 2–4):** test domain
+  aggregates / game sessions (`GameEngine`, `LevelBuilder`), application use
+  cases (`CommandService`), AOP decorators, and pure presenters. Do not write
+  isolated tests for internal value objects or fragile UI component tests.
+- **Testing API (`test/builders/`):** use fluent Builders and Object Mother
+  fakes (`@test/builders/...`) so tests express scenarios in ubiquitous
+  language and stay resistant to internal refactoring.
+- Test names: `should_<expected result>_when_<condition>` in domain language.
+- Structure: **Arrange / Act / Assert** (Given / When / Then), one behaviour
+  per test.
+- Domain and use-case tests run **without UI, network or database** for fast
+  feedback. Use fakes for ports and a **fixed seed** for anything random.
 - Coverage target: **≥ 80 %** for the domain and use-case layers. CI fails
   below that.
 - A bug fix includes a test that fails without the fix.

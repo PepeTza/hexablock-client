@@ -132,9 +132,14 @@ The full rules are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
   tests are deterministic — `Math.random` is banned in production code by
   ESLint; the future `ISeedGenerator` adapter gets a named exception in
   `eslint.config.mjs`.
-- Tests: `should_<result>_when_<condition>`, Arrange / Act / Assert. You
-  propose the test cases in the plan, with one plain-language line per case
-  saying what it protects; the team approves the list before you write them.
+- Tests (`CONTRIBUTING.md` §5): live outside `src/` under `test/` (never
+  imported from `src/`), use the Testing API in `test/builders/` (Builder /
+  Object Mother), test observable behaviour at the aggregate/session,
+  use-case, aspect and presenter levels (no UI component tests, no isolated VO
+  tests), named `should_<result>_when_<condition>` with Arrange / Act /
+  Assert. You propose the test cases in the plan, with one plain-language line
+  per case saying what it protects; the team approves the list before you
+  write them.
 - When you introduce a pattern, name it in the class doc comment
   (e.g. `/** Strategy: ... */`) so it can be found and explained.
 - When you use a non-trivial algorithm or an external source, cite it in a
