@@ -3,9 +3,6 @@ import { BoardShape } from '@domain/engine/board/board-shape';
 import { CommandHistory } from '@domain/engine/commands/command-history';
 import type { DomainEvent } from '@domain/engine/events/domain-event';
 import { GameEngine } from '@domain/engine/game/game-engine';
-import type { Axis } from '@domain/engine/geometry/axis';
-import type { IBoardGeometry } from '@domain/engine/geometry/board-geometry';
-import type { ICoord } from '@domain/engine/geometry/coord';
 import { Direction } from '@domain/engine/geometry/direction';
 import { HexDirection } from '@domain/engine/hex/hex-geometry';
 import { SeededRandom } from '@domain/engine/random/seeded-random';
@@ -17,69 +14,28 @@ import { MergeVariantFactory } from '@domain/variants/hexa-merge/merge-variant-f
 import type { SlideMove } from '@domain/variants/hexa-merge/slide-tiles';
 import { Tile } from '@domain/variants/hexa-merge/tile';
 import { HexaMergeTestBuilder } from '@test/builders/hexa-merge-test-builder';
-
-class SquareCoord implements ICoord {
-  constructor(
-    readonly x: number,
-    readonly y: number,
-  ) {}
-
-  key(): string {
-    return `${this.x},${this.y}`;
-  }
-}
-
-const SQUARE_RIGHT = new Direction('RIGHT');
-const SQUARE_LEFT = new Direction('LEFT');
-
-class LineSquareGeometry implements IBoardGeometry<SquareCoord> {
-  readonly origin = new SquareCoord(0, 0);
-  readonly directions = [SQUARE_RIGHT, SQUARE_LEFT];
-  readonly axes: readonly Axis[] = [];
-
-  neighbour(coord: SquareCoord, direction: Direction): SquareCoord {
-    return direction === SQUARE_RIGHT
-      ? new SquareCoord(coord.x + 1, coord.y)
-      : new SquareCoord(coord.x - 1, coord.y);
-  }
-
-  neighbours(coord: SquareCoord): SquareCoord[] {
-    return this.directions.map((direction) => this.neighbour(coord, direction));
-  }
-
-  line(): SquareCoord[] {
-    return [];
-  }
-
-  ring(centre: SquareCoord, radius: number): SquareCoord[] {
-    if (radius === 0) return [centre];
-    return [
-      new SquareCoord(centre.x - radius, centre.y),
-      new SquareCoord(centre.x + radius, centre.y),
-    ];
-  }
-
-  translate(
-    coord: SquareCoord,
-    from: SquareCoord,
-    to: SquareCoord,
-  ): SquareCoord {
-    return new SquareCoord(coord.x - from.x + to.x, coord.y - from.y + to.y);
-  }
-}
+import {
+  LineSquareGeometry,
+  SQUARE_RIGHT,
+  SquareCoord,
+} from '@test/builders/square-geometry';
 
 describe('Hexa Merge game session', () => {
   describe('starting a seeded game and board configuration', () => {
-    it('should_start_a_nineteen_cell_board_with_two_starting_tiles_and_reproducible_seed', () => {
+    it('should_start_a_nineteen_cell_board_with_two_interior_starting_tiles_and_reproducible_seed', () => {
       // Arrange & Act
       const first = new HexaMergeTestBuilder().givenSeed(42).build();
       const second = new HexaMergeTestBuilder().givenSeed(42).build();
 
-      // Assert
+      // Assert: RN-44 places starting tiles strictly on non-border cells (distance < 2).
       expect(first.boardSize()).toBe(19);
       expect(first.occupiedCount()).toBe(2);
       expect(first.session.seed).toBe(42);
       expect(first.occupiedCells()).toEqual(second.occupiedCells());
+      for (const { q, r } of first.occupiedCells()) {
+        const distance = Math.max(Math.abs(q), Math.abs(r), Math.abs(-q - r));
+        expect(distance).toBeLessThan(2);
+      }
     });
 
     it('should_support_configurable_board_radius_when_starting_a_session', () => {
@@ -99,7 +55,7 @@ describe('Hexa Merge game session', () => {
       expect(game.tileAt(3, 0)).toBe(2);
     });
 
-    it('should_reject_invalid_tile_values_and_empty_spawn_pools', () => {
+    it('should_reject_invalid_tile_values_initial_counts_and_empty_spawn_pools', () => {
       // Arrange & Act & Assert
       expect(() =>
         new HexaMergeTestBuilder().givenTargetTile(3).build(),
@@ -109,6 +65,12 @@ describe('Hexa Merge game session', () => {
       ).toThrow(RangeError);
       expect(() =>
         new HexaMergeTestBuilder().givenSpawnPool([[2, 0]]).build(),
+      ).toThrow(RangeError);
+      expect(() =>
+        new HexaMergeTestBuilder().givenInitialTileCount(-1).build(),
+      ).toThrow(RangeError);
+      expect(() =>
+        new HexaMergeTestBuilder().givenInitialTileCount(8).build(),
       ).toThrow(RangeError);
     });
   });
@@ -204,6 +166,28 @@ describe('Hexa Merge game session', () => {
       ).toHaveLength(1);
     });
 
+    it('should_merge_target_edge_pair_first_when_three_equal_tiles_collide', () => {
+      // Arrange
+      const game = new HexaMergeTestBuilder()
+        .givenTiles([
+          [-2, 0, 2],
+          [-1, 0, 2],
+          [0, 0, 2],
+        ])
+        .givenGuaranteedSpawn(8)
+        .build();
+
+      // Act
+      const result = game.whenSliding(HexDirection.EAST);
+
+      // Assert: the two tiles closest to the EAST border merge into 4 at (2,0),
+      // leaving the trailing 2 at (1,0).
+      expect(result.kind).toBe('applied');
+      expect(game.tileAt(2, 0)).toBe(4);
+      expect(game.tileAt(1, 0)).toBe(2);
+      expect(game.score()).toBe(4);
+    });
+
     it('should_allow_a_merge_only_move_when_tiles_are_already_against_the_border', () => {
       // Arrange
       const game = new HexaMergeTestBuilder()
@@ -266,6 +250,31 @@ describe('Hexa Merge game session', () => {
       expect(result.kind).toBe('applied');
       expect(game.session.status).toBe('finished');
       expect(game.session.outcome).toBe('defeat');
+    });
+
+    it('should_keep_playing_when_the_board_is_full_but_an_adjacent_merge_remains', () => {
+      // Arrange: radius-1 board where sliding EAST spawns 128 next to (0,0)=128.
+      const game = new HexaMergeTestBuilder()
+        .givenBoardRadius(1)
+        .givenTiles([
+          [-1, 0, 128],
+          [0, 0, 256],
+          [0, -1, 4],
+          [1, -1, 8],
+          [-1, 1, 16],
+          [0, 1, 32],
+        ])
+        .givenGuaranteedSpawn(128)
+        .build();
+
+      // Act
+      const result = game.whenSliding(HexDirection.EAST);
+
+      // Assert
+      expect(result.kind).toBe('applied');
+      expect(game.occupiedCount()).toBe(7);
+      expect(game.session.status).toBe('playing');
+      expect(game.session.outcome).toBeNull();
     });
   });
 

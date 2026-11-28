@@ -87,7 +87,7 @@ export class FakeEventBus implements IEventBus {
   }
 }
 
-export class SilentLogger implements ILogger {
+export class FakeLogger implements ILogger {
   readonly infos: { readonly message: string; readonly context?: unknown }[] =
     [];
   readonly warnings: {

@@ -3,10 +3,6 @@ import { Board } from '@domain/engine/board/board';
 import { BoardShape } from '@domain/engine/board/board-shape';
 import { CommandHistory } from '@domain/engine/commands/command-history';
 import { GameEngine } from '@domain/engine/game/game-engine';
-import type { Axis } from '@domain/engine/geometry/axis';
-import type { IBoardGeometry } from '@domain/engine/geometry/board-geometry';
-import type { ICoord } from '@domain/engine/geometry/coord';
-import { Direction } from '@domain/engine/geometry/direction';
 import { HexDirection } from '@domain/engine/hex/hex-geometry';
 import { SeededRandom } from '@domain/engine/random/seeded-random';
 import { Snapshot } from '@domain/engine/state/snapshot';
@@ -15,57 +11,12 @@ import { MergeScoringPolicy } from '@domain/variants/hexa-merge/merge-scoring-po
 import type { SlideMove } from '@domain/variants/hexa-merge/slide-tiles';
 import { Tile } from '@domain/variants/hexa-merge/tile';
 import { HexaMergeTestBuilder } from '@test/builders/hexa-merge-test-builder';
+import {
+  LineSquareGeometry,
+  SQUARE_RIGHT,
+  SquareCoord,
+} from '@test/builders/square-geometry';
 import { createFinishGameStub } from '@test/builders/use-case-test-builder';
-
-class SquareCoord implements ICoord {
-  constructor(
-    readonly x: number,
-    readonly y: number,
-  ) {}
-
-  key(): string {
-    return `${this.x},${this.y}`;
-  }
-}
-
-const SQUARE_RIGHT = new Direction('RIGHT');
-const SQUARE_LEFT = new Direction('LEFT');
-
-class LineSquareGeometry implements IBoardGeometry<SquareCoord> {
-  readonly origin = new SquareCoord(0, 0);
-  readonly directions = [SQUARE_RIGHT, SQUARE_LEFT];
-  readonly axes: readonly Axis[] = [];
-
-  neighbour(coord: SquareCoord, direction: Direction): SquareCoord {
-    return direction === SQUARE_RIGHT
-      ? new SquareCoord(coord.x + 1, coord.y)
-      : new SquareCoord(coord.x - 1, coord.y);
-  }
-
-  neighbours(coord: SquareCoord): SquareCoord[] {
-    return this.directions.map((direction) => this.neighbour(coord, direction));
-  }
-
-  line(): SquareCoord[] {
-    return [];
-  }
-
-  ring(centre: SquareCoord, radius: number): SquareCoord[] {
-    if (radius === 0) return [centre];
-    return [
-      new SquareCoord(centre.x - radius, centre.y),
-      new SquareCoord(centre.x + radius, centre.y),
-    ];
-  }
-
-  translate(
-    coord: SquareCoord,
-    from: SquareCoord,
-    to: SquareCoord,
-  ): SquareCoord {
-    return new SquareCoord(coord.x - from.x + to.x, coord.y - from.y + to.y);
-  }
-}
 
 describe('MergeGamePresenter', () => {
   it('should_expose_board_tiles_score_and_undo_flag_when_game_starts', () => {
