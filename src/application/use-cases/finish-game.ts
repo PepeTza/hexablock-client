@@ -129,7 +129,7 @@ export class FinishGameUseCase implements AsyncCommandService<
     } catch (error) {
       this.deps.logger.warn(message, {
         gameId,
-        error: error instanceof Error ? error.message : String(error),
+        error: String(error),
       });
       return fallback;
     }

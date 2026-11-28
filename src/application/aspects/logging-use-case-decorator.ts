@@ -60,7 +60,7 @@ export class LoggingCommandServiceDecorator<
       logError(
         this.name,
         command,
-        error,
+        String(error),
         startedAt,
         this.logger,
         this.clock,
@@ -106,7 +106,7 @@ export class AsyncLoggingCommandServiceDecorator<
       logError(
         this.name,
         command,
-        error,
+        String(error),
         startedAt,
         this.logger,
         this.clock,
@@ -139,7 +139,15 @@ function recordOutcome<TCommand, TResult, TError extends Error>(
       describe,
     );
   } else {
-    logError(name, command, outcome.value, startedAt, logger, clock, describe);
+    logError(
+      name,
+      command,
+      outcome.value.message,
+      startedAt,
+      logger,
+      clock,
+      describe,
+    );
   }
   return outcome;
 }
@@ -166,10 +174,14 @@ function logSuccess<TCommand, TResult>(
   logger.info(`${name} executed`, context);
 }
 
+/**
+ * `error` is already text: the `Either.left` value is typed `Error`, so its
+ * `message` is read directly; a thrown `unknown` is passed as `String(error)`.
+ */
 function logError<TCommand, TResult>(
   name: string,
   command: TCommand,
-  error: unknown,
+  error: string,
   startedAt: number,
   logger: ILogger,
   clock: IClock,
@@ -178,7 +190,7 @@ function logError<TCommand, TResult>(
   const context: Record<string, unknown> = {
     useCase: name,
     durationMs: clock.now() - startedAt,
-    error: error instanceof Error ? error.message : String(error),
+    error,
   };
   if (describe?.input) {
     context.input = describe.input(command);

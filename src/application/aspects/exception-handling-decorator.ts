@@ -1,4 +1,5 @@
 import { Either } from '../common/either';
+import { UnexpectedError } from '../common/unexpected-error';
 import type {
   AsyncCommandService,
   CommandService,
@@ -7,8 +8,8 @@ import type {
 /**
  * Decorator (`<<aspect>>`, Mark Seemann Ch. 10, ADR-06, RNF-04): catches
  * unexpected exceptions thrown by a synchronous `CommandService` or its ports
- * and converts them into `Either.left(Error)` so callers always receive an
- * explicit `Either` instead of handling raw exceptions.
+ * and converts them into `Either.left(new UnexpectedError(error))`, so callers
+ * always receive an explicit `Either` instead of handling raw exceptions.
  */
 export class ExceptionHandlingCommandServiceDecorator<
   TCommand,
@@ -20,7 +21,7 @@ export class ExceptionHandlingCommandServiceDecorator<
     try {
       return this.decorate.execute(command);
     } catch (error) {
-      return Either.left(toError(error));
+      return Either.left(new UnexpectedError(error));
     }
   }
 }
@@ -28,7 +29,7 @@ export class ExceptionHandlingCommandServiceDecorator<
 /**
  * Decorator (`<<aspect>>`, Mark Seemann Ch. 10, ADR-06, RNF-04): asynchronous
  * counterpart converting unexpected rejections from infrastructure ports into
- * `Either.left(Error)`.
+ * `Either.left(new UnexpectedError(error))`.
  */
 export class AsyncExceptionHandlingCommandServiceDecorator<
   TCommand,
@@ -42,11 +43,7 @@ export class AsyncExceptionHandlingCommandServiceDecorator<
     try {
       return await this.decorate.execute(command);
     } catch (error) {
-      return Either.left(toError(error));
+      return Either.left(new UnexpectedError(error));
     }
   }
-}
-
-function toError(error: unknown): Error {
-  return error instanceof Error ? error : new Error(String(error));
 }

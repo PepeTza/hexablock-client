@@ -1,6 +1,7 @@
 import type { GameId } from '@domain/progress/player-progress';
 
 import { Either } from '../common/either';
+import { UnexpectedError } from '../common/unexpected-error';
 import type { ILevelRepository } from '../ports/level-repository';
 import type { IProgressRepository } from '../ports/progress-repository';
 import type { AsyncCommandService } from './use-case';
@@ -71,9 +72,7 @@ export class LoadLevelsUseCase implements AsyncCommandService<
 
       return Either.right({ levels, completedLevels, totalStars });
     } catch (error) {
-      return Either.left(
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      return Either.left(new UnexpectedError(error));
     }
   }
 }

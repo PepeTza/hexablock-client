@@ -494,7 +494,7 @@ describe('FinishGameUseCase', () => {
     expect(harness.warnings).toHaveLength(1);
     expect(harness.warnings[0]?.context).toMatchObject({
       gameId: 'hexa-lines',
-      error: 'disk full',
+      error: 'Error: disk full',
     });
   });
   it('should_still_return_result_with_warning_when_session_provider_fails', async () => {
@@ -521,7 +521,10 @@ describe('FinishGameUseCase', () => {
     expect(harness.warnings).toEqual([
       {
         message: 'Failed to check the account session',
-        context: { gameId: 'hexa-lines', error: 'token store unavailable' },
+        context: {
+          gameId: 'hexa-lines',
+          error: 'Error: token store unavailable',
+        },
       },
     ]);
     expect(harness.publishedEvents).toHaveLength(1);
@@ -551,7 +554,7 @@ describe('FinishGameUseCase', () => {
     expect(harness.warnings).toEqual([
       {
         message: 'Failed to queue progress sync',
-        context: { gameId: 'hexa-lines', error: 'queue full' },
+        context: { gameId: 'hexa-lines', error: 'Error: queue full' },
       },
     ]);
   });
@@ -579,7 +582,7 @@ describe('FinishGameUseCase', () => {
     expect(harness.warnings).toEqual([
       {
         message: 'Failed to queue score submission',
-        context: { gameId: 'hexa-lines', error: 'queue full' },
+        context: { gameId: 'hexa-lines', error: 'Error: queue full' },
       },
     ]);
     expect(harness.publishedEvents).toHaveLength(1);

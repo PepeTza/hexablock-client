@@ -326,8 +326,12 @@ describe('LoggingCommandServiceDecorator', () => {
         input: { gameId: 'hexa-sort' },
       },
     });
-    expect(entries[1]?.context).toMatchObject({ error: 'raw sync failure' });
-    expect(entries[2]?.context).toMatchObject({ error: 'unexpected reject' });
+    expect(entries[1]?.context).toMatchObject({
+      error: 'Error: raw sync failure',
+    });
+    expect(entries[2]?.context).toMatchObject({
+      error: 'Error: unexpected reject',
+    });
   });
 
   it('should_log_apply_move_for_different_variants_when_wrapped_with_same_decorator', () => {
