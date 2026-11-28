@@ -117,6 +117,6 @@ describe('LoadProgressSummaryUseCase', () => {
         (err) => err.message,
         () => '',
       ),
-    ).toBe('storage offline');
+    ).toBe('Error: storage offline');
   });
 });

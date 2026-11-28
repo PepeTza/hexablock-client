@@ -1,6 +1,7 @@
 import type { ILevelSummary } from '../ports/level-repository';
 import type { PlayerProgress } from '@domain/progress/player-progress';
 
+import { UnexpectedError } from '../common/unexpected-error';
 import { LoadLevelsUseCase } from './load-levels';
 
 function levelSelection(
@@ -127,5 +128,10 @@ it('should_return_a_failure_when_saved_progress_cannot_be_loaded', async () => {
   const result = await useCase.execute({ gameId: 'hexa-fit' });
 
   // Assert
-  expect(result).toMatchObject({ kind: 'left', value: failure });
+  const error = result.fold(
+    (err) => err,
+    () => null,
+  );
+  expect(error).toBeInstanceOf(UnexpectedError);
+  expect(error?.cause).toBe(failure);
 });
