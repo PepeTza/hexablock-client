@@ -1466,6 +1466,33 @@ One entry per significant use. Copy the template.
   One full-suite failure was seen once and never reproduced in 12 later
   runs; its name was not captured, so later runs use `--json`.
 
+### 2026-11-28 — Hexa Merge screen with six-direction swipe and undo (issue #86)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #86.
+- **Prompt (paraphrase):** review pending issues, verify the coordination risk
+  of #37 remaining open while its UI pieces are already in `main`, and
+  implement #86 (Hexa Merge screen with 6-direction swipe input and undo)
+  through the four harness gates.
+- **Result:** `MergeVariantFactory` with its high-score `MergeProgressModel`,
+  optional `listeners` pass-through in `startMergeGame`, pure
+  `resolveHexSwipeDirection` mapping 60° screen sectors to pointy-top
+  `HexDirection` (D-21), geometry-agnostic `MergeGamePresenter<TCoord>`,
+  passive `MergeGameScreen` wired into `composition-root.ts` and
+  `VariantPlaceholderScreen.tsx`, and 21 new tests (`576 / 576` app).
+- **Team modifications:** the owner checked the dependency status of `#37`
+  against `main` before approving Gate 1, split delivery into atomic commits
+  (domain/adapters, UI/wiring, review fixes, Gate 4 logs), and deferred a
+  broader review of the test suite until after `#86` closes.
+- **Lessons / limitations:** the first version of `MergeGameScreen` used fixed
+  multipliers (`edge / 9.2`, `size * 8.6`) assuming a radius-2 hex board; the
+  Gate 4 second-opinion `review` subagent caught this design-for-change gap,
+  and board sizing was switched to compute bounds from projected coordinates.
+  During `npm run test:coverage`, the intermittent Jest timeout previously
+  observed on `main` was finally captured in
+  `src/frameworks/ui/screens/LevelSelectionView.test.tsx`
+  (`should_show_earned_stars_and_open_only_unlocked_fit_levels`, > 5000 ms).
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
