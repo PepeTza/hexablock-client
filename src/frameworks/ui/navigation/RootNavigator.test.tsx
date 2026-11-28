@@ -36,6 +36,9 @@ describe('RootNavigator', () => {
     await fireEvent.press(
       await screen.findByRole('button', { name: 'Hexa Fit' }),
     );
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Level 1' }),
+    );
     await screen.findByText('Fit demo');
     const press = (name: string) =>
       fireEvent.press(screen.getByRole('button', { name }));
@@ -88,6 +91,9 @@ describe('RootNavigator', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Next variant' }));
     await fireEvent.press(
       await screen.findByRole('button', { name: 'Hexa Fit' }),
+    );
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Level 1' }),
     );
 
     // Assert
@@ -145,6 +151,7 @@ describe('RootNavigator', () => {
       fireEvent.press(await screen.findByRole('button', { name }));
     await press('Next variant');
     await press('Hexa Fit');
+    await press('Level 1');
     await screen.findByText('Fit demo');
 
     // Act

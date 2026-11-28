@@ -23,7 +23,7 @@ import {
 import { LoadProgressSummaryUseCase } from '@application/use-cases/load-progress-summary';
 import type { AsyncCommandService } from '@application/use-cases/use-case';
 
-import { FIT_DEMO_FACTORY, FIT_DEMO_ID } from './fit-demo';
+import { FIT_DEMO_FACTORY, FIT_DEMO_ID, FIT_DEMO_LEVEL } from './fit-demo';
 
 /** Services exposed to UI screens through `ServicesProvider`. */
 export interface AppServices {
@@ -31,7 +31,7 @@ export interface AppServices {
   readonly gameResult: GameResultPresenter;
   readonly loadLevels?: AsyncCommandService<LoadLevelsInput, LevelSelection>;
   readonly createBoardProjection: BoardProjectionFactory<HexCoord>;
-  readonly startFit: () => FitGamePresenter;
+  readonly startFit: () => FitGamePresenter<HexCoord>;
   readonly startLines: () => LinesGamePresenter<HexCoord>;
 }
 
@@ -41,8 +41,9 @@ export interface AppServiceDependencies {
   readonly levels?: Pick<ILevelRepository, 'findByGame'>;
 }
 
-const EMPTY_LEVELS: Pick<ILevelRepository, 'findByGame'> = {
-  findByGame: () => Promise.resolve([]),
+const DEFAULT_LEVELS: Pick<ILevelRepository, 'findByGame'> = {
+  findByGame: (gameId) =>
+    Promise.resolve(gameId === 'hexa-fit' ? [FIT_DEMO_LEVEL] : []),
 };
 
 /**
@@ -53,7 +54,7 @@ export function createAppServices(
   deps: AppServiceDependencies = {},
 ): AppServices {
   const progress = deps.progress ?? new InMemoryProgressRepository();
-  const levels = deps.levels ?? EMPTY_LEVELS;
+  const levels = deps.levels ?? DEFAULT_LEVELS;
   const loadSummary = new LoadProgressSummaryUseCase({ progress });
   const loadLevels = new LoadLevelsUseCase({ levels, progress });
   const mainMenu = new MainMenuPresenter(loadSummary, MENU_VARIANTS);
