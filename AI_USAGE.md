@@ -1434,6 +1434,38 @@ One entry per significant use. Copy the template.
   checks: dropping `cause`, the `FinishedState` override, the original-error
   rethrow or the `HexCoord` parameter type each made a test or `tsc` fail.
 
+### 2026-11-28 — Align CommandService with Either<Error, TResult> (issue #214)
+
+- **Tool / model:** Claude Code (claude-opus-5-5).
+- **Issue / PR:** #214.
+- **Prompt (paraphrase):** explain why `CommandService` had three generics,
+  trace where `TError` came from, then align the contract with the class
+  pattern `Either<Error, TResult>` through the harness, keeping the name and
+  without a `QueryService`.
+- **Result:** the history showed `TError` came from the #146 issue text, not
+  from class. `CommandService<TCommand, TResult = void>` and its async
+  counterpart now return `Either<Error, TResult>`; the logging and
+  exception-handling aspects lost `TError`; `LoadSeedConfigsUseCase` and
+  `SaveSeedConfigUseCase` declare `SeedSettingsError` in their own `execute`;
+  the panel's `SeedSettingsServices` uses two generics; `AGENTS.md` §4 and
+  `docs/architecture.md` §2, §6 and D-23 updated; 2 new type tests
+  (`555 / 555` app, `28 / 28` panel).
+- **Team modifications:** the owner decided to follow the class pattern and
+  checked with the AI that `TResult` already covers queries, so the name
+  `CommandService` stays and no `QueryService` is added. When #76 started
+  using `TError` the same day, he reviewed that new use and decided to go
+  ahead, after the AI showed with `tsc` that a narrower return type keeps the
+  error `code` on the concrete class. He also had #172 finished first,
+  because it touched the same aspects.
+- **Lessons / limitations:** an issue's text can introduce design that no
+  decision records; tracing it through the issue, commit and `AI_USAGE.md`
+  history settled it. Existing tests checked `code` with `toMatchObject`,
+  which `tsc` does not check, so a typed test was added to protect the
+  narrower return. Planned commits were merged into one because splitting
+  the panel file would have left a commit that fails the panel type-check.
+  One full-suite failure was seen once and never reproduced in 12 later
+  runs; its name was not captured, so later runs use `--json`.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.

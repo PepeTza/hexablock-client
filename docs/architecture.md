@@ -40,7 +40,7 @@ Four concentric layers; **dependencies only point inwards**.
 | Layer | Content | Rule |
 |---|---|---|
 | 1. Entities / Domain | `ICoord`, `HexCoord`, `Board<TCell, TCoord>`, `Piece`, `GameEngine<...>`, `IGameRules`, `IPieceSource<TPiece>`, `IScoringPolicy<TResolution>`, `IProgressModel`, the rules of each variant, domain events | No external dependencies. The whole engine lives here. |
-| 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase`, `ApplyMoveUseCase`, `FinishGameUseCase`), implementing `CommandService<TCommand, TResult, TError>` / `AsyncCommandService<TCommand, TResult, TError>` returning `Either<TError, TResult>`, plus the `<<aspect>>` decorators (`LoggingCommandServiceDecorator`, `ExceptionHandlingCommandServiceDecorator`) and ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
+| 2. Use cases | One generic class per use case of [`use-cases.md`](./use-cases.md) (CU-01 to CU-18, e.g. `StartGameUseCase`, `ApplyMoveUseCase`, `FinishGameUseCase`), implementing `CommandService<TCommand, TResult>` / `AsyncCommandService<TCommand, TResult>` returning `Either<Error, TResult>`, plus the `<<aspect>>` decorators (`LoggingCommandServiceDecorator`, `ExceptionHandlingCommandServiceDecorator`) and ports listed below | Depend only on their own interfaces. No use cases duplicated per game. |
 | 3. Interface adapters | Presenters / view models / controllers, `IBoardProjection` (`TCoord` ↔ screen), repositories implementing the ports, entity ↔ DTO mappers, per-variant state serialisation | Translate between domain and frameworks. |
 | 4. Frameworks & drivers | UI / rendering, local database, HTTP client, audio, remote database (PostgreSQL on Supabase) and the REST backend as an external service | Replaceable without touching inner layers. |
 
@@ -215,9 +215,9 @@ implementation is removed from this table in the same PR.
 ## 6. AOP without libraries
 
 Decorators (`<<aspect>>`, Mark Seemann, *Dependency Injection Principles,
-Practices, and Patterns*, Ch. 10) wrap `CommandService<TCommand, TResult, TError>`
-and `AsyncCommandService<TCommand, TResult, TError>` returning
-`Either<TError, TResult>`, so one aspect applies uniformly to the four
+Practices, and Patterns*, Ch. 10) wrap `CommandService<TCommand, TResult>`
+and `AsyncCommandService<TCommand, TResult>` returning
+`Either<Error, TResult>`, so one aspect applies uniformly to the four
 variants without runtime type casting (`as`) or throwing exceptions across the
 UI boundary:
 
@@ -311,7 +311,7 @@ comfort; affinity with the course language (TypeScript).
 | D-20 | Navigation with React Navigation (2026-11-11): screens are declared in code inside `src/frameworks/ui`; Expo Router was not chosen because it derives routes from an `app/` folder outside the layers |
 | D-21 | Pointy-top hexagons with axial coordinates (2026-11-11): the six directions are east, south-east, south-west, west, north-west and north-east (`HexDirection`), and rows run west to east. The renderer and the Hexa Merge swipe use the same orientation. Directions and axes are declared by each geometry, so another cell shape is a new `IBoardGeometry` in its own file |
 | D-22 | State pattern limited to the game session (2026-11-18): `GameEngine` delegates `applyMove`, `undo`, `redo`, `pause`, `resume` and `resolutionDone` to one of four states, `PlayingState`, `ResolvingState` (the RN-06 lock, released by the UI with `resolutionDone` when its animation ends), `PausedState` and `FinishedState` (with `outcome` victory or defeat), and exposes the current one as a `GameStatus` value. Of the six states of the statement, `MenuState` was dropped because the menu is navigation (D-20), and `GameOverState` and `VictoryState` became one state because they allow the same actions. The rules check for the end of the game when the move is applied, so pausing during an animation goes to `PausedState` and `resume` goes straight to `PlayingState` or `FinishedState`. Undo is rejected once the game is finished. Reaching the Hexa Merge target emits `TargetReached` and the game stays in `PlayingState` (HU28). Transition table in `use-cases.md` CU-06 |
-| D-23 | Application use cases via `CommandService<TCommand, TResult, TError>` / `AsyncCommandService` returning `Either<TError, TResult>` (2026-11-23, client #147): replaces `IUseCase` across every app and admin-panel use case (Mark Seemann, *Dependency Injection Principles, Practices, and Patterns*, Ch. 10), so domain and validation failures never throw across the UI boundary and AOP decorators (`Logging`, `ExceptionHandling`) wrap every use case with zero runtime type casts |
+| D-23 | Application use cases via `CommandService<TCommand, TResult>` / `AsyncCommandService` returning `Either<Error, TResult>` (2026-11-23, client #147; revised 2026-11-28, #214): replaces `IUseCase` across every app and admin-panel use case (Mark Seemann, *Dependency Injection Principles, Practices, and Patterns*, Ch. 10), so domain and validation failures never throw across the UI boundary and AOP decorators (`Logging`, `ExceptionHandling`) wrap every use case with zero runtime type casts. **Revision (#214):** the third generic `TError` was dropped to match the pattern taught in class, `Either<Error, TResult>`; one interface covers commands (`TResult = void`) and queries, so there is no `QueryService`. A use case may still declare a narrower `Error` subclass in its own `execute` (e.g. `SeedSettingsError` with its `code`); callers typed with the interface see `Error`, so a screen that needs the `code` receives the concrete class or its own type |
 | — | Backend ORM: Prisma, behind the repository ports (see the backend `docs/data-model.md`) |
 | — | Licence: MIT |
 | — | Merge strategy: rebase and merge (see `CONTRIBUTING.md`) |

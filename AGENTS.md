@@ -117,9 +117,10 @@ The full rules are in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 - Dependency rule: inner layers never import outer ones. The domain has no
   framework, UI, storage or network imports.
 - Application use cases and AOP (`src/application/`): every use case
-  implements `CommandService<TCommand, TResult, TError>` (or
-  `AsyncCommandService`), returning `Either<TError, TResult>` instead of
-  throwing domain or validation errors (Mark Seemann, *Dependency Injection
+  implements `CommandService<TCommand, TResult>` (or
+  `AsyncCommandService`), returning `Either<Error, TResult>` instead of
+  throwing domain or validation errors; the same interface covers commands
+  (`TResult = void`) and queries (Mark Seemann, *Dependency Injection
   Principles, Practices, and Patterns*, Ch. 10). Cross-cutting aspects
   (`<<aspect>>`: logging, exception handling, authorization, retry, cache) are
   Decorators implementing the same interface and wrapping
