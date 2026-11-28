@@ -37,7 +37,6 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.ts', 'src/**/*.tsx'],
-    ignores: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
     rules: {
       // AGENTS.md §3: no type assertions (`as`, `<T>value`, except `as const`),
       // non-null assertions (`!`), or `instanceof` in production code.

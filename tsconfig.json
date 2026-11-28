@@ -8,7 +8,8 @@
       "@domain/*": ["./src/domain/*"],
       "@application/*": ["./src/application/*"],
       "@adapters/*": ["./src/adapters/*"],
-      "@frameworks/*": ["./src/frameworks/*"]
+      "@frameworks/*": ["./src/frameworks/*"],
+      "@test/*": ["./test/*"]
     }
   },
   // The Expo base list plus `admin/`, a separate web app with its own
