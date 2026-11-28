@@ -37,10 +37,8 @@ export class HexCoord implements ICoord {
     return s === 0 ? 0 : s;
   }
 
-  equals(other: ICoord): boolean {
-    return (
-      other instanceof HexCoord && this.q === other.q && this.r === other.r
-    );
+  equals(other: HexCoord): boolean {
+    return this.q === other.q && this.r === other.r;
   }
 
   key(): string {

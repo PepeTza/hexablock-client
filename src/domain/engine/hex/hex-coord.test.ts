@@ -16,18 +16,32 @@ describe('HexCoord', () => {
     expect(first.toString()).toBe(second.toString());
   });
 
-  it('should_not_be_equal_when_compared_with_non_hex_coord', () => {
+  it('should_not_be_equal_when_hex_coords_differ', () => {
+    // Arrange
+    const hex = new HexCoord(2, -1);
+    const different = new HexCoord(2, 0);
+
+    // Act
+    const equal = hex.equals(different);
+
+    // Assert
+    expect(equal).toBe(false);
+  });
+
+  it('should_accept_only_hex_coords_when_type_checking_equals', () => {
     // Arrange
     const hex = new HexCoord(2, -1);
     const otherCoord: ICoord = {
       key: () => '2,-1',
     };
 
-    // Act
-    const equal = hex.equals(otherCoord);
+    // Act: never called; `tsc` checks the line marked below.
+    const compareWithForeignCoord = (): boolean =>
+      // @ts-expect-error equals only accepts HexCoord, not any ICoord
+      hex.equals(otherCoord);
 
     // Assert
-    expect(equal).toBe(false);
+    expect(typeof compareWithForeignCoord).toBe('function');
   });
 
   it('should_derive_s_when_coord_is_created', () => {
