@@ -188,6 +188,7 @@ their code. Each one is also cited in a comment in the file that uses it.
 | Tommy Ettinger, [`mulberry32`](https://gist.github.com/tommyettinger/46a874533244883189141785d1235295) (2017, public domain; see also [bryc's PRNG notes](https://github.com/bryc/code/blob/master/jshash/PRNGs.md#mulberry32)) | 32-bit seeded pseudo-random number generator algorithm | `src/domain/engine/random/seeded-random.ts` |
 | WHATWG, [DOM Standard, "inner invoke"](https://dom.spec.whatwg.org/#concept-event-listener-inner-invoke) | A listener that throws has its error reported while the other listeners still run | `src/domain/engine/game/game-engine.ts` |
 | Gabriele Cirulli, [2048](https://github.com/gabrielecirulli/2048) (2014, MIT) | Equal tiles merge once per move, starting from the edge being slid towards; new and starting tiles spawn as 2 (90 %) or 4 (10 %) | `src/domain/variants/hexa-merge/merge-tiles.ts`, `spawn-tile.ts` |
+| MDN, ["Error: cause"](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause) (ECMAScript 2022) | The `cause` option of `Error`, which keeps the original thrown value when wrapping it | `src/application/common/unexpected-error.ts` |
 | TypeScript, [2.6 release notes, "Strict function types"](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-6.html) | Function-typed properties are checked contravariantly, methods bivariantly; why `IGameSession.applyMove` is a property | `src/domain/engine/game/variant-factory.ts` |
 
 ### Third-party assets
