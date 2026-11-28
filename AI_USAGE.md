@@ -1493,6 +1493,37 @@ One entry per significant use. Copy the template.
   `src/frameworks/ui/screens/LevelSelectionView.test.tsx`
   (`should_show_earned_stars_and_open_only_unlocked_fit_levels`, > 5000 ms).
 
+### 2026-11-28 — Test Boundary, Fast Feedback and Testing API (issue #218)
+
+- **Tool / model:** Antigravity (Gemini 4 Neon).
+- **Issue / PR:** #218.
+- **Prompt (paraphrase):** audit the client test suite against the course
+  testing standard (Clean Architecture Ch. 28 and Khorikov Ch. 2–4), clarify
+  what plays the role of domain aggregates in HexaBlock (`GameEngine`,
+  `LevelDefinition`, `PlayerProgress` — flat, never nested), and refactor the
+  client suite through the harness.
+- **Result:** moved all 70 non-UI test suites from `src/` to `test/` (plus
+  `test/architecture/eslint-boundaries.test.ts`), removed the 8 slow React
+  Native UI test files, switched Jest to `testEnvironment: 'node'` with
+  `setupFiles: []` (cutting `npm test` from ~20 s with >5000 ms timeouts to
+  3.6 s, `479 / 479` passing), enforced `TEST_BOUNDARY_PATTERN` in ESLint so
+  `src/**` and `admin/src/**` can never import `test/` or `@test/*`, added
+  `HexaMergeTestBuilder`, `LineSquareGeometry` and reusable application port
+  fakes in `test/builders/`, consolidated the 6 Hexa Merge test files into
+  `hexa-merge-game.test.ts` at the `GameEngine` session level, and updated
+  `CONTRIBUTING.md` §5, `AGENTS.md` §4 and `aaa-test`.
+- **Team modifications:** the owner verified before Gate 2 that `GameEngine`
+  is a single generic aggregate parameterized per variant (not nested
+  aggregates), notified the team before moving shared test files, and kept
+  teammates' Fit/Lines/Sort suites intact in `test/` so they can adopt
+  `test/builders/` without merge conflicts.
+- **Lessons / limitations:** removing React Native UI tests alone still left
+  `jest-expo`'s default `setupFiles` running (~8.3 s); overriding
+  `testEnvironment: 'node'` and `setupFiles: []` while keeping `jest-expo`'s
+  Babel TypeScript transform cut warm runs to 3.6 s with zero new
+  dependencies. `CONTRIBUTING.md` and `aaa-test` are shared with
+  `hexablock-backend`, so a twin update is needed there.
+
 ## 3. Critical evaluation
 
 To be completed at the end of the project.
