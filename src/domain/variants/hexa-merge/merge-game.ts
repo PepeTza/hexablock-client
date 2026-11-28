@@ -1,6 +1,7 @@
 import { Board } from '../../engine/board/board';
 import { BoardShape } from '../../engine/board/board-shape';
 import { CommandHistory } from '../../engine/commands/command-history';
+import type { EventListener } from '../../engine/events/domain-event';
 import { GameEngine } from '../../engine/game/game-engine';
 import type { HexBoard } from '../../engine/hex/hex-board';
 import type { HexCoord } from '../../engine/hex/hex-coord';
@@ -45,6 +46,7 @@ export interface MergeGameOptions {
   readonly undoAllowance?: number;
   /** Explicit starting tiles for deterministic setups; skips random placement. */
   readonly initialTiles?: readonly InitialMergeTile[];
+  readonly listeners?: readonly EventListener[];
 }
 
 /** Builds the hexagonal board of the configured radius used by Hexa Merge. */
@@ -114,5 +116,6 @@ export function startMergeGame(
     ),
     seed,
     history,
+    listeners: options.listeners,
   });
 }
