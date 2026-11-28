@@ -249,16 +249,20 @@ belong to. Do not squash other people's commits.
 ## 5. Tests
 
 - **The Test Boundary (Clean Architecture Ch. 28):** tests and the Testing API
-  live outside `src/`, under `test/` in the client (`*.test.ts`) and `test/`
-  or `*.spec.ts` in the backend. Production code under `src/` never imports
-  from `test/` or `@test/*` — enforced by ESLint.
+  live outside `src/`, under `test/` in both repositories (`*.test.ts` in the
+  client, `*.spec.ts` in the backend), mirroring the layer they test.
+  Production code under `src/` never imports from `test/` or `@test/*` —
+  enforced by ESLint.
 - **Test behavior, not implementation (Khorikov Ch. 2–4):** test domain
   aggregates / game sessions (`GameEngine`, `LevelBuilder`), application use
-  cases (`CommandService`), AOP decorators, and pure presenters. Do not write
-  isolated tests for internal value objects or fragile UI component tests.
+  cases (`CommandService`), AOP decorators, and pure presenters; in the
+  backend, use cases, domain policies and adapters against their ports. Do
+  not write isolated tests for internal value objects or fragile UI component
+  tests.
 - **Testing API (`test/builders/`):** use fluent Builders and Object Mother
-  fakes (`@test/builders/...`) so tests express scenarios in ubiquitous
-  language and stay resistant to internal refactoring.
+  fakes (`@test/builders/...` in the client, `test/builders/` in the
+  backend) so tests express scenarios in ubiquitous language and stay
+  resistant to internal refactoring.
 - Test names: `should_<expected result>_when_<condition>` in domain language.
 - Structure: **Arrange / Act / Assert** (Given / When / Then), one behaviour
   per test.
