@@ -42,6 +42,9 @@ async function renderMenu(loadSummary: LoadSummary) {
   const services: AppServices = {
     mainMenu: new MainMenuPresenter(loadSummary, MENU_VARIANTS),
     gameResult: new GameResultPresenter(),
+    createBoardProjection: () => {
+      throw new Error('This screen does not project boards');
+    },
     startLines: () => {
       throw new Error('This screen does not start sessions');
     },
