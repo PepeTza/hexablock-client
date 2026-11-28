@@ -1,9 +1,11 @@
 import type { FinishGameOutput } from '@application/use-cases/finish-game';
 import { useFocusEffect } from '@react-navigation/native';
-import type { BoardPoint } from '@adapters/presentation/board/board-projection';
-import { HexBoardProjection } from '@adapters/presentation/board/hex-board-projection';
+import type {
+  BoardPoint,
+  BoardProjectionFactory,
+} from '@adapters/presentation/board/board-projection';
 import type { FitGamePresenter } from '@adapters/presentation/hexa-fit/fit-game-presenter';
-import type { HexCoord } from '@domain/engine/hex/hex-coord';
+import type { ICoord } from '@domain/engine/geometry/coord';
 import type { PieceId } from '@domain/variants/hexa-fit/fit-state';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Fragment, useCallback, useEffect, useState } from 'react';
@@ -24,11 +26,10 @@ type PiecePalette = readonly [string, ...string[]];
 type Props = NativeStackScreenProps<RootStackParamList, 'Variant'> & {
   readonly piecePalette?: PiecePalette;
 };
-type Preview = ReturnType<FitGamePresenter['preview']>;
-type Drag = {
+type Drag<TCoord extends ICoord> = {
   readonly id: PieceId;
-  readonly anchor: HexCoord;
-  readonly preview: Preview;
+  readonly anchor: TCoord;
+  readonly preview: ReturnType<FitGamePresenter<TCoord>['preview']>;
 };
 const DEFAULT_PIECE_PALETTE: PiecePalette = [
   '#2859aa',
@@ -40,14 +41,37 @@ const DEFAULT_PIECE_PALETTE: PiecePalette = [
 ];
 const INSTRUCTIONS = 'Drag a piece or tap it, then choose a cell.';
 
+interface FitGameViewProps<TCoord extends ICoord> {
+  readonly navigation: Props['navigation'];
+  readonly piecePalette: PiecePalette;
+  readonly game: FitGamePresenter<TCoord>;
+  readonly createProjection: BoardProjectionFactory<TCoord>;
+}
+
 export function FitGameScreen({
   navigation,
   piecePalette = DEFAULT_PIECE_PALETTE,
 }: Props) {
+  const { startFit, createBoardProjection } = useServices();
+  const [game] = useState(startFit);
+  return (
+    <FitGameView
+      navigation={navigation}
+      piecePalette={piecePalette}
+      game={game}
+      createProjection={createBoardProjection}
+    />
+  );
+}
+
+function FitGameView<TCoord extends ICoord>({
+  navigation,
+  piecePalette,
+  game,
+  createProjection,
+}: FitGameViewProps<TCoord>) {
   const pieceColor = (id: PieceId) =>
     piecePalette[id % piecePalette.length] ?? piecePalette[0];
-  const { startFit } = useServices();
-  const [game] = useState(startFit);
   const [view, setView] = useState(() => game.view);
   const [result, setResult] = useState<FinishGameOutput | null>(null);
   useFocusEffect(
@@ -63,16 +87,13 @@ export function FitGameScreen({
     }, [game.levelId, navigation, result]),
   );
   const [selected, setSelected] = useState<PieceId | null>(null);
-  const [drag, setDrag] = useState<Drag | null>(null);
+  const [drag, setDrag] = useState<Drag<TCoord> | null>(null);
   const [message, setMessage] = useState(INSTRUCTIONS);
   const { width, height } = useWindowDimensions();
   const size = Math.max(16, Math.min(38, (width - 24) / 7, (height - 240) / 7));
   const edge = Math.min(width - 24, 440);
   const trayTop = size * 3;
-  const projection = new HexBoardProjection(
-    { x: edge / 2, y: size * 1.35 },
-    size,
-  );
+  const projection = createProjection({ x: edge / 2, y: size * 1.35 }, size);
   const selectedPlacement = view.placed.find(({ id }) => id === selected);
 
   function run(action: () => string | null | void, keepSelection = false) {
@@ -118,7 +139,7 @@ export function FitGameScreen({
     }
     const anchor = projection.coordAt(point);
     setDrag((previous) =>
-      previous?.id === id && previous.anchor.equals(anchor)
+      previous?.id === id && previous.anchor.key() === anchor.key()
         ? previous
         : { id, anchor, preview: game.preview(id, anchor) },
     );
@@ -163,8 +184,8 @@ export function FitGameScreen({
           const origin = placement
             ? projection.centerOf(placement.anchor)
             : center;
-          const highlighted = drag?.preview.cells.some((cell) =>
-            cell.equals(coord),
+          const highlighted = drag?.preview.cells.some(
+            (cell) => cell.key() === coord.key(),
           );
           const color = highlighted
             ? drag?.preview.valid
@@ -203,7 +224,7 @@ export function FitGameScreen({
                 }
                 onCancel={() => setDrag(null)}
               >
-                {placement?.anchor.equals(coord) && (
+                {placement?.anchor.key() === coord.key() && (
                   <View pointerEvents="none" style={styles.boardNumber}>
                     <Text accessible={false} style={styles.cellNumber}>
                       {placement.id + 1}
@@ -221,7 +242,7 @@ export function FitGameScreen({
           const slotWidth = edge / game.pieceCount;
           const center = { x: slotWidth * (id + 0.5), y: size * 5 };
           const pieceSize = size * 0.69;
-          const trayProjection = new HexBoardProjection(center, pieceSize);
+          const trayProjection = createProjection(center, pieceSize);
           return (
             <Fragment key={id}>
               {cells.map((cell) => (
@@ -299,7 +320,11 @@ export function FitGameScreen({
   );
 }
 
-function FitClock({ game }: { readonly game: FitGamePresenter }) {
+function FitClock<TCoord extends ICoord>({
+  game,
+}: {
+  readonly game: FitGamePresenter<TCoord>;
+}) {
   const [seconds, setSeconds] = useState(() =>
     Math.floor(game.durationMs / 1000),
   );

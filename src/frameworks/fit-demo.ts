@@ -1,3 +1,4 @@
+import type { LevelDefinition } from '@domain/content/level-definition';
 import { BoardShape } from '@domain/engine/board/board-shape';
 import type { IVariantFactory } from '@domain/engine/game/variant-factory';
 import { HexCoord } from '@domain/engine/hex/hex-coord';
@@ -8,6 +9,16 @@ import { FitProgressModel } from '@domain/variants/hexa-fit/fit-progress-model';
 
 /** Temporary offline fixture until published levels can be loaded. */
 export const FIT_DEMO_ID = 'fit-demo';
+
+/** Bundled demo level entry so Level Selection can launch the Fit demo. */
+export const FIT_DEMO_LEVEL: LevelDefinition = {
+  id: FIT_DEMO_ID,
+  gameId: 'hexa-fit',
+  order: 1,
+  schemaVersion: 1,
+  publishedAt: '2026-11-24T00:00:00Z',
+  spec: {},
+};
 
 function createFitDemo() {
   const catalog = loadHexPieceCatalog();

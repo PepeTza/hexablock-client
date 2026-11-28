@@ -1,24 +1,30 @@
 import type { Either } from '@application/common/either';
 import type { FinishGameOutput } from '@application/use-cases/finish-game';
 import type { AsyncCommandService } from '@application/use-cases/use-case';
+import type { GameEngine } from '@domain/engine/game/game-engine';
+import type { ICoord } from '@domain/engine/geometry/coord';
 import type { HexCoord } from '@domain/engine/hex/hex-coord';
 import type { FinishedGameSummary } from '@domain/progress/progress-model';
-import {
-  type startFitGame,
-  summarizeFitVictory,
-} from '@domain/variants/hexa-fit/fit-game';
+import { summarizeFitVictory } from '@domain/variants/hexa-fit/fit-game';
 import type { FitMove } from '@domain/variants/hexa-fit/fit-rules';
-import type { PieceId } from '@domain/variants/hexa-fit/fit-state';
+import type { FitState, PieceId } from '@domain/variants/hexa-fit/fit-state';
 
-/** Presenter: exposes Fit board, tray and session actions for the mobile screen. */
-export class FitGamePresenter {
+export type FitGameSession<TCoord extends ICoord> = GameEngine<
+  PieceId,
+  TCoord,
+  FitMove<TCoord>,
+  FitState<TCoord>
+>;
+
+/** Presenter: exposes Fit board, tray and session actions independently of board geometry. */
+export class FitGamePresenter<TCoord extends ICoord = HexCoord> {
   readonly pieceCount: number;
   private readonly startedAt: number;
   private wonAt: number | null = null;
   private result: Promise<Either<Error, FinishGameOutput>> | null = null;
 
   constructor(
-    private readonly game: ReturnType<typeof startFitGame>,
+    private readonly game: FitGameSession<TCoord>,
     readonly levelId: string,
     private readonly finishGame: AsyncCommandService<
       FinishedGameSummary,
@@ -52,7 +58,7 @@ export class FitGamePresenter {
     return Math.max(0, (this.wonAt ?? this.now()) - this.startedAt);
   }
 
-  preview(pieceId: PieceId, anchor: HexCoord) {
+  preview(pieceId: PieceId, anchor: TCoord) {
     const pieces = [
       ...this.game.state.pendingPieces,
       ...this.game.state.placedPieces,
@@ -65,7 +71,7 @@ export class FitGamePresenter {
     };
   }
 
-  place(pieceId: PieceId, anchor: HexCoord): string | null {
+  place(pieceId: PieceId, anchor: TCoord): string | null {
     return this.apply(this.placement(pieceId, anchor));
   }
 
@@ -99,14 +105,14 @@ export class FitGamePresenter {
     return this.result;
   }
 
-  private placement(pieceId: PieceId, anchor: HexCoord): FitMove<HexCoord> {
+  private placement(pieceId: PieceId, anchor: TCoord): FitMove<TCoord> {
     const placed = this.game.state.placedPieces.some(
       ({ id }) => id === pieceId,
     );
     return { kind: placed ? 'relocate' : 'place', pieceId, anchor };
   }
 
-  private apply(move: FitMove<HexCoord>): string | null {
+  private apply(move: FitMove<TCoord>): string | null {
     const result = this.game.applyMove(move);
     if (result.kind === 'rejected') return result.reason;
     this.game.resolutionDone();
