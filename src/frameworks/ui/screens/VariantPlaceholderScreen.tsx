@@ -6,6 +6,7 @@ import type { RootStackParamList } from '../navigation/routes';
 
 import { FitGameScreen } from './FitGameScreen';
 import { LinesGameScreen } from './LinesGameScreen';
+import { MergeGameScreen } from './MergeGameScreen';
 
 type VariantPlaceholderScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -25,6 +26,9 @@ export function VariantPlaceholderScreen({
   }
   if (route.params.gameId === 'hexa-fit') {
     return <FitGameScreen navigation={navigation} route={route} />;
+  }
+  if (route.params.gameId === 'hexa-merge') {
+    return <MergeGameScreen navigation={navigation} route={route} />;
   }
   return (
     <View style={styles.container}>

@@ -51,6 +51,9 @@ async function renderMenu(loadSummary: LoadSummary) {
     startLines: () => {
       throw new Error('This screen does not start sessions');
     },
+    startMerge: () => {
+      throw new Error('This screen does not start sessions');
+    },
   };
   await render(
     <ServicesProvider services={services}>

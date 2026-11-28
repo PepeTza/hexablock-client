@@ -4,6 +4,7 @@ import { HexBoardProjection } from '@adapters/presentation/board/hex-board-proje
 import type { ISeedConfigRepository } from '@application/ports/seed-config-repository';
 import { FitGamePresenter } from '@adapters/presentation/hexa-fit/fit-game-presenter';
 import { LinesGamePresenter } from '@adapters/presentation/hexa-lines/lines-game-presenter';
+import { MergeGamePresenter } from '@adapters/presentation/hexa-merge/merge-game-presenter';
 import { AsyncExceptionHandlingCommandServiceDecorator } from '@application/aspects/exception-handling-decorator';
 import { AsyncLoggingCommandServiceDecorator } from '@application/aspects/logging-use-case-decorator';
 import { FinishGameUseCase } from '@application/use-cases/finish-game';
@@ -11,6 +12,8 @@ import { VariantFactoryRegistry } from '@domain/engine/game/variant-factory';
 import type { HexCoord } from '@domain/engine/hex/hex-coord';
 import { createLinesGame } from '@domain/variants/hexa-lines/lines-game';
 import { LinesVariantFactory } from '@domain/variants/hexa-lines/lines-variant-factory';
+import { startMergeGame } from '@domain/variants/hexa-merge/merge-game';
+import { MergeVariantFactory } from '@domain/variants/hexa-merge/merge-variant-factory';
 import { InMemoryProgressRepository } from '@adapters/persistence/in-memory-progress-repository';
 import { GameResultPresenter } from '@adapters/presentation/game-result/game-result-presenter';
 import { MainMenuPresenter } from '@adapters/presentation/main-menu/main-menu-presenter';
@@ -35,7 +38,9 @@ export interface AppServices {
   readonly createBoardProjection: BoardProjectionFactory<HexCoord>;
   readonly startFit: () => FitGamePresenter<HexCoord>;
   readonly startLines: (seed?: number) => LinesGamePresenter<HexCoord>;
+  readonly startMerge: (seed?: number) => MergeGamePresenter<HexCoord>;
   readonly loadLinesSeed?: () => Promise<number | undefined>;
+  readonly loadMergeSeed?: () => Promise<number | undefined>;
 }
 
 /** Optional overrides used in integration and navigation tests. */
@@ -66,7 +71,9 @@ export function createAppServices(
   const gameResult = new GameResultPresenter();
   const factories = new VariantFactoryRegistry();
   const linesFactory = new LinesVariantFactory();
+  const mergeFactory = new MergeVariantFactory();
   factories.register(linesFactory.gameId, linesFactory);
+  factories.register(mergeFactory.gameId, mergeFactory);
   factories.register(FIT_DEMO_FACTORY.gameId, FIT_DEMO_FACTORY);
   const logger = console;
   const finishGame = new AsyncLoggingCommandServiceDecorator(
@@ -97,6 +104,8 @@ export function createAppServices(
   ) => new HexBoardProjection(origin, size);
   const startLines = (seed = Date.now() >>> 0) =>
     new LinesGamePresenter(createLinesGame(seed), finishGame, Date.now);
+  const startMerge = (seed = Date.now() >>> 0) =>
+    new MergeGamePresenter(startMergeGame(seed), finishGame, Date.now);
   const startFit = () =>
     new FitGamePresenter(
       FIT_DEMO_FACTORY.createEngine(),
@@ -110,14 +119,22 @@ export function createAppServices(
         return config?.mode === 'fixed' ? config.value : undefined;
       }
     : undefined;
+  const loadMergeSeed = seedConfigs
+    ? async () => {
+        const config = await seedConfigs.findSeedConfig('hexa-merge');
+        return config?.mode === 'fixed' ? config.value : undefined;
+      }
+    : undefined;
   return {
     mainMenu,
     gameResult,
     loadLevels,
     createBoardProjection,
     startLines,
+    startMerge,
     startFit,
     loadLinesSeed,
+    loadMergeSeed,
   };
 }
 
