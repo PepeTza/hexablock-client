@@ -14,7 +14,7 @@ import type {
 export class ExceptionHandlingCommandServiceDecorator<
   TCommand,
   TResult = void,
-> implements CommandService<TCommand, TResult, Error> {
+> implements CommandService<TCommand, TResult> {
   constructor(private readonly decorate: CommandService<TCommand, TResult>) {}
 
   execute(command: TCommand): Either<Error, TResult> {
@@ -34,7 +34,7 @@ export class ExceptionHandlingCommandServiceDecorator<
 export class AsyncExceptionHandlingCommandServiceDecorator<
   TCommand,
   TResult = void,
-> implements AsyncCommandService<TCommand, TResult, Error> {
+> implements AsyncCommandService<TCommand, TResult> {
   constructor(
     private readonly decorate: AsyncCommandService<TCommand, TResult>,
   ) {}

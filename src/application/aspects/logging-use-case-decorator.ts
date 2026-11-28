@@ -33,17 +33,16 @@ export type UseCaseLogDescription<TCommand, TResult> = CommandLogDescription<
 export class LoggingCommandServiceDecorator<
   TCommand,
   TResult = void,
-  TError extends Error = Error,
-> implements CommandService<TCommand, TResult, TError> {
+> implements CommandService<TCommand, TResult> {
   constructor(
     private readonly name: string,
-    private readonly decorate: CommandService<TCommand, TResult, TError>,
+    private readonly decorate: CommandService<TCommand, TResult>,
     private readonly logger: ILogger,
     private readonly clock: IClock,
     private readonly describe?: CommandLogDescription<TCommand, TResult>,
   ) {}
 
-  execute(command: TCommand): Either<TError, TResult> {
+  execute(command: TCommand): Either<Error, TResult> {
     const startedAt = this.clock.now();
     try {
       const outcome = this.decorate.execute(command);
@@ -79,17 +78,16 @@ export class LoggingCommandServiceDecorator<
 export class AsyncLoggingCommandServiceDecorator<
   TCommand,
   TResult = void,
-  TError extends Error = Error,
-> implements AsyncCommandService<TCommand, TResult, TError> {
+> implements AsyncCommandService<TCommand, TResult> {
   constructor(
     private readonly name: string,
-    private readonly decorate: AsyncCommandService<TCommand, TResult, TError>,
+    private readonly decorate: AsyncCommandService<TCommand, TResult>,
     private readonly logger: ILogger,
     private readonly clock: IClock,
     private readonly describe?: CommandLogDescription<TCommand, TResult>,
   ) {}
 
-  async execute(command: TCommand): Promise<Either<TError, TResult>> {
+  async execute(command: TCommand): Promise<Either<Error, TResult>> {
     const startedAt = this.clock.now();
     try {
       const outcome = await this.decorate.execute(command);
@@ -119,15 +117,15 @@ export class AsyncLoggingCommandServiceDecorator<
 
 export { LoggingCommandServiceDecorator as LoggingUseCaseDecorator };
 
-function recordOutcome<TCommand, TResult, TError extends Error>(
+function recordOutcome<TCommand, TResult>(
   name: string,
   command: TCommand,
-  outcome: Either<TError, TResult>,
+  outcome: Either<Error, TResult>,
   startedAt: number,
   logger: ILogger,
   clock: IClock,
   describe?: CommandLogDescription<TCommand, TResult>,
-): Either<TError, TResult> {
+): Either<Error, TResult> {
   if (outcome.isRight()) {
     logSuccess(
       name,

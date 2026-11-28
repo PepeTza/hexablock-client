@@ -19,26 +19,35 @@ export interface SaveSeedConfigInput {
   readonly config: SeedConfig;
 }
 
-/** Read the configured mode before editing a game or a Sort level (CU-18). */
+/**
+ * Read the configured mode before editing a game or a Sort level (CU-18).
+ * `execute` declares `SeedSettingsError`, narrower than the `Error` of
+ * `AsyncCommandService`, so callers holding this class keep its `code` (D-23).
+ */
 export class LoadSeedConfigsUseCase implements AsyncCommandService<
   LoadSeedConfigsInput,
-  readonly SeedSettingsEntry[],
-  SeedSettingsError
+  readonly SeedSettingsEntry[]
 > {
   constructor(
     private readonly repository: Pick<IAdminSeedConfigRepository, 'read'>,
   ) {}
 
-  execute({ gameId }: LoadSeedConfigsInput) {
+  execute({
+    gameId,
+  }: LoadSeedConfigsInput): Promise<
+    Either<SeedSettingsError, readonly SeedSettingsEntry[]>
+  > {
     return this.repository.read(gameId);
   }
 }
 
-/** Validate the requested configuration before passing it to the admin port (CU-18). */
+/**
+ * Validate the requested configuration before passing it to the admin port
+ * (CU-18). Like `LoadSeedConfigsUseCase`, `execute` keeps `SeedSettingsError`.
+ */
 export class SaveSeedConfigUseCase implements AsyncCommandService<
   SaveSeedConfigInput,
-  void,
-  SeedSettingsError
+  void
 > {
   constructor(
     private readonly repository: Pick<IAdminSeedConfigRepository, 'save'>,
