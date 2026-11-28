@@ -196,7 +196,7 @@ describe('RootNavigator', () => {
     expect(await screen.findByText('Settings are coming soon.')).toBeTruthy();
   });
 
-  it('should_open_variant_placeholder_when_an_unimplemented_variant_is_selected', async () => {
+  it('should_open_merge_game_screen_when_hexa_merge_is_selected_from_menu', async () => {
     // Arrange
     await render(
       <ServicesProvider services={createAppServices()}>
@@ -213,7 +213,37 @@ describe('RootNavigator', () => {
     );
 
     // Assert
-    expect(await screen.findByText('Hexa Merge is coming soon.')).toBeTruthy();
+    expect(await screen.findByText('Score: 0')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  });
+
+  it('should_open_variant_placeholder_when_an_unimplemented_variant_is_selected', async () => {
+    // Arrange
+    const services = createAppServices({
+      levels: {
+        findByGame: () =>
+          Promise.resolve([{ id: 'sort-01', gameId: 'hexa-sort', order: 1 }]),
+      },
+    });
+    await render(
+      <ServicesProvider services={services}>
+        <RootNavigator />
+      </ServicesProvider>,
+    );
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Switch to list view' }),
+    );
+
+    // Act
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Hexa Sort' }),
+    );
+    await fireEvent.press(
+      await screen.findByRole('button', { name: 'Level 1' }),
+    );
+
+    // Assert
+    expect(await screen.findByText('Hexa Sort is coming soon.')).toBeTruthy();
   });
 
   it('should_fit_the_touch_targets_when_the_lines_tray_has_four_slots', async () => {
