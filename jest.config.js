@@ -13,23 +13,27 @@ const coverageThreshold = Object.fromEntries(
   ).map((layer) => [`./${layer}/`, MINIMUM]),
 );
 
-// Same path aliases as tsconfig.json (`@domain/*`, `@application/*`...).
+// Same path aliases as tsconfig.json (`@domain/*`, `@application/*`..., `@test/*`).
 const LAYERS = ['domain', 'application', 'adapters', 'frameworks'];
-const moduleNameMapper = Object.fromEntries(
-  LAYERS.map((layer) => [`^@${layer}/(.*)$`, `<rootDir>/src/${layer}/$1`]),
-);
+const moduleNameMapper = {
+  ...Object.fromEntries(
+    LAYERS.map((layer) => [`^@${layer}/(.*)$`, `<rootDir>/src/${layer}/$1`]),
+  ),
+  '^@test/(.*)$': '<rootDir>/test/$1',
+};
 
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-expo',
+  testEnvironment: 'node',
+  // Skip React Native runtime mocks: tests target pure domain, application and
+  // presentation logic (no UI component tests), keeping feedback fast.
+  setupFiles: [],
+  roots: ['<rootDir>/test'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}'],
   coverageThreshold,
   moduleNameMapper,
   // `admin/` is a separate web app tested with Vitest (D-18).
-  testMatch: [
-    '**/__tests__/**/*.?([mc])[jt]s?(x)',
-    '**/?(*.)+(spec|test).?([mc])[jt]s?(x)',
-    '!**/admin/**',
-  ],
+  testMatch: ['<rootDir>/test/**/*.test.ts'],
   modulePathIgnorePatterns: ['<rootDir>/admin/'],
 };

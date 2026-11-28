@@ -39,10 +39,19 @@ function outerLayersPattern(outerLayers, layer) {
 
 // `no-restricted-imports` has no "any external package" option, so inner
 // layers forbid every specifier that is not relative (`./`, `../`) and not a
-// layer alias. The alias of an outer layer (`@frameworks/...`) is left to
-// the layer pattern above, so it is reported once, with its own message.
+// layer alias. The alias of an outer layer (`@frameworks/...`) or `@test/...`
+// is left to its dedicated pattern below, so it is reported once with its own
+// message.
 const EXTERNAL_PACKAGE_REGEX =
-  '^(?!\\.{1,2}/|@(domain|application|adapters|frameworks)/)';
+  '^(?!\\.{1,2}/|@(domain|application|adapters|frameworks|test)/)';
+
+// Clean Architecture Ch. 28 (The Test Boundary): production code under src/
+// never imports test suites or the Testing API under test/.
+const TEST_BOUNDARY_PATTERN = {
+  regex: '^(@test|(\\.\\./)+test)(/|$)',
+  message:
+    'Production code cannot import from test/ or @test/*: tests are an external component (The Test Boundary, Clean Architecture Ch. 28).',
+};
 
 const DOMAIN_EXTERNAL_PACKAGE_PATTERN = {
   regex: EXTERNAL_PACKAGE_REGEX,
@@ -57,6 +66,7 @@ const APPLICATION_EXTERNAL_PACKAGE_PATTERN = {
 };
 
 const DOMAIN_PATTERNS = [
+  TEST_BOUNDARY_PATTERN,
   DOMAIN_EXTERNAL_PACKAGE_PATTERN,
   outerLayersPattern(['application', 'adapters', 'frameworks'], 'domain'),
 ];
@@ -118,22 +128,29 @@ function layerBoundaries(variants) {
     { files: [`src/domain/${FILES}`], rules: restrict(DOMAIN_PATTERNS) },
     {
       files: [`src/domain/engine/${FILES}`],
-      ignores: [`src/domain/engine/hex/${FILES}`, '**/*.test.{ts,tsx}'],
+      ignores: [`src/domain/engine/hex/${FILES}`],
       rules: restrict([...DOMAIN_PATTERNS, CONCRETE_GEOMETRY_PATTERN]),
     },
     ...variantBlocks,
     {
       files: [`src/application/${FILES}`],
       rules: restrict([
+        TEST_BOUNDARY_PATTERN,
         APPLICATION_EXTERNAL_PACKAGE_PATTERN,
         outerLayersPattern(['adapters', 'frameworks'], 'application'),
       ]),
     },
     {
       files: [`src/adapters/${FILES}`],
-      rules: restrict([outerLayersPattern(['frameworks'], 'adapters')]),
+      rules: restrict([
+        TEST_BOUNDARY_PATTERN,
+        outerLayersPattern(['frameworks'], 'adapters'),
+      ]),
     },
-    // src/frameworks has no restriction: it is the outermost layer.
+    {
+      files: [`src/frameworks/${FILES}`],
+      rules: restrict([TEST_BOUNDARY_PATTERN]),
+    },
   ];
 }
 
