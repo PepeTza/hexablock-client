@@ -118,6 +118,7 @@ function MergeGameView<TCoord extends ICoord>({
 
   const handleSwipe = useCallback(
     (dx: number, dy: number) => {
+      if (game.view.isOver) return;
       const direction = resolveHexSwipeDirection(dx, dy);
       if (direction === null) return;
       if (!game.slide(direction)) {
@@ -162,11 +163,30 @@ function MergeGameView<TCoord extends ICoord>({
   );
 
   const { width, height } = useWindowDimensions();
-  const edge = Math.max(120, Math.min(width - 24, (height - 240) * 0.9, 440));
-  const size = edge / 9.2;
-  const boardHeight = size * 8.6;
+  const unitProjection = createProjection({ x: 0, y: 0 }, 1);
+  const unitPoints = view.board.map(({ coord }) =>
+    unitProjection.centerOf(coord),
+  );
+  const minX =
+    unitPoints.length > 0 ? Math.min(...unitPoints.map((p) => p.x)) : 0;
+  const maxX =
+    unitPoints.length > 0 ? Math.max(...unitPoints.map((p) => p.x)) : 0;
+  const minY =
+    unitPoints.length > 0 ? Math.min(...unitPoints.map((p) => p.y)) : 0;
+  const maxY =
+    unitPoints.length > 0 ? Math.max(...unitPoints.map((p) => p.y)) : 0;
+  const spanX = Math.max(2, maxX - minX + 2);
+  const spanY = Math.max(2, maxY - minY + 2);
+  const maxWidth = Math.max(120, Math.min(width - 24, 440));
+  const maxHeight = Math.max(120, height - 260);
+  const size = Math.min(maxWidth / spanX, maxHeight / spanY);
+  const boardWidth = spanX * size;
+  const boardHeight = spanY * size;
   const projection = createProjection(
-    { x: edge / 2, y: boardHeight / 2 },
+    {
+      x: boardWidth / 2 - ((minX + maxX) / 2) * size,
+      y: boardHeight / 2 - ((minY + maxY) / 2) * size,
+    },
     size,
   );
 
@@ -186,7 +206,7 @@ function MergeGameView<TCoord extends ICoord>({
       <View
         testID="merge-board"
         {...pan.panHandlers}
-        style={{ width: edge, height: boardHeight }}
+        style={{ width: boardWidth, height: boardHeight }}
       >
         {view.board.map(({ coord, value }) => {
           const center = projection.centerOf(coord);

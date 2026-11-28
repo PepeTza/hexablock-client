@@ -34,6 +34,7 @@ export interface MergeGameViewModel<TCoord extends ICoord> {
   readonly moveCount: number;
   readonly targetReached: boolean;
   readonly canUndo: boolean;
+  readonly isOver: boolean;
   readonly seed: number | null;
 }
 
@@ -54,7 +55,7 @@ export class MergeGamePresenter<TCoord extends ICoord = HexCoord> {
   }
 
   get view(): MergeGameViewModel<TCoord> {
-    const { board, state, canUndo, seed } = this.game;
+    const { board, state, canUndo, outcome, seed } = this.game;
     return {
       board: board.shape.coords.map((coord) => ({
         coord,
@@ -64,6 +65,7 @@ export class MergeGamePresenter<TCoord extends ICoord = HexCoord> {
       moveCount: state.moveCount,
       targetReached: state.targetReached,
       canUndo,
+      isOver: outcome !== null,
       seed,
     };
   }

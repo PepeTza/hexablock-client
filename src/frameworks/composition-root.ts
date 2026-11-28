@@ -113,18 +113,15 @@ export function createAppServices(
       finishGame,
       () => performance.now(),
     );
-  const loadLinesSeed = seedConfigs
-    ? async () => {
-        const config = await seedConfigs.findSeedConfig('hexa-lines');
-        return config?.mode === 'fixed' ? config.value : undefined;
-      }
-    : undefined;
-  const loadMergeSeed = seedConfigs
-    ? async () => {
-        const config = await seedConfigs.findSeedConfig('hexa-merge');
-        return config?.mode === 'fixed' ? config.value : undefined;
-      }
-    : undefined;
+  const loadSeedFor = (gameId: 'hexa-lines' | 'hexa-merge') =>
+    seedConfigs
+      ? async () => {
+          const config = await seedConfigs.findSeedConfig(gameId);
+          return config?.mode === 'fixed' ? config.value : undefined;
+        }
+      : undefined;
+  const loadLinesSeed = loadSeedFor('hexa-lines');
+  const loadMergeSeed = loadSeedFor('hexa-merge');
   return {
     mainMenu,
     gameResult,
