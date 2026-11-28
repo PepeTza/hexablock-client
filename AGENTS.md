@@ -104,9 +104,8 @@ Every task follows [`harness/`](./harness/README.md). In short:
   `as const`) or non-null assertions (`value!`) in production code — enforced
   by ESLint. Use generics, polymorphism, or narrowing (`typeof`, explicit
   `undefined` checks) instead.
-- Use `instanceof` in production code — enforced by ESLint (existing legacy
-  uses tracked in `#172`); use polymorphism, generics, or discriminated unions
-  instead.
+- Use `instanceof` in production code — enforced by ESLint; use
+  polymorphism, generics, or discriminated unions instead.
 - Put business rules in UI components, screens or HTTP controllers.
 
 ## 4. Code rules (summary)

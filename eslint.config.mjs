@@ -68,21 +68,6 @@ export default tseslint.config(
       ],
     },
   },
-  {
-    // Temporary legacy exceptions tracked in #172 — remove each file as it is migrated.
-    files: [
-      'src/domain/engine/hex/hex-coord.ts',
-      'src/domain/engine/game/game-engine.ts',
-      'src/application/aspects/exception-handling-decorator.ts',
-      'src/application/aspects/logging-use-case-decorator.ts',
-      'src/application/use-cases/finish-game.ts',
-      'src/application/use-cases/load-levels.ts',
-      'src/application/use-cases/load-progress-summary.ts',
-    ],
-    rules: {
-      'no-restricted-syntax': 'off',
-    },
-  },
   ...layerBoundaries(discoverVariants(VARIANTS_DIR)),
   // Must stay last: turns off rules that conflict with Prettier.
   prettier,
