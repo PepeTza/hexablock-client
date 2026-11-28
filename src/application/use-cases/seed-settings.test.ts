@@ -106,3 +106,21 @@ it('should_return_the_read_configurations_when_selecting_a_variant', async () =>
   expect(repo.read).toHaveBeenCalledWith('hexa-sort');
   expect(result).toMatchObject({ kind: 'right', value: entries });
 });
+
+it('should_expose_the_error_code_when_save_is_called_on_the_concrete_use_case', async () => {
+  // Arrange
+  const useCase = new SaveSeedConfigUseCase(repository());
+
+  // Act
+  const result = await useCase.execute({
+    target: { gameId: 'hexa-sort', levelId: ' ' },
+    config: { mode: 'random' },
+  });
+
+  // Assert: reading `code` with its type fails `tsc` if the class widens to `Error`.
+  const code = result.fold(
+    (error) => error.code,
+    () => null,
+  );
+  expect(code).toBe('invalid-input');
+});

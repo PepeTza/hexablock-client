@@ -6,7 +6,6 @@ import type {
 import type {
   SeedGameId,
   SeedSettingsEntry,
-  SeedSettingsError,
 } from '@application/ports/admin-seed-config-repository';
 import type { SeedMode } from '@domain/content/seed-config';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -14,14 +13,9 @@ import { useEffect, useState, type FormEvent } from 'react';
 export interface SeedSettingsServices {
   readonly load: AsyncCommandService<
     LoadSeedConfigsInput,
-    readonly SeedSettingsEntry[],
-    SeedSettingsError
+    readonly SeedSettingsEntry[]
   >;
-  readonly save: AsyncCommandService<
-    SaveSeedConfigInput,
-    void,
-    SeedSettingsError
-  >;
+  readonly save: AsyncCommandService<SaveSeedConfigInput, void>;
 }
 
 export function SeedSettings({ load, save }: SeedSettingsServices) {
